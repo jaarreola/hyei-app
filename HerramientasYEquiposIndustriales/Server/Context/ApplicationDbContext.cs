@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HerramientasYEquiposIndustriales.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,7 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         {
 
         }
+
+        public DbSet<Puesto> Puestos { get; set; }
     }
 }
