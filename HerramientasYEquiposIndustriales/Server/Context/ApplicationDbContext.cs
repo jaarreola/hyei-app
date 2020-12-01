@@ -16,6 +16,17 @@ namespace HerramientasYEquiposIndustriales.Server.Context
 
         }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Empleado>()
+                .HasIndex(e => e.NumeroEmpleado)
+                .IsUnique();
+        }
+
         public DbSet<Puesto> Puestos { get; set; }
+        public DbSet<Empleado> Empleados { get; set; }
+
     }
 }
