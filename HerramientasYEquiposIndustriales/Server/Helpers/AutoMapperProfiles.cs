@@ -14,6 +14,9 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
         {
             CreateMap<Puesto, PuestoDTO>().ReverseMap();
             CreateMap<Puesto, PuestoCreacionDTO>().ReverseMap();
+
+            CreateMap<Empleado, EmpleadoDTO>().ReverseMap();
+            CreateMap<Empleado, EmpleadoCreacionDTO>().ReverseMap();
         }
     }
 }
