@@ -30,18 +30,21 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(200)")
-                        .HasMaxLength(200);
+                        .HasColumnType("nvarchar(150)")
+                        .HasMaxLength(150);
 
-                    b.Property<DateTime>("FechaBaja")
+                    b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaRegistro")
+                    b.Property<DateTime?>("FechaRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaUltimaModificacion")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasColumnType("nvarchar(80)")
+                        .HasMaxLength(80);
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
@@ -78,7 +81,7 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaUltimaModificacion")
+                    b.Property<DateTime?>("FechaUltimaModificacion")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")

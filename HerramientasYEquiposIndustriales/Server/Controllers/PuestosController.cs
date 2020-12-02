@@ -50,14 +50,13 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             var puesto = mapper.Map<Puesto>(puestoCreacionDTO);
             puesto.FechaRegistro = DateTime.Now;
-            puesto.FechaUltimaModificacion = DateTime.Now;
 
             context.Puestos.Add(puesto);
             await context.SaveChangesAsync();
 
             var dto = mapper.Map<PuestoDTO>(puesto);
 
-            return new CreatedAtRouteResult("ObtenerPuesto", new { id = puesto.PuestoId }, puesto);
+            return new CreatedAtRouteResult("ObtenerPuesto", new { id = puesto.PuestoId }, dto);
 
         }
 

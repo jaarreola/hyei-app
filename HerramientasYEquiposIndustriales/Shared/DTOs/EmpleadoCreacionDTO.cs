@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace HerramientasYEquiposIndustriales.Shared.Models
+namespace HerramientasYEquiposIndustriales.Shared.DTOs
 {
-    public class Empleado
+    public class EmpleadoCreacionDTO
     {
-        public int EmpleadoId { get; set; }
         [Required]
         [StringLength(10)]
         public string NumeroEmpleado { get; set; }
@@ -19,10 +18,5 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public string Telefono { get; set; }
         public int PuestoId { get; set; }
         public bool Activo { get; set; }
-        public DateTime? FechaRegistro { get; set; }
-        public DateTime? FechaBaja { get; set; }
-        public DateTime? FechaUltimaModificacion { get; set; }
-
-        public virtual Puesto Puesto { get; set; }
     }
 }

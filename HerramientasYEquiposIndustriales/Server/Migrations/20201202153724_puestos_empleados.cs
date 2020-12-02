@@ -3,10 +3,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace HerramientasYEquiposIndustriales.Server.Migrations
 {
-    public partial class empleados : Migration
+    public partial class puestos_empleados : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Puestos",
+                columns: table => new
+                {
+                    PuestoId = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(maxLength: 80, nullable: false),
+                    EsAdministrador = table.Column<bool>(nullable: false),
+                    FechaRegistro = table.Column<DateTime>(nullable: false),
+                    FechaUltimaModificacion = table.Column<DateTime>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Puestos", x => x.PuestoId);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Empleados",
                 columns: table => new
@@ -14,13 +30,14 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     EmpleadoId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     NumeroEmpleado = table.Column<string>(maxLength: 10, nullable: false),
-                    Nombre = table.Column<string>(maxLength: 100, nullable: true),
-                    Direccion = table.Column<string>(maxLength: 200, nullable: true),
+                    Nombre = table.Column<string>(maxLength: 80, nullable: true),
+                    Direccion = table.Column<string>(maxLength: 150, nullable: true),
                     Telefono = table.Column<string>(maxLength: 10, nullable: true),
                     PuestoId = table.Column<int>(nullable: false),
                     Activo = table.Column<bool>(nullable: false),
-                    FechaRegistro = table.Column<DateTime>(nullable: false),
-                    FechaBaja = table.Column<DateTime>(nullable: false)
+                    FechaRegistro = table.Column<DateTime>(nullable: true),
+                    FechaBaja = table.Column<DateTime>(nullable: true),
+                    FechaUltimaModificacion = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -49,6 +66,9 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Empleados");
+
+            migrationBuilder.DropTable(
+                name: "Puestos");
         }
     }
 }

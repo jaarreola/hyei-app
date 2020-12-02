@@ -13,6 +13,6 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public string Nombre { get; set; }
         public bool EsAdministrador { get; set; }
         public DateTime FechaRegistro { get; set; }
-        public DateTime FechaUltimaModificacion { get; set; }
+        public DateTime? FechaUltimaModificacion { get; set; }
     }
 }

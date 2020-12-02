@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HerramientasYEquiposIndustriales.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201130063043_empleados")]
-    partial class empleados
+    [Migration("20201202153724_puestos_empleados")]
+    partial class puestos_empleados
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -32,18 +32,21 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(200)")
-                        .HasMaxLength(200);
+                        .HasColumnType("nvarchar(150)")
+                        .HasMaxLength(150);
 
-                    b.Property<DateTime>("FechaBaja")
+                    b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaRegistro")
+                    b.Property<DateTime?>("FechaRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaUltimaModificacion")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasColumnType("nvarchar(80)")
+                        .HasMaxLength(80);
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
@@ -80,7 +83,7 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaUltimaModificacion")
+                    b.Property<DateTime?>("FechaUltimaModificacion")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
