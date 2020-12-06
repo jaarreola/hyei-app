@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using HerramientasYEquiposIndustriales.Server.Constants;
 using HerramientasYEquiposIndustriales.Server.Context;
 using HerramientasYEquiposIndustriales.Shared.DTOs;
 using HerramientasYEquiposIndustriales.Shared.Models;
@@ -28,71 +29,110 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PuestoDTO>>> GetPuestos()
         {
-            var puestos = await context.Puestos.ToListAsync();
-            return mapper.Map<List<PuestoDTO>>(puestos);
+            try
+            {
+                var puestos = await context.Puestos.ToListAsync();
+                return mapper.Map<List<PuestoDTO>>(puestos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de puestos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpGet("{id}", Name = "ObtenerPuesto")]
         public async Task<ActionResult<PuestoDTO>> GetPuesto(int id)
         {
-            var puesto = await context.Puestos.FirstOrDefaultAsync(x => x.PuestoId == id);
+            try
+            {
+                var puesto = await context.Puestos.FirstOrDefaultAsync(x => x.PuestoId == id);
 
-            if (puesto == null) return NotFound();
+                if (puesto == null) return NotFound();
 
-            var dto = mapper.Map<PuestoDTO>(puesto);
-            
-            return dto;
+                var dto = mapper.Map<PuestoDTO>(puesto);
 
+                return dto;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del puesto. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<PuestoDTO>> PostPuesto([FromBody] PuestoCreacionDTO puestoCreacionDTO)
         {
-            var puesto = mapper.Map<Puesto>(puestoCreacionDTO);
-            puesto.FechaRegistro = DateTime.Now;
+            try
+            {
+                var puesto = mapper.Map<Puesto>(puestoCreacionDTO);
+                puesto.FechaRegistro = DateTime.Now;
 
-            context.Puestos.Add(puesto);
-            await context.SaveChangesAsync();
+                context.Puestos.Add(puesto);
+                await context.SaveChangesAsync();
 
-            var dto = mapper.Map<PuestoDTO>(puesto);
+                var dto = mapper.Map<PuestoDTO>(puesto);
 
-            return new CreatedAtRouteResult("ObtenerPuesto", new { id = puesto.PuestoId }, dto);
-
+                return new CreatedAtRouteResult("ObtenerPuesto", new { id = puesto.PuestoId }, dto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al crear el puesto. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<PuestoDTO>> PutPuesto(int id, [FromBody] PuestoCreacionDTO puestoModificacionDTO)
         {
+            try
+            {
+                if (!PuestoExists(id)) { return NotFound(); }
 
-            if (!PuestoExists(id)) { return NotFound(); }
+                var puesto = mapper.Map<Puesto>(puestoModificacionDTO);
 
-            var puesto = mapper.Map<Puesto>(puestoModificacionDTO);
+                puesto.PuestoId = id;
+                puesto.FechaUltimaModificacion = DateTime.Now;
 
-            puesto.PuestoId = id;
-            puesto.FechaUltimaModificacion = DateTime.Now;
+                context.Entry(puesto).State = EntityState.Modified;
+                context.Entry(puesto).Property(x => x.FechaRegistro).IsModified = false;
 
-            context.Entry(puesto).State = EntityState.Modified;
-            context.Entry(puesto).Property(x => x.FechaRegistro).IsModified = false;
+                await context.SaveChangesAsync();
 
-            await context.SaveChangesAsync();
-
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al actualizar la información del puesto. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<Puesto>> DeletePuesto(int id)
         {
-            
-            if (!PuestoExists(id)) { return NotFound(); }
+            try
+            {
+                if (!PuestoExists(id)) { return NotFound(); }
 
-            context.Puestos.Remove(new Puesto() { PuestoId = id });
-            
-            await context.SaveChangesAsync();
+                context.Puestos.Remove(new Puesto() { PuestoId = id });
 
-            return NoContent();
+                await context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al eliminar el puesto. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
-
-
 
         private bool PuestoExists(int id)
         {

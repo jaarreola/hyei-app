@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using HerramientasYEquiposIndustriales.Server.Constants;
 using HerramientasYEquiposIndustriales.Server.Context;
 using HerramientasYEquiposIndustriales.Shared.DTOs;
 using HerramientasYEquiposIndustriales.Shared.Models;
@@ -28,73 +29,114 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmpleadoDTO>>> GetEmpleados()
         {
-            var empleados = await context.Empleados.Include(x => x.Puesto).ToListAsync();
-            return mapper.Map<List<EmpleadoDTO>>(empleados);
+            try
+            {
+                var empleados = await context.Empleados.Include(x => x.Puesto).ToListAsync();
+                return mapper.Map<List<EmpleadoDTO>>(empleados);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpGet("{id}", Name = "ObtenerEmpleado")]
         public async Task<ActionResult<EmpleadoDTO>> GetEmpleado(int id)
         {
-            var empleado = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.EmpleadoId == id);
+            try
+            {
+                var empleado = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.EmpleadoId == id);
 
-            if (empleado == null) return NotFound();
+                if (empleado == null) return NotFound();
 
-            var dto = mapper.Map<EmpleadoDTO>(empleado);
+                var dto = mapper.Map<EmpleadoDTO>(empleado);
 
-            return dto;
+                return dto;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<EmpleadoDTO>> PostEmpleado([FromBody] EmpleadoCreacionDTO empleadoCreacionDTO)
         {
-            var empleado = mapper.Map<Empleado>(empleadoCreacionDTO);
-            empleado.FechaRegistro = DateTime.Now;
-            empleado.Activo = true;
+            try
+            {
+                var empleado = mapper.Map<Empleado>(empleadoCreacionDTO);
+                empleado.FechaRegistro = DateTime.Now;
+                empleado.Activo = true;
 
-            context.Empleados.Add(empleado);
-            await context.SaveChangesAsync();
+                context.Empleados.Add(empleado);
+                await context.SaveChangesAsync();
 
-            var dto = mapper.Map<EmpleadoDTO>(empleado);
+                var dto = mapper.Map<EmpleadoDTO>(empleado);
 
-            return new CreatedAtRouteResult("ObtenerEmpleado", new { id = empleado.EmpleadoId }, dto);
-
+                return new CreatedAtRouteResult("ObtenerEmpleado", new { id = empleado.EmpleadoId }, dto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al crear el empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<EmpleadoDTO>> PutEmpleado(int id, [FromBody] EmpleadoCreacionDTO empleadoModificacionDTO)
         {
+            try
+            {
+                if (!EmpleadoExists(id)) { return NotFound(); }
 
-            if (!EmpleadoExists(id)) { return NotFound(); }
+                var empleado = mapper.Map<Empleado>(empleadoModificacionDTO);
 
-            var empleado = mapper.Map<Empleado>(empleadoModificacionDTO);
+                empleado.EmpleadoId = id;
+                empleado.FechaUltimaModificacion = DateTime.Now;
 
-            empleado.EmpleadoId = id;
-            empleado.FechaUltimaModificacion = DateTime.Now;
+                if (!empleado.Activo)
+                    empleado.FechaBaja = DateTime.Now;
 
-            if (!empleado.Activo)
-                empleado.FechaBaja = DateTime.Now;
+                context.Entry(empleado).State = EntityState.Modified;
+                context.Entry(empleado).Property(x => x.FechaRegistro).IsModified = false;
 
-            context.Entry(empleado).State = EntityState.Modified;
-            context.Entry(empleado).Property(x => x.FechaRegistro).IsModified = false;
+                await context.SaveChangesAsync();
 
-            await context.SaveChangesAsync();
-
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al actualizar la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<Empleado>> DeleteEmpleado(int id)
         {
+            try
+            {
+                if (!EmpleadoExists(id)) { return NotFound(); }
 
-            if (!EmpleadoExists(id)) { return NotFound(); }
+                context.Empleados.Remove(new Empleado() { EmpleadoId = id });
 
-            context.Empleados.Remove(new Empleado() { EmpleadoId = id });
+                await context.SaveChangesAsync();
 
-            await context.SaveChangesAsync();
-
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al eliminar el empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
-
 
         private bool EmpleadoExists(int id)
         {
