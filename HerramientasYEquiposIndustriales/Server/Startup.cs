@@ -1,5 +1,6 @@
 using AutoMapper;
 using HerramientasYEquiposIndustriales.Server.Context;
+using MatBlazor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,6 +33,8 @@ namespace HerramientasYEquiposIndustriales.Server
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
+
+            services.AddMatBlazor();
 
             services.AddRazorPages();
         }
