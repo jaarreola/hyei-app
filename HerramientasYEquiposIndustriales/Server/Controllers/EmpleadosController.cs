@@ -2,6 +2,7 @@
 using HerramientasYEquiposIndustriales.Server.Constants;
 using HerramientasYEquiposIndustriales.Server.Context;
 using HerramientasYEquiposIndustriales.Shared.DTOs;
+using HerramientasYEquiposIndustriales.Shared.Filters;
 using HerramientasYEquiposIndustriales.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,29 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[Controller]/Busqueda")]
+        public async Task<ActionResult<IEnumerable<EmpleadoDTO>>> GetBusquedaEmpleados([FromBody] EmpleadoFilter filter)
+        {
+            try
+            {
+                var empleados = await context.Empleados.Include(X => X.Puesto)
+                    .Where(x => x.Activo ==  (filter.Activo == null ? x.Activo : filter.Activo)
+                        & x.Nombre.Contains(string.IsNullOrEmpty(filter.Nombre) ? x.Nombre : filter.Nombre)
+                        & x.Direccion.Contains(string.IsNullOrEmpty(filter.Direccion) ? x.Direccion : filter.Direccion))
+                    .ToListAsync();
+
+                return mapper.Map<List<EmpleadoDTO>>(empleados);
+
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 

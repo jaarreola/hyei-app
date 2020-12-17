@@ -2,6 +2,7 @@
 using HerramientasYEquiposIndustriales.Server.Constants;
 using HerramientasYEquiposIndustriales.Server.Context;
 using HerramientasYEquiposIndustriales.Shared.DTOs;
+using HerramientasYEquiposIndustriales.Shared.Filters;
 using HerramientasYEquiposIndustriales.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,31 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información del cliente. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        [HttpGet]
+        [Route("/api/[Controller]/Busqueda")]
+        public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetBusquedaEmpleados([FromBody] ClienteFilter filter)
+        {
+            try
+            {
+                var clientes = await context.Clientes
+                    .Where(x => x.Nombre.Contains(string.IsNullOrEmpty(filter.Nombre) ? x.Nombre : filter.Nombre)
+                        & x.Apellido.Contains(string.IsNullOrEmpty(filter.Apellido) ? x.Apellido : filter.Apellido)
+                        & x.Telefono.Contains(string.IsNullOrEmpty(filter.Telefono) ? x.Telefono : filter.Telefono)
+                        & x.Correo.Contains(string.IsNullOrEmpty(filter.Correo) ? x.Correo : filter.Correo)
+                        & x.RFC.Contains(string.IsNullOrEmpty(filter.RFC) ? x.RFC : filter.RFC))
+                    .ToListAsync();
+
+                return mapper.Map<List<ClienteDTO>>(clientes);
+
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de clientes. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
