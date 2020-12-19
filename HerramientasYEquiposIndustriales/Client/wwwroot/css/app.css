@@ -11,7 +11,7 @@ a, .btn-link {
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
-    border-color: #1861ac;
+    /*border-color: #1861ac;*/
 }
 
 app {
@@ -21,7 +21,8 @@ app {
 }
 
 .top-row {
-    height: 3.5rem;
+    /*height: 3.5rem;*/
+    height: 120px;
     display: flex;
     align-items: center;
 }
@@ -30,9 +31,17 @@ app {
     flex: 1;
 }
 
+    .main .top-row1 {
+        height: 120px;
+        background-color: #f7f7f7;
+        align-items: center;
+        text-align: center;
+        vertical-align: central;
+    }
+
     .main .top-row {
         background-color: #f7f7f7;
-        border-bottom: 1px solid #d6d5d5;
+        /*border-bottom: 1px solid #d6d5d5;*/
         justify-content: flex-end;
     }
 
@@ -41,21 +50,19 @@ app {
             margin-left: 1.5rem;
         }
 
-.main .top-row a:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+        .main .top-row a:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    /*background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);*/
+    background-image: linear-gradient(180deg, lightsteelblue 0%, darkslategray 90%);
 }
 
     .sidebar .top-row {
-        background-color: rgba(0,0,0,0.4);
-    }
-
-    .sidebar .navbar-brand {
-        font-size: 1.1rem;
+        /*background-color: rgba(0,0,0,0.4);*/
+        background-color: lightsteelblue;
     }
 
     .sidebar .oi {
@@ -117,6 +124,43 @@ app {
     color: red;
 }
 
+.logoNav {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100px;
+    height: auto;
+}
+
+.fontNav {
+    font-size: 14px;
+}
+
+.fontTitle {
+    /*font-size: 1.1rem;*/
+    font-size: 28px;
+}
+
+.centerTitle {
+    margin: auto;
+    padding: 10px;
+}
+
+.containerTop {
+    display: flex;
+    align-items: baseline;
+}
+
+.containerMiddle {
+    display: flex;
+    align-items: center;
+}
+
+.containerButton {
+    display: flex;
+    align-items: end;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
@@ -129,12 +173,12 @@ app {
     z-index: 1000;
 }
 
-#blazor-error-ui .dismiss {
-    cursor: pointer;
-    position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
-}
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
 
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {

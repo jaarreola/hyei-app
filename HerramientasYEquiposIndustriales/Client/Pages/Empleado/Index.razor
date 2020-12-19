@@ -1,0 +1,251 @@
+﻿@page "/Empleado"
+
+<div>
+    <div class="row">
+        <div class="col-md-11 col-sm-4">
+            <MatAccordion>
+                <MatExpansionPanel Expanded="true">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h5>Empleados</h5></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-4 col-sm-4">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Nombre del empleado" Label="Nombre"></MatTextField>
+                            </div>
+                            <div class="col-md-4 col-sm-4">
+                                <MatTextField FullWidth="true" @bind-Value="@DireccionEmpleado" HelperText="Dirección del empleado" Label="Direcíón"></MatTextField>
+                            </div>
+                            <div class="col-md-2 col-sm-4">
+                                <MatCheckbox @bind-Value="@checked2">Activos</MatCheckbox>
+                            </div>
+                            <div class="col-md-2 col-sm-4">
+                                <MatButton Raised="true" Icon="search">Buscar</MatButton>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+        <div class="col-md-1 col-sm-4">
+            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+        </div>
+    </div>    
+</div>
+
+
+
+<div>
+    <MatTable Items="@sortedData" class="mat-elevation-z5" ShowPaging="false" UseSortHeaderRow="true">
+        <MatTableHeader>
+            <MatSortHeaderRow SortChanged="@SortData">
+                <MatSortHeader SortId="numeroEmpleado"><span style="width:200px">No Empleado</span></MatSortHeader>
+                <MatSortHeader SortId="nombre">Nombre</MatSortHeader>
+                <MatSortHeader SortId="direccion">Dirección</MatSortHeader>
+                <MatSortHeader SortId="telefono">Teléfono</MatSortHeader>
+                <MatSortHeader SortId="puesto">Puesto</MatSortHeader>
+                <MatSortHeader SortId="fechaIngreso">Ingreso</MatSortHeader>
+                <MatSortHeader></MatSortHeader>
+            </MatSortHeaderRow>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.NumeroEmpleado</td>
+            <td>@context.Nombre</td>
+            <td>@context.Direccion</td>
+            <td>@context.Telefono</td>
+            <td>@context.Puesto</td>
+            <td>@context.FechaIngreso</td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>Empleado</MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@dialogNombre" Label="Nombre"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@dialogDireccion" Label="Dirección"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@dialogTelefono" Label="Telefono"></MatTextField>
+            </div>
+            <div class="col-md-6">
+                <MatSelect TValue="string" Label="Puesto">
+                    <MatOptionString></MatOptionString>
+                    <MatOptionString Value="1">Puesto 1</MatOptionString>
+                    <MatOptionString Value="2">Puesto 1</MatOptionString>
+                    <MatOptionString Value="3">Puesto 3</MatOptionString>
+                </MatSelect>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <MatRadioGroup @bind-Value="@Val1" TValue="string">
+                    <MatRadioButton Value="@("A")" TValue="string">Activo</MatRadioButton>
+                    <MatRadioButton Value="@("B")" TValue="string">Baja</MatRadioButton>
+                </MatRadioGroup>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@MyString7" Label="Motivo Baja" TextArea="true"></MatTextField>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(e => { dialogIsOpen = false; })">Cancel</MatButton>
+        <MatButton OnClick="@OkClick">Guardar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code{
+
+    protected string Val1;
+
+    public string NombreEmpleado
+    {
+        get => _NombreEmpleado;
+        set
+        {
+            _NombreEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _NombreEmpleado;
+
+    public string DireccionEmpleado
+    {
+        get => _DireccionEmpleado;
+        set
+        {
+            _DireccionEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _DireccionEmpleado;
+
+    bool checked2 = false;
+
+
+
+
+    public string MyString7
+    {
+        get => _myString7;
+        set
+        {
+            _myString7 = value;
+            this.StateHasChanged();
+        }
+    } 
+    private string _myString7;
+
+
+
+    class Empleado
+    {
+        public int NumeroEmpleado { get; set; }
+        public string Nombre { get; set; }
+        public string Direccion { get; set; }
+        public string Telefono { get; set; }
+        public string Puesto { get; set; }
+        public string FechaIngreso { get; set; }
+    }
+
+    Empleado[] empleados = new[]
+{
+                new Empleado() {NumeroEmpleado = 1, Nombre = "Empleado 1", Direccion = "Dirección 1", Telefono = "123-123-123", Puesto = "Puesto 1", FechaIngreso = "01-02-2020"},
+                new Empleado() {NumeroEmpleado = 2, Nombre = "Empleado 2", Direccion = "Dirección 2", Telefono = "333-123-666", Puesto = "Puesto 2", FechaIngreso = "30-05-2020"},
+                new Empleado() {NumeroEmpleado = 3, Nombre = "Empleado 3", Direccion = "Dirección 3", Telefono = "666-123-555", Puesto = "Puesto 3", FechaIngreso = "15-09-2020"},
+                new Empleado() {NumeroEmpleado = 4, Nombre = "Empleado 4", Direccion = "Dirección 4", Telefono = "123-123-123", Puesto = "Puesto 1", FechaIngreso = "01-02-2020"},
+                new Empleado() {NumeroEmpleado = 5, Nombre = "Empleado 5", Direccion = "Dirección 5", Telefono = "333-123-666", Puesto = "Puesto 2", FechaIngreso = "30-05-2020"},
+                new Empleado() {NumeroEmpleado = 6, Nombre = "Empleado 6", Direccion = "Dirección 6", Telefono = "666-123-555", Puesto = "Puesto 3", FechaIngreso = "15-09-2020"},
+                new Empleado() {NumeroEmpleado = 7, Nombre = "Empleado 7", Direccion = "Dirección 7", Telefono = "123-123-123", Puesto = "Puesto 1", FechaIngreso = "01-02-2020"},
+                new Empleado() {NumeroEmpleado = 8, Nombre = "Empleado 8", Direccion = "Dirección 8", Telefono = "333-123-666", Puesto = "Puesto 2", FechaIngreso = "30-05-2020"},
+                new Empleado() {NumeroEmpleado = 9, Nombre = "Empleado 9", Direccion = "Dirección 8", Telefono = "666-123-555", Puesto = "Puesto 3", FechaIngreso = "15-09-2020"}
+            };
+
+    void SortData(MatSortChangedEvent sort)
+    {
+        sortedData = empleados.ToArray();
+        if (!(sort == null || sort.Direction == MatSortDirection.None || string.IsNullOrEmpty(sort.SortId)))
+        {
+            Comparison<Empleado> comparison = null;
+            switch (sort.SortId)
+            {
+                case "NumeroEmpleado":
+                    comparison = (s1, s2) => s1.NumeroEmpleado.CompareTo(s2.NumeroEmpleado);
+                    break;
+                case "Nombre":
+                    comparison = (s1, s2) => s1.Nombre.CompareTo(s2.Nombre);
+                    break;
+                case "Direccion":
+                    comparison = (s1, s2) => s1.Direccion.CompareTo(s2.Direccion);
+                    break;
+                case "Telefono":
+                    comparison = (s1, s2) => s1.Telefono.CompareTo(s2.Telefono);
+                    break;
+                case "Puesto":
+                    comparison = (s1, s2) => s1.Puesto.CompareTo(s2.Puesto);
+                    break;
+                case "FechaIngreso":
+                    comparison = (s1, s2) => s1.FechaIngreso.CompareTo(s2.FechaIngreso);
+                    break;
+            }
+            if (comparison != null)
+            {
+                if (sort.Direction == MatSortDirection.Desc)
+                {
+                    Array.Sort(sortedData, (s1, s2) => -1 * comparison(s1, s2));
+                }
+                else
+                {
+                    Array.Sort(sortedData, comparison);
+                }
+            }
+        }
+    }
+
+    Empleado[] sortedData = null;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        SortData(null);
+    }
+
+
+    bool dialogIsOpen = false;
+    string nombre = null;
+    string dialogNombre = null;
+    string direccion = null;
+    string dialogDireccion = null;
+    string telefono = null;
+    string dialogTelefono = null;
+
+    void OpenDialog()
+    {
+        dialogNombre = null;
+        dialogDireccion = null;
+        dialogTelefono = null;
+        dialogIsOpen = true;
+    }
+
+    void OkClick()
+    {
+        nombre = dialogNombre;
+        direccion = dialogDireccion;
+        telefono = dialogTelefono;
+        dialogIsOpen = false;
+    }
+}

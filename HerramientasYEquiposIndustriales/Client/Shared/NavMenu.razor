@@ -1,37 +1,99 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">HerramientasYEquiposIndustriales</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+﻿<div class="top-row">
+    <img src="Image/logo-negocio-png.png" class="logoNav" alt="logo negocio!!" />
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
-    </ul>
+<div class="fontNav">
+    <MatNavMenu>
+        <MatNavItem Href="" Title="Inicio">
+            <MatIcon Icon="folder" />&nbsp;Inicio
+        </MatNavItem>
+
+        <MatNavSubMenu>
+            <MatNavSubMenuHeader Title="Ordenes de Trabajo">
+                <MatNavItem AllowSelection="false">
+                    <MatIcon Icon="folder" />&nbsp;Ordenes de Trabajo
+                </MatNavItem>
+            </MatNavSubMenuHeader>
+            <MatNavSubMenuList>
+                <MatNavItem Href="counter" Title="Orden de Trabajo">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Ordene de Trabajo
+                    </MatNavItem>
+                </MatNavItem>
+                <MatNavItem Title="Cotización">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Cotización
+                    </MatNavItem>
+                </MatNavItem>
+                <MatNavItem Title="Seguimiento OT">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Seguimiento OT
+                    </MatNavItem>
+                </MatNavItem>
+            </MatNavSubMenuList>
+        </MatNavSubMenu>
+
+        <MatNavSubMenu>
+            <MatNavSubMenuHeader Title="Producto">
+                <MatNavItem AllowSelection="false">
+                    <MatIcon Icon="folder" />&nbsp;Producto
+                </MatNavItem>
+            </MatNavSubMenuHeader>
+            <MatNavSubMenuList>
+                <MatNavItem Title="Mantenimiento">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Mantenimiento
+                    </MatNavItem>
+                </MatNavItem>
+                <MatNavItem Title="Registro de Inventario">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Registro de Inventario
+                    </MatNavItem>
+                </MatNavItem>
+            </MatNavSubMenuList>
+        </MatNavSubMenu>
+
+        <MatNavItem Href="Empleado/" Title="Empleado">
+            <MatIcon Icon="folder" />&nbsp;Empleado
+        </MatNavItem>
+
+        <MatNavItem Href="Cliente/" Title="Cliente">
+            <MatIcon Icon="folder" />&nbsp;Cliente
+        </MatNavItem>
+
+        <MatNavItem Href="FetchData/" Title="Consulta">
+            <MatIcon Icon="folder" />&nbsp;Consulta
+        </MatNavItem>
+    </MatNavMenu>
 </div>
 
-@code {
-    private bool collapseNavMenu = true;
+@*<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <ul class="nav flex-column">
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="counter">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Counter
+                </NavLink>
+            </li>
+            <li class="nav-item px-3">
+                <NavLink class="nav-link" href="fetchdata">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+                </NavLink>
+            </li>
+        </ul>
+    </div>
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    @code {
+        private bool collapseNavMenu = true;
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+        private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+        private void ToggleNavMenu()
+        {
+            collapseNavMenu = !collapseNavMenu;
+        }
+    }*@
