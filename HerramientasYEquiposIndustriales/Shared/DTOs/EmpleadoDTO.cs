@@ -23,6 +23,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+        [StringLength(500)]
+        public string MotivoBaja { get; set; }
 
         public virtual Puesto Puesto { get; set; }
     }

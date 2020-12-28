@@ -63,8 +63,26 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+
+        [HttpGet("ObtenerNumeroEmpleado")]
+        public ActionResult<string> GetNumeroEmpleado()
+        {
+            try
+            {
+                var numeroEmpleado = (context.Empleados.Max(x => x.EmpleadoId) + 1).ToString("D4");
+                return $"{DateTime.Now.Year}-{numeroEmpleado}"; ;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
         [HttpPost]
-        public async Task<ActionResult<EmpleadoDTO>> PostEmpleado([FromBody] EmpleadoCreacionDTO empleadoCreacionDTO)
+        public async Task<ActionResult<EmpleadoDTO>> PostEmpleado(EmpleadoCreacionDTO empleadoCreacionDTO)
         {
             try
             {
