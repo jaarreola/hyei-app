@@ -21,8 +21,8 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public string Direccion { get; set; }
         [StringLength(13)]
         public string RFC { get; set; }
+        public bool EsFrecuente { get; set; }
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
-
     }
 }

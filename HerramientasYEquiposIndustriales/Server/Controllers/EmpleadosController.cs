@@ -2,6 +2,7 @@
 using HerramientasYEquiposIndustriales.Server.Constants;
 using HerramientasYEquiposIndustriales.Server.Context;
 using HerramientasYEquiposIndustriales.Shared.DTOs;
+using HerramientasYEquiposIndustriales.Shared.Filters;
 using HerramientasYEquiposIndustriales.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
