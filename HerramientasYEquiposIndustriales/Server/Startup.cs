@@ -1,4 +1,5 @@
 using AutoMapper;
+using Blazored.Toast;
 using HerramientasYEquiposIndustriales.Server.Context;
 using MatBlazor;
 using Microsoft.AspNetCore.Builder;
@@ -31,10 +32,12 @@ namespace HerramientasYEquiposIndustriales.Server
 
             services.AddControllersWithViews();
 
+            services.AddMatBlazor();
+
+            services.AddBlazoredToast();
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DbConnection")));
-
-            services.AddMatBlazor();
 
             services.AddRazorPages();
         }

@@ -1,0 +1,224 @@
+﻿@page "/Cliente"
+
+<div>
+    <div class="row">
+        <div class="col-md-11 col-sm-4">
+            <MatAccordion>
+                <MatExpansionPanel Expanded="true">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h5>Clientes</h5></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Nombre del cliente" Label="Nombre"></MatTextField>
+                            </div>
+                            <div class="col-md-4">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Apellido del cliente" Label="Apellido"></MatTextField>
+                            </div>
+                            <div class="col-md-4">
+                                <MatTextField FullWidth="true" @bind-Value="@DireccionEmpleado" HelperText="Dirección del cliente" Label="Direcíón"></MatTextField>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Correo electrónico" Label="Correo"></MatTextField>
+                            </div>
+                            <div class="col-md-4">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="RFC del cliente" Label="RFC"></MatTextField>
+                            </div>
+                            <div class="col-md-2">
+                                <MatCheckbox @bind-Value="@checked2">Cliente frecuente</MatCheckbox>
+                            </div>
+                            <div class="col-md-2">
+                                <MatButton Raised="true" Icon="search">Buscar</MatButton>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+        <div class="col-md-1 col-sm-4">
+            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+        </div>
+    </div>
+</div>
+
+
+
+<div>
+    <MatTable Items="@clientes" class="mat-elevation-z5">
+        <MatTableHeader>
+            <th><div style="width:400px">Nombre</div></th>
+            <th>Apellido</th>
+            <th>Direccion</th>
+            <th>Telefono</th>
+            <th>Correo</th>
+            <th>RFC</th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.Nombre</td>
+            <td>@context.Apellido</td>
+            <td>@context.Direccion</td>
+            <td>@context.Telefono</td>
+            <td>@context.Correo</td>
+            <td>@context.Rfc</td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+
+<MatDialog @bind-IsOpen="@dialogIsOpen">
+    <MatDialogTitle>Cliente</MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@dialogNombre" Label="Nombre"></MatTextField>
+            </div>
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@dialogApellido" Label="Apellido"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@dialogDireccion" Label="Dirección"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@dialogTelefono" Label="Teléfono"></MatTextField>
+            </div>
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@dialogCorreo" Label="Correo"></MatTextField>
+            </div>
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@dialogRfc" Label="RFC"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatCheckbox @bind-Value="@checked2">Cliente frecuente</MatCheckbox>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(e => { dialogIsOpen = false; })">Cancel</MatButton>
+        <MatButton OnClick="@OkClick">Guardar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code{
+    protected string Val1;
+
+    public string NombreEmpleado
+    {
+        get => _NombreEmpleado;
+        set
+        {
+            _NombreEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _NombreEmpleado;
+
+    public string DireccionEmpleado
+    {
+        get => _DireccionEmpleado;
+        set
+        {
+            _DireccionEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _DireccionEmpleado;
+
+    bool checked2 = false;
+
+
+
+
+    public string MyString7
+    {
+        get => _myString7;
+        set
+        {
+            _myString7 = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _myString7;
+
+
+
+    public class Cliente
+    {
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
+        public string Direccion { get; set; }
+        public string Correo { get; set; }
+        public string Telefono { get; set; }
+        public string Rfc { get; set; }
+
+        public Cliente(string nombre, string apellido, string direccion, string telefono, string correo, string rfc)
+        {
+            Nombre = nombre;
+            Apellido = apellido;
+            Direccion = direccion;
+            Correo = correo;
+            Telefono = telefono;
+            Rfc = apellido;
+        }
+    }
+
+    Cliente[] clientes = new[]
+    {
+    new Cliente("Cliente 1", "Apellido 1", "Direccion 1", "555-666-2525", "1uno@com.mx", "1ZIDP8612319K9"),
+    new Cliente("Cliente 2", "Apellido 2", "Direccion 2", "555-666-2525", "2uno@com.mx", "2ZIDP8612319K9"),
+    new Cliente("Cliente 3", "Apellido 3", "Direccion 3", "555-666-2525", "3uno@com.mx", "3ZIDP8612319K9"),
+    new Cliente("Cliente 4", "Apellido 4", "Direccion 4", "555-666-2525", "4uno@com.mx", "4ZIDP8612319K9"),
+    new Cliente("Cliente 5", "Apellido 5", "Direccion 5", "555-666-2525", "5uno@com.mx", "5ZIDP8612319K9"),
+    new Cliente("Cliente 6", "Apellido 6", "Direccion 6", "555-666-2525", "6uno@com.mx", "6ZIDP8612319K9"),
+    new Cliente("Cliente 7", "Apellido 7", "Direccion 7", "555-666-2525", "7uno@com.mx", "7ZIDP8612319K9"),
+    new Cliente("Cliente 8", "Apellido 8", "Direccion 8", "555-666-2525", "8uno@com.mx", "8ZIDP8612319K9"),
+    new Cliente("Cliente 9", "Apellido 9", "Direccion 9", "555-666-2525", "9uno@com.mx", "9ZIDP8612319K9"),
+    };
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+
+    bool dialogIsOpen = false;
+    string nombre = null;
+    string dialogNombre = null;
+    string dialogApellido = null;
+    string direccion = null;
+    string dialogDireccion = null;
+    string telefono = null;
+    string dialogTelefono = null;
+    string dialogCorreo = null;
+    string dialogRfc = null;
+
+    void OpenDialog()
+    {
+        dialogNombre = null;
+        dialogApellido = null;
+        dialogDireccion = null;
+        dialogTelefono = null;
+        dialogCorreo = null;
+        dialogRfc = null;
+        dialogIsOpen = true;
+    }
+
+    void OkClick()
+    {
+        nombre = dialogNombre;
+        direccion = dialogDireccion;
+        telefono = dialogTelefono;
+        dialogIsOpen = false;
+    }
+}

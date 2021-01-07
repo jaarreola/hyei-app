@@ -1,0 +1,292 @@
+﻿@page "/Empleado"
+@inject IRepository repository
+@inject IToastService toastService
+
+
+<div>
+    <div class="row">
+        <div class="col-md-11 col-sm-4">
+            <MatAccordion>
+                <MatExpansionPanel @bind-Expanded="@Expandido">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h5>Empleados</h5></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-4 col-sm-4">
+                                @*<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
+                                <MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre"></MatTextField>
+                            </div>
+                            <div class="col-md-4 col-sm-4">
+                                @*<MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
+                                <MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón"></MatTextField>
+                            </div>
+                            <div class="col-md-2 col-sm-4">
+                                <MatCheckbox @bind-Value="@ActivoBusqueda">Activos</MatCheckbox>
+                            </div>
+                            <div class="col-md-2 col-sm-4">
+                                <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+        <div class="col-md-1 col-sm-4">
+            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <MatTable Items="@Empleados" class="mat-elevation-z5">
+        <MatTableHeader>
+            <th>Numero Empleado</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Telefono</th>
+            <th>Puesto</th>
+            <th>Activo</th>
+            <th>Fecha Registro</th>
+            <th>Fecha Baja</th>
+            <th></th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.NumeroEmpleado</td>
+            <td>@context.Nombre</td>
+            <td>@context.Direccion</td>
+            <td>@context.Telefono</td>
+            <td>@context.Puesto.Nombre</td>
+            <td><MatCheckbox @bind-Value="@context.Activo" Disabled="true"></MatCheckbox></td>
+            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+            <td>@context.FechaBaja?.ToString("dd/MM/yyyy")</td>
+            <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+<div>
+    <EditForm Model="@Empleado" OnValidSubmit="GuardarEmpleado">
+        <DataAnnotationsValidator />
+
+        <MatDialog @bind-IsOpen="@dialogIsOpen">
+            <MatDialogTitle>Empleado</MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.Direccion" Label="Dirección"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.Telefono" Label="Telefono"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatSelectItem @bind-Value="@Puesto" Items="@Puestos" Label="Puesto">
+                            <ItemTemplate Context="Puesto">
+                                @Puesto?.Nombre
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatRadioGroup @bind-Value="@Empleado.Activo" TValue="bool">
+                            <MatRadioButton Value="true" TValue="bool">Activo</MatRadioButton>
+                            <MatRadioButton Value="false" TValue="bool">Baja</MatRadioButton>
+                        </MatRadioGroup>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.MotivoBaja" Label="Motivo Baja" TextArea="true" Disabled="@Empleado.Activo"></MatTextField>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
+                <MatButton Type="submit">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+
+    </EditForm>
+</div>
+
+@code{
+    @*Variables*@
+    private List<EmpleadoDTO> Empleados = new List<EmpleadoDTO>();
+    private List<PuestoComboDTO> Puestos = new List<PuestoComboDTO>();
+    private PuestoComboDTO Puesto;
+    private EmpleadoDTO Empleado = new EmpleadoDTO();
+    private bool Expandido = true;
+
+    //FILTROS BUSQUEDA
+    private string NombreBusqueda = String.Empty;
+    private string DireccionBusqueda = String.Empty;
+    private bool ActivoBusqueda;
+
+    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+    bool dialogIsOpen = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await CargaEmpleados();
+        await CargaComboPuestos();
+    }
+
+
+    private async Task keyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await Buscar();
+    }
+
+    private async Task lostFocus(FocusEventArgs e)
+    {
+        await Buscar();
+    }
+
+    private async Task Buscar()
+    {
+        var queryStrings = GenerarQueryStrings();
+        var responseHttpEmpleados = await repository.Get<List<EmpleadoDTO>>("api/Empleados/ObtenerEmpleadosFilter?" + queryStrings);
+        Empleados = responseHttpEmpleados.Response;
+    }
+
+    private async Task CargaEmpleados()
+    {
+        var responseHttpEmpleados = await repository.Get<List<EmpleadoDTO>>("api/Empleados");
+        Empleados = responseHttpEmpleados.Response;
+    }
+
+
+    private async Task CargaComboPuestos()
+    {
+        var responseHttp = await repository.Get<List<PuestoComboDTO>>("api/Puestos/PuestosCombo");
+        Puestos = responseHttp.Response;
+        Empleado.Activo = true;
+    }
+
+
+    private async Task GuardarEmpleado()
+    {
+        Empleado.PuestoId = Puesto.PuestoId;
+
+        if (Empleado.EmpleadoId == 0)
+            await CrearEmpleado();
+        else
+            await ActualizarEmpleado();
+    }
+
+    private async Task CrearEmpleado()
+    {
+        var httpResponceNoEmpleado = await repository.GetOnly("api/Empleados/ObtenerNumeroEmpleado");
+        Empleado.NumeroEmpleado = httpResponceNoEmpleado.Content.ReadAsStringAsync().Result;
+
+        var httpResponse = await repository.Post("api/Empleados", Empleado);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            await CargaEmpleados();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task ActualizarEmpleado()
+    {
+        var httpResponse = await repository.Put("api/Empleados/" + Empleado.EmpleadoId, Empleado);
+        await RespuestaResponseHttp(httpResponse);
+    }
+
+
+    private async Task RespuestaResponseHttp(HttpResponseWrapper<object> httpResponse)
+    {
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            await CargaEmpleados();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Actualización completa", "Guardado");
+        }
+    }
+
+
+    private void Clear()
+    {
+        NombreBusqueda = "";
+        DireccionBusqueda = "";
+        ActivoBusqueda = false;
+
+        Empleado = new EmpleadoDTO();
+        Empleado.Activo = true;
+        Puesto = new PuestoComboDTO();
+    }
+
+
+    private void OpenDialog()
+    {
+        if (!Expandido) { Expandido = false; }
+        dialogIsOpen = true;
+    }
+
+
+    private void CancelaDialog()
+    {
+        Clear();
+        dialogIsOpen = false;
+    }
+
+
+    private void OpenDialogEdit(EmpleadoDTO empleadoEdicion)
+    {
+        if (!Expandido) { Expandido = false; }
+        //Empleado = empleadoEdicion;
+        Empleado = new EmpleadoDTO()
+        {
+            EmpleadoId = empleadoEdicion.EmpleadoId,
+            NumeroEmpleado = empleadoEdicion.NumeroEmpleado,
+            Nombre = empleadoEdicion.Nombre,
+            Direccion = empleadoEdicion.Direccion,
+            Telefono = empleadoEdicion.Telefono,
+            PuestoId = empleadoEdicion.PuestoId,
+            Activo = empleadoEdicion.Activo,
+            FechaRegistro = empleadoEdicion.FechaRegistro,
+            FechaBaja = empleadoEdicion.FechaBaja,
+            FechaUltimaModificacion = empleadoEdicion.FechaUltimaModificacion,
+            MotivoBaja = empleadoEdicion.MotivoBaja,
+            Puesto = empleadoEdicion.Puesto
+        };
+        Puesto = new PuestoComboDTO() { PuestoId = Empleado.Puesto.PuestoId, Nombre = Empleado.Puesto.Nombre };
+        dialogIsOpen = true;
+    }
+
+
+    private string GenerarQueryStrings()
+    {
+        if (queryStringsDict == null) 
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["nombre"] = NombreBusqueda;
+        queryStringsDict["direccion"] = DireccionBusqueda;
+        queryStringsDict["activo"] = ActivoBusqueda.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+}

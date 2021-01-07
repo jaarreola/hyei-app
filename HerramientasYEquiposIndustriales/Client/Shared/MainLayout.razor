@@ -5,11 +5,49 @@
 </div>
 
 <div class="main">
-    <div class="top-row px-4">
-        <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+    <div class="mat-layout-grid top-row1">
+        <div class="mat-layout-grid-inner">
+            <div class="mat-layout-grid-cell mat-layout-grid-cell-span-6 centerTitle">
+                <a class="fontTitle" href="">Herramientas y Equipos Industriales</a>
+            </div>
+            <div class="mat-layout-grid-cell mat-layout-grid-cell-span-3">
+                <MatTextField @bind-Value="@NombreEmpleado" Label="Nombre Empleado" Icon="account_circle" Outlined="true"></MatTextField>
+            </div>
+            <div class="mat-layout-grid-cell mat-layout-grid-cell-span-3">
+                <MatTextField @bind-Value="@NumeroEmpleado" Label="Numero Empleado" Outlined="true"></MatTextField>
+            </div>
+        </div>
     </div>
 
     <div class="content px-4">
         @Body
     </div>
 </div>
+
+<BlazoredToasts />
+
+
+@code
+{
+    public string NombreEmpleado
+    {
+        get => _nombreEmpleado;
+        set
+        {
+            _nombreEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _nombreEmpleado;
+
+    public string NumeroEmpleado
+    {
+        get => _numeroEmpleado;
+        set
+        {
+            _numeroEmpleado = value;
+            this.StateHasChanged();
+        }
+    }
+    private string _numeroEmpleado;
+}

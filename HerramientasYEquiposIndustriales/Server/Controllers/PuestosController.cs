@@ -42,6 +42,22 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+        [HttpGet("PuestosCombo")]
+        public async Task<ActionResult<IEnumerable<PuestoComboDTO>>> GetPuestosCombo()
+        {
+            try
+            {
+                var puestos = await context.Puestos.ToListAsync();
+                return mapper.Map<List<PuestoComboDTO>>(puestos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de puestos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
         [HttpGet("{id}", Name = "ObtenerPuesto")]
         public async Task<ActionResult<PuestoDTO>> GetPuesto(int id)
         {
