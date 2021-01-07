@@ -26,6 +26,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             this.mapper = mapper;
         }
 
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<PuestoDTO>>> GetPuestos()
         {
             try
@@ -49,7 +50,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var puestos = await context.Puestos.ToListAsync();
                 return mapper.Map<List<PuestoComboDTO>>(puestos);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +

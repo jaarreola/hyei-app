@@ -9,11 +9,13 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
     public class EmpleadoDTO
     {
         public int EmpleadoId { get; set; }
-        [Required]
+        //[Required]
         [StringLength(10)]
         public string NumeroEmpleado { get; set; }
+        [Required]
         [StringLength(80)]
         public string Nombre { get; set; }
+        [Required]
         [StringLength(150)]
         public string Direccion { get; set; }
         [StringLength(10)]
