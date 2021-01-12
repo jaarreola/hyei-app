@@ -13,16 +13,19 @@
                     </MatExpansionPanelSummary>
                     <MatExpansionPanelDetails>
                         <div class="row">
-                            <div class="col-md-4 col-sm-4">
+                            <div class="col-md-3">
                                 @*<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
                                 <MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre"></MatTextField>
                             </div>
-                            <div class="col-md-4 col-sm-4">
+                            <div class="col-md-3">
                                 @*<MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
                                 <MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón"></MatTextField>
                             </div>
-                            <div class="col-md-2 col-sm-4">
-                                <MatCheckbox @bind-Value="@ActivoBusqueda">Activos</MatCheckbox>
+                            <div class="col-md-2">
+                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueActivos(value))" Value="@ActivoBusqueda">Activos</MatCheckbox>
+                            </div>
+                            <div class="col-md-2">
+                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueTodos(value))" Value="@TodosBusqueda">Todos</MatCheckbox>
                             </div>
                             <div class="col-md-2 col-sm-4">
                                 <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
@@ -129,7 +132,8 @@
     //FILTROS BUSQUEDA
     private string NombreBusqueda = String.Empty;
     private string DireccionBusqueda = String.Empty;
-    private bool ActivoBusqueda;
+    private bool ActivoBusqueda = false;
+    private bool TodosBusqueda = false;
 
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
@@ -152,6 +156,20 @@
     {
         await Buscar();
     }
+
+
+    private void OnChangeValueTodos(bool value)
+    {
+        if (TodosBusqueda = value)
+            ActivoBusqueda = false;
+    }
+
+    private void OnChangeValueActivos(bool value)
+    {
+        if (ActivoBusqueda = value)
+            TodosBusqueda = false;
+    }
+
 
     private async Task Buscar()
     {
@@ -276,12 +294,13 @@
 
     private string GenerarQueryStrings()
     {
-        if (queryStringsDict == null) 
+        if (queryStringsDict == null)
             queryStringsDict = new Dictionary<string, string>();
 
-        queryStringsDict["nombre"] = NombreBusqueda;
-        queryStringsDict["direccion"] = DireccionBusqueda;
-        queryStringsDict["activo"] = ActivoBusqueda.ToString();
+        queryStringsDict["Nombre"] = NombreBusqueda;
+        queryStringsDict["Direccion"] = DireccionBusqueda;
+        queryStringsDict["Activo"] = ActivoBusqueda.ToString();
+        queryStringsDict["Todos"] = TodosBusqueda.ToString();
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

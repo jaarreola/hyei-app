@@ -1,37 +1,44 @@
 ﻿@page "/Cliente"
 
+@inject IRepository repository
+@inject IToastService toastService
+
 <div>
     <div class="row">
         <div class="col-md-11 col-sm-4">
             <MatAccordion>
-                <MatExpansionPanel Expanded="true">
+                <MatExpansionPanel @bind-Expanded="@Expandido">
                     <MatExpansionPanelSummary>
                         <MatExpansionPanelHeader><h5>Clientes</h5></MatExpansionPanelHeader>
                     </MatExpansionPanelSummary>
                     <MatExpansionPanelDetails>
                         <div class="row">
                             <div class="col-md-4">
-                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Nombre del cliente" Label="Nombre"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@NombreClienteBusqueda" HelperText="Nombre del cliente" Label="Nombre"></MatTextField>
                             </div>
                             <div class="col-md-4">
-                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Apellido del cliente" Label="Apellido"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@ApellidoClienteBusqueda" HelperText="Apellido del cliente" Label="Apellido"></MatTextField>
                             </div>
                             <div class="col-md-4">
-                                <MatTextField FullWidth="true" @bind-Value="@DireccionEmpleado" HelperText="Dirección del cliente" Label="Direcíón"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@DireccionClienteBusqueda" HelperText="Dirección del cliente" Label="Direcíón"></MatTextField>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-4">
-                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="Correo electrónico" Label="Correo"></MatTextField>
-                            </div>
-                            <div class="col-md-4">
-                                <MatTextField FullWidth="true" @bind-Value="@NombreEmpleado" HelperText="RFC del cliente" Label="RFC"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@RfcClienteBusqueda" HelperText="RFC del cliente" Label="RFC"></MatTextField>
                             </div>
                             <div class="col-md-2">
-                                <MatCheckbox @bind-Value="@checked2">Cliente frecuente</MatCheckbox>
+                                @*<MatCheckbox @bind-Value="@ClienteFecuente">Cliente frecuente</MatCheckbox>*@
+                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueClienteFrecuente(value))" Value="@ClienteFecuente">Cliente frecuente</MatCheckbox>
                             </div>
                             <div class="col-md-2">
-                                <MatButton Raised="true" Icon="search">Buscar</MatButton>
+                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueTodos(value))" Value="@TodosBusqueda">Todos</MatCheckbox>
+                                @*<MatCheckbox @bind-Value="@TodosBusqueda">Todos</MatCheckbox>*@
+                            </div>
+                            <div class="col-md-2">
+                            </div>
+                            <div class="col-md-2">
+                                <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
                             </div>
                         </div>
                     </MatExpansionPanelDetails>
@@ -47,178 +54,227 @@
 
 
 <div>
-    <MatTable Items="@clientes" class="mat-elevation-z5">
+    <MatTable Items="@Clientes" class="mat-elevation-z5">
         <MatTableHeader>
-            <th><div style="width:400px">Nombre</div></th>
+            <th>Código</th>
+            <th>Nombre</th>
             <th>Apellido</th>
             <th>Direccion</th>
             <th>Telefono</th>
             <th>Correo</th>
             <th>RFC</th>
+            <th>Es Frecuente</th>
+            <th></th>
         </MatTableHeader>
         <MatTableRow>
+            <td>@context.ClienteId.ToString("00000")</td>
             <td>@context.Nombre</td>
             <td>@context.Apellido</td>
             <td>@context.Direccion</td>
             <td>@context.Telefono</td>
             <td>@context.Correo</td>
-            <td>@context.Rfc</td>
+            <td>@context.RFC</td>
+            <td><MatCheckbox @bind-Value="@context.EsFrecuente" Disabled="true"></MatCheckbox></td>
+            <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
         </MatTableRow>
     </MatTable>
 </div>
 
 
+<div>
+    <EditForm Model="@Cliente" OnValidSubmit="GuardarCliente">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogIsOpen">
+            <MatDialogTitle>Cliente</MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.Apellido" Label="Apellido"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.Direccion" Label="Dirección"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.Telefono" Label="Teléfono"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.Correo" Label="Correo"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Cliente.RFC" Label="RFC"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatCheckbox @bind-Value="@Cliente.EsFrecuente">Cliente frecuente</MatCheckbox>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
+                <MatButton Type="submit">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
 
-<MatDialog @bind-IsOpen="@dialogIsOpen">
-    <MatDialogTitle>Cliente</MatDialogTitle>
-    <MatDialogContent>
-        <div class="row">
-            <div class="col-md-6">
-                <MatTextField FullWidth="true" @bind-Value="@dialogNombre" Label="Nombre"></MatTextField>
-            </div>
-            <div class="col-md-6">
-                <MatTextField FullWidth="true" @bind-Value="@dialogApellido" Label="Apellido"></MatTextField>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <MatTextField FullWidth="true" @bind-Value="@dialogDireccion" Label="Dirección"></MatTextField>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4">
-                <MatTextField FullWidth="true" @bind-Value="@dialogTelefono" Label="Teléfono"></MatTextField>
-            </div>
-            <div class="col-md-4">
-                <MatTextField FullWidth="true" @bind-Value="@dialogCorreo" Label="Correo"></MatTextField>
-            </div>
-            <div class="col-md-4">
-                <MatTextField FullWidth="true" @bind-Value="@dialogRfc" Label="RFC"></MatTextField>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <MatCheckbox @bind-Value="@checked2">Cliente frecuente</MatCheckbox>
-            </div>
-        </div>
-    </MatDialogContent>
-    <MatDialogActions>
-        <MatButton OnClick="@(e => { dialogIsOpen = false; })">Cancel</MatButton>
-        <MatButton OnClick="@OkClick">Guardar</MatButton>
-    </MatDialogActions>
-</MatDialog>
 
 
 @code{
-    protected string Val1;
+    //FILTROS BUSQUEDA
+    private string NombreClienteBusqueda = string.Empty;
+    private string ApellidoClienteBusqueda = string.Empty;
+    private string DireccionClienteBusqueda = string.Empty;
+    private string RfcClienteBusqueda = string.Empty;
+    private bool ClienteFecuente = false;
+    private bool TodosBusqueda = false;
 
-    public string NombreEmpleado
+    //VARIABLES
+    private List<ClienteDTO> Clientes = new List<ClienteDTO>();
+    private ClienteDTO Cliente = new ClienteDTO();
+    private bool Expandido = true;
+    private bool dialogIsOpen = false;
+    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+
+
+    protected async override Task OnInitializedAsync()
     {
-        get => _NombreEmpleado;
-        set
-        {
-            _NombreEmpleado = value;
-            this.StateHasChanged();
-        }
-    }
-    private string _NombreEmpleado;
-
-    public string DireccionEmpleado
-    {
-        get => _DireccionEmpleado;
-        set
-        {
-            _DireccionEmpleado = value;
-            this.StateHasChanged();
-        }
-    }
-    private string _DireccionEmpleado;
-
-    bool checked2 = false;
-
-
-
-
-    public string MyString7
-    {
-        get => _myString7;
-        set
-        {
-            _myString7 = value;
-            this.StateHasChanged();
-        }
-    }
-    private string _myString7;
-
-
-
-    public class Cliente
-    {
-        public string Nombre { get; set; }
-        public string Apellido { get; set; }
-        public string Direccion { get; set; }
-        public string Correo { get; set; }
-        public string Telefono { get; set; }
-        public string Rfc { get; set; }
-
-        public Cliente(string nombre, string apellido, string direccion, string telefono, string correo, string rfc)
-        {
-            Nombre = nombre;
-            Apellido = apellido;
-            Direccion = direccion;
-            Correo = correo;
-            Telefono = telefono;
-            Rfc = apellido;
-        }
+        await CargaClientes();
     }
 
-    Cliente[] clientes = new[]
+    private void OnChangeValueTodos(bool value)
     {
-    new Cliente("Cliente 1", "Apellido 1", "Direccion 1", "555-666-2525", "1uno@com.mx", "1ZIDP8612319K9"),
-    new Cliente("Cliente 2", "Apellido 2", "Direccion 2", "555-666-2525", "2uno@com.mx", "2ZIDP8612319K9"),
-    new Cliente("Cliente 3", "Apellido 3", "Direccion 3", "555-666-2525", "3uno@com.mx", "3ZIDP8612319K9"),
-    new Cliente("Cliente 4", "Apellido 4", "Direccion 4", "555-666-2525", "4uno@com.mx", "4ZIDP8612319K9"),
-    new Cliente("Cliente 5", "Apellido 5", "Direccion 5", "555-666-2525", "5uno@com.mx", "5ZIDP8612319K9"),
-    new Cliente("Cliente 6", "Apellido 6", "Direccion 6", "555-666-2525", "6uno@com.mx", "6ZIDP8612319K9"),
-    new Cliente("Cliente 7", "Apellido 7", "Direccion 7", "555-666-2525", "7uno@com.mx", "7ZIDP8612319K9"),
-    new Cliente("Cliente 8", "Apellido 8", "Direccion 8", "555-666-2525", "8uno@com.mx", "8ZIDP8612319K9"),
-    new Cliente("Cliente 9", "Apellido 9", "Direccion 9", "555-666-2525", "9uno@com.mx", "9ZIDP8612319K9"),
-    };
-
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
+        if (TodosBusqueda = value)
+            ClienteFecuente = false;
     }
 
-
-    bool dialogIsOpen = false;
-    string nombre = null;
-    string dialogNombre = null;
-    string dialogApellido = null;
-    string direccion = null;
-    string dialogDireccion = null;
-    string telefono = null;
-    string dialogTelefono = null;
-    string dialogCorreo = null;
-    string dialogRfc = null;
-
-    void OpenDialog()
+    private void OnChangeValueClienteFrecuente(bool value)
     {
-        dialogNombre = null;
-        dialogApellido = null;
-        dialogDireccion = null;
-        dialogTelefono = null;
-        dialogCorreo = null;
-        dialogRfc = null;
+        if (ClienteFecuente = value)
+            TodosBusqueda = false;
+    }
+
+    private void OpenDialog()
+    {
+        if (!Expandido) { Expandido = false; }
         dialogIsOpen = true;
     }
 
-    void OkClick()
+    private void CancelaDialog()
     {
-        nombre = dialogNombre;
-        direccion = dialogDireccion;
-        telefono = dialogTelefono;
+        Clear();
         dialogIsOpen = false;
     }
+
+    private void OpenDialogEdit(ClienteDTO clienteEdicion)
+    {
+        if (!Expandido) { Expandido = false; }
+        Cliente = new ClienteDTO()
+        {
+            ClienteId = clienteEdicion.ClienteId,
+            Nombre = clienteEdicion.Nombre,
+            Apellido = clienteEdicion.Apellido,
+            Telefono = clienteEdicion.Telefono,
+            Correo = clienteEdicion.Correo,
+            Direccion = clienteEdicion.Direccion,
+            RFC = clienteEdicion.RFC,
+            EsFrecuente = clienteEdicion.EsFrecuente,
+            FechaRegistro = clienteEdicion.FechaRegistro,
+            FechaUltimaModificacion = clienteEdicion.FechaUltimaModificacion
+        };
+        dialogIsOpen = true;
+    }
+
+
+    private async Task CargaClientes()
+    {
+        var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes");
+        Clientes = responseHttp.Response;
+    }
+
+    private async Task GuardarCliente()
+    {
+        if (Cliente.ClienteId == 0)
+            await CrearCliente();
+        else
+            await ActualizarCliente();
+    }
+
+    private async Task CrearCliente()
+    {
+        var httpResponse = await repository.Post("api/Clientes", Cliente);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            await CargaClientes();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task ActualizarCliente()
+    {
+        var httpResponse = await repository.Put("api/Clientes/" + Cliente.ClienteId, Cliente);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            await CargaClientes();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task Buscar()
+    {
+        var queryStrings = GenerarQueryStrings();
+        var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesFilter?" + queryStrings);
+        Clientes = responseHttp.Response;
+    }
+
+    private void Clear()
+    {
+        NombreClienteBusqueda = "";
+        ApellidoClienteBusqueda = "";
+        DireccionClienteBusqueda = "";
+        RfcClienteBusqueda = "";
+        ClienteFecuente = false;
+        TodosBusqueda = false;
+
+        Cliente = new ClienteDTO();
+    }
+
+
+    private string GenerarQueryStrings()
+    {
+        if (queryStringsDict == null)
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["Nombre"] = NombreClienteBusqueda;
+        queryStringsDict["Apellido"] = ApellidoClienteBusqueda;
+        queryStringsDict["Direccion"] = DireccionClienteBusqueda;
+        queryStringsDict["RFC"] = RfcClienteBusqueda;
+        queryStringsDict["EsFrecuente"] = ClienteFecuente.ToString();
+        queryStringsDict["Todos"] = TodosBusqueda.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
 }

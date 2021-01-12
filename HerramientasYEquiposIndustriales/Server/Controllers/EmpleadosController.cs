@@ -70,7 +70,11 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var empleados = await context.Empleados.Include(x => x.Puesto).Where(x => (x.Nombre.Contains(filtrosEmpleado.Nombre) || filtrosEmpleado.Nombre == null) && (x.Direccion.Contains(filtrosEmpleado.Direccion) || filtrosEmpleado.Direccion == null) && (x.Activo == filtrosEmpleado.Activo)).ToListAsync();
+                var empleados = await context.Empleados.Include(x => x.Puesto).Where(x => 
+                    (x.Nombre.Contains(filtrosEmpleado.Nombre) || filtrosEmpleado.Nombre == null) && 
+                    (x.Direccion.Contains(filtrosEmpleado.Direccion) || filtrosEmpleado.Direccion == null) && 
+                    (x.Activo == filtrosEmpleado.Activo || (filtrosEmpleado.Todos))
+                ).ToListAsync();
                 return mapper.Map<List<EmpleadoDTO>>(empleados);
             }
             catch (Exception)
@@ -99,31 +103,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
-        //[HttpPost]
-        //public async Task<ActionResult<EmpleadoDTO>> PostEmpleado(EmpleadoCreacionDTO empleadoCreacionDTO)
-        //{
-        //    try
-        //    {
-        //        var empleado = mapper.Map<Empleado>(empleadoCreacionDTO);
-        //        empleado.FechaRegistro = DateTime.Now;
-        //        empleado.Activo = true;
-
-        //        context.Empleados.Add(empleado);
-        //        await context.SaveChangesAsync();
-
-        //        var dto = mapper.Map<EmpleadoDTO>(empleado);
-
-        //        return new CreatedAtRouteResult("ObtenerEmpleado", new { id = empleado.EmpleadoId }, dto);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError,
-        //            $"{CommonConstant.MSG_ERROR_INICIO} " +
-        //            $"al crear el empleado. \n{CommonConstant.MSG_ERROR_FIN}");
-        //    }
-        //}
-
-
         [HttpPost]
         public async Task<ActionResult<EmpleadoDTO>> PostEmpleado(EmpleadoDTO empleadoCreacionDTO)
         {
@@ -147,37 +126,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al crear el empleado. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
-
-
-        //[HttpPut("{id}")]
-        //public async Task<ActionResult<EmpleadoDTO>> PutEmpleado(int id, [FromBody] EmpleadoCreacionDTO empleadoModificacionDTO)
-        //{
-        //    try
-        //    {
-        //        if (!EmpleadoExists(id)) { return NotFound(); }
-
-        //        var empleado = mapper.Map<Empleado>(empleadoModificacionDTO);
-
-        //        empleado.EmpleadoId = id;
-        //        empleado.FechaUltimaModificacion = DateTime.Now;
-
-        //        if (!empleado.Activo)
-        //            empleado.FechaBaja = DateTime.Now;
-
-        //        context.Entry(empleado).State = EntityState.Modified;
-        //        context.Entry(empleado).Property(x => x.FechaRegistro).IsModified = false;
-
-        //        await context.SaveChangesAsync();
-
-        //        return NoContent();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError,
-        //            $"{CommonConstant.MSG_ERROR_INICIO} " +
-        //            $"al actualizar la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
-        //    }
-        //}
 
 
         [HttpPut("{id}")]
@@ -239,12 +187,12 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             return context.Empleados.Any(x => x.EmpleadoId == id);
         }
 
-
         public class FiltrosEmpleado
         {
             public string Nombre { get; set; }
             public string Direccion { get; set; }
             public bool Activo { get; set; }
+            public bool Todos { get; set; }
         }
     }
 }
