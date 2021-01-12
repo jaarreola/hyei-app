@@ -98,7 +98,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 cliente.FechaRegistro = DateTime.Now;
 
                 context.Clientes.Add(cliente);
-                
+
                 await context.SaveChangesAsync();
 
                 var dto = mapper.Map<ClienteDTO>(cliente);
@@ -164,6 +164,45 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         private bool ClienteExists(int id)
         {
             return context.Clientes.Any(x => x.ClienteId == id);
+        }
+
+
+        [HttpGet("ObtenerClientesFilter")]
+        public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetClientesFilter([FromQuery] FiltrosCliente filtrosCliente)
+        {
+            try
+            {
+                var clientes = await context.Clientes.Where(x =>
+                    (x.Nombre.Contains(filtrosCliente.Nombre) || filtrosCliente.Nombre == null) &&
+                    (x.Apellido.Contains(filtrosCliente.Apellido) || filtrosCliente.Apellido == null) &&
+                    (x.Direccion.Contains(filtrosCliente.Direccion) || filtrosCliente.Direccion == null) &&
+                    (x.Telefono.Contains(filtrosCliente.Telefono) || filtrosCliente.Telefono == null) &&
+                    (x.Correo.Contains(filtrosCliente.Correo) || filtrosCliente.Correo == null) &&
+                    (x.RFC.Contains(filtrosCliente.RFC) || filtrosCliente.RFC == null) &&
+                    (x.EsFrecuente == filtrosCliente.EsFrecuente || (filtrosCliente.Todos))
+                ).ToListAsync();
+
+                return mapper.Map<List<ClienteDTO>>(clientes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        public class FiltrosCliente
+        {
+            public string Nombre { get; set; }
+            public string Apellido { get; set; }
+            public string Direccion { get; set; }
+            public string Telefono { get; set; }
+            public string Correo { get; set; }
+            public string RFC { get; set; }
+            public bool EsFrecuente { get; set; }
+            public bool Todos { get; set; }
         }
     }
 }
