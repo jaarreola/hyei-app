@@ -8,8 +8,11 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
     {
         public string Nombre { get; set; }
         public string Apellido { get; set; }
+        public string Direccion { get; set; }
         public string Telefono { get; set; }
         public string Correo { get; set; }
         public string RFC { get; set; }
+        public bool EsFrecuente { get; set; }
+        public bool Todos { get; set; }
     }
 }

@@ -66,7 +66,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpGet("ObtenerEmpleadosFilter")]
-        public async Task<ActionResult<IEnumerable<EmpleadoDTO>>> GetEmpleadoFilter([FromQuery] FiltrosEmpleado filtrosEmpleado)
+        public async Task<ActionResult<IEnumerable<EmpleadoDTO>>> GetEmpleadoFilter([FromQuery] EmpleadoFilter filtrosEmpleado)
         {
             try
             {
@@ -185,14 +185,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         private bool EmpleadoExists(int id)
         {
             return context.Empleados.Any(x => x.EmpleadoId == id);
-        }
-
-        public class FiltrosEmpleado
-        {
-            public string Nombre { get; set; }
-            public string Direccion { get; set; }
-            public bool Activo { get; set; }
-            public bool Todos { get; set; }
         }
     }
 }

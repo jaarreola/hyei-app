@@ -15,7 +15,7 @@
                 </MatNavItem>
             </MatNavSubMenuHeader>
             <MatNavSubMenuList>
-                <MatNavItem Href="counter" Title="Orden de Trabajo">
+                <MatNavItem Title="Orden de Trabajo">
                     <MatNavItem AllowSelection="false">
                         <MatIcon Icon="folder_open" />&nbsp;Ordene de Trabajo
                     </MatNavItem>
@@ -34,17 +34,22 @@
         </MatNavSubMenu>
 
         <MatNavSubMenu>
-            <MatNavSubMenuHeader Title="Producto">
+            <MatNavSubMenuHeader Title="Productos">
                 <MatNavItem AllowSelection="false">
-                    <MatIcon Icon="folder" />&nbsp;Producto
+                    <MatIcon Icon="folder" />&nbsp;Productos
                 </MatNavItem>
             </MatNavSubMenuHeader>
             <MatNavSubMenuList>
-                <MatNavItem Title="Mantenimiento">
+                <MatNavItem Href="Producto/" Title="Producto">
                     <MatNavItem AllowSelection="false">
-                        <MatIcon Icon="folder_open" />&nbsp;Mantenimiento
+                        <MatIcon Icon="folder_open" />&nbsp;Producto
                     </MatNavItem>
                 </MatNavItem>
+               @* <MatNavItem Href="Marca/" Title="Marca">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Marca
+                    </MatNavItem>
+                </MatNavItem>*@
                 <MatNavItem Title="Registro de Inventario">
                     <MatNavItem AllowSelection="false">
                         <MatIcon Icon="folder_open" />&nbsp;Registro de Inventario
@@ -61,39 +66,8 @@
             <MatIcon Icon="folder" />&nbsp;Cliente
         </MatNavItem>
 
-        <MatNavItem Href="FetchData/" Title="Consulta">
+        <MatNavItem Title="Consulta">
             <MatIcon Icon="folder" />&nbsp;Consulta
         </MatNavItem>
     </MatNavMenu>
 </div>
-
-@*<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-        <ul class="nav flex-column">
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="oi oi-home" aria-hidden="true"></span> Home
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="counter">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Counter
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="fetchdata">
-                    <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-                </NavLink>
-            </li>
-        </ul>
-    </div>
-
-    @code {
-        private bool collapseNavMenu = true;
-
-        private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-        private void ToggleNavMenu()
-        {
-            collapseNavMenu = !collapseNavMenu;
-        }
-    }*@

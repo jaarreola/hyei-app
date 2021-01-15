@@ -29,5 +29,8 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<Empleado> Empleados { get; set; }
         public DbSet<Cliente> Clientes { get; set; }
 
+        public DbSet<Producto> Productos { get; set; }
+        public DbSet<Marca> Marcas { get; set; }
+
     }
 }

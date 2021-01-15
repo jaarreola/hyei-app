@@ -168,7 +168,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpGet("ObtenerClientesFilter")]
-        public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetClientesFilter([FromQuery] FiltrosCliente filtrosCliente)
+        public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetClientesFilter([FromQuery] ClienteFilter filtrosCliente)
         {
             try
             {
@@ -190,19 +190,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información de los empleados. \n{CommonConstant.MSG_ERROR_FIN}");
             }
-        }
-
-
-        public class FiltrosCliente
-        {
-            public string Nombre { get; set; }
-            public string Apellido { get; set; }
-            public string Direccion { get; set; }
-            public string Telefono { get; set; }
-            public string Correo { get; set; }
-            public string RFC { get; set; }
-            public bool EsFrecuente { get; set; }
-            public bool Todos { get; set; }
         }
     }
 }

@@ -9,7 +9,7 @@
             <MatAccordion>
                 <MatExpansionPanel @bind-Expanded="@Expandido">
                     <MatExpansionPanelSummary>
-                        <MatExpansionPanelHeader><h5>Clientes</h5></MatExpansionPanelHeader>
+                        <MatExpansionPanelHeader><h3>Clientes</h3></MatExpansionPanelHeader>
                     </MatExpansionPanelSummary>
                     <MatExpansionPanelDetails>
                         <div class="row">
@@ -85,8 +85,11 @@
     <EditForm Model="@Cliente" OnValidSubmit="GuardarCliente">
         <DataAnnotationsValidator />
         <MatDialog @bind-IsOpen="@dialogIsOpen">
-            <MatDialogTitle>Cliente</MatDialogTitle>
+            <MatDialogTitle><h5>Cliente</h5></MatDialogTitle>
             <MatDialogContent>
+                <div class="row">
+                    &nbsp;
+                </div>
                 <div class="row">
                     <div class="col-md-6">
                         <MatTextField FullWidth="true" @bind-Value="@Cliente.Nombre" Label="Nombre"></MatTextField>

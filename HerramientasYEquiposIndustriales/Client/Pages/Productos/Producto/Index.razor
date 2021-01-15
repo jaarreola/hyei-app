@@ -1,0 +1,343 @@
+﻿@page "/Producto"
+
+@inject IRepository repository
+@inject IToastService toastService
+
+<div>
+    <div class="row">
+        <div class="col-md-11 col-sm-4">
+            <MatAccordion>
+                <MatExpansionPanel @bind-Expanded="@Expandido">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h3>Productos</h3></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <MatTextField FullWidth="true" @bind-Value="@NoParteBusqueda" HelperText="Número de Parte" Label="No Parte"></MatTextField>
+                            </div>
+                            <div class="col-md-3">
+                                <MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del producto/refacción" Label="Nombre"></MatTextField>
+                            </div>
+                            <div class="col-md-2">
+                                <MatTextField FullWidth="true" @bind-Value="@ModeloBusqueda" HelperText="Modelo del producto/refacción" Label="Modelo"></MatTextField>
+                            </div>
+                            <div class="col-md-2">
+                                <MatSelectItem @bind-Value="@MarcaBusqueda" Items="@MarcasBusqueda" Label="Marca">
+                                    <ItemTemplate Context="Marca">
+                                        @Marca?.Descripcion
+                                    </ItemTemplate>
+                                </MatSelectItem>
+                            </div>
+                            <div class="col-md-1">
+                                <MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
+                            </div>
+                            <div class="col-md-2">
+                                <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+        <div class="col-md-1 col-sm-4">
+            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+        </div>
+    </div>
+</div>
+
+
+
+<div>
+    <MatTable Items="@Productos" class="mat-elevation-z5">
+        <MatTableHeader>
+            <th>NoParte</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Ubicación</th>
+            <th>Costo Compra</th>
+            <th>Costo Venta</th>
+            <th></th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td>@context.NoParte</td>
+            <td>@context.Nombre</td>
+            <td>@context.Marca.Descripcion</td>
+            <td>@context.Modelo</td>
+            <td></td>
+            <td>@context.CostoCompra</td>
+            <td>@context.CostoVenta</td>
+            <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+<div>
+    <EditForm Model="@Producto" OnValidSubmit="GuardarProducto">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogIsOpen">
+            <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
+                            <ItemTemplate Context="Marca">
+                                @Marca?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
+                <MatButton Type="submit">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+
+<div>
+    <EditForm Model="@NuevaMarca" OnValidSubmit="GuardarMarca">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogMarcaIsOpen">
+            <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@(e => { dialogMarcaIsOpen = false; CancelaDialogMarca(); })">Cancel</MatButton>
+                <MatButton Type="submit">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+
+@code{
+    //FILTROS BUSQUEDA
+    private string NoParteBusqueda = string.Empty;
+    private string NombreBusqueda = string.Empty;
+    private string ModeloBusqueda = string.Empty;
+    private MarcaDTO MarcaBusqueda = new MarcaDTO();
+    private List<MarcaDTO> Marcas = new List<MarcaDTO>();
+    private List<MarcaDTO> MarcasBusqueda = new List<MarcaDTO>();
+
+
+    //VARIABLES
+    private List<ProductoDTO> Productos = new List<ProductoDTO>();
+    private ProductoDTO Producto = new ProductoDTO();
+    private MarcaDTO Marca = new MarcaDTO();
+    private MarcaDTO NuevaMarca = new MarcaDTO();
+    private bool Expandido = true;
+    private bool dialogIsOpen = false;
+    private bool dialogMarcaIsOpen = false;
+    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        await CargaComboMarcas();
+        await CargaProductos();
+    }
+
+
+    private void OpenDialog()
+    {
+        if (!Expandido) { Expandido = false; }
+        dialogIsOpen = true;
+    }
+
+    private void CancelaDialog()
+    {
+        Clear();
+        dialogIsOpen = false;
+    }
+
+    private void OpenDialogMarca()
+    {
+        if (!Expandido) { Expandido = false; }
+        dialogMarcaIsOpen = true;
+    }
+
+    private void CancelaDialogMarca()
+    {
+        NuevaMarca = new MarcaDTO();
+        dialogMarcaIsOpen = false;
+    }
+
+    private void OpenDialogEdit(ProductoDTO productoEdicion)
+    {
+        if (!Expandido) { Expandido = false; }
+        Producto = new ProductoDTO()
+        {
+            ProductoId = productoEdicion.ProductoId,
+            NoParte = productoEdicion.NoParte,
+            Nombre = productoEdicion.Nombre,
+            Modelo = productoEdicion.Modelo,
+            MarcaId = productoEdicion.MarcaId,
+            CostoCompra = productoEdicion.CostoCompra,
+            CostoVenta = productoEdicion.CostoVenta,
+            Marca = productoEdicion.Marca
+        };
+        Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
+        dialogIsOpen = true;
+    }
+
+
+    private async Task CargaComboMarcas()
+    {
+        var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
+        Marcas = responseHttp.Response;
+
+        MarcasBusqueda = new List<MarcaDTO>();
+        MarcasBusqueda.Add(new MarcaDTO() { Descripcion = "" });
+        MarcasBusqueda.AddRange(responseHttp.Response);
+    }
+    
+
+    private async Task CargaProductos()
+    {
+        var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos");
+        Productos = responseHttp.Response;
+    }
+
+    private async Task GuardarProducto()
+    {
+        Producto.MarcaId = Marca.MarcaId;
+
+        if (Producto.ProductoId == 0)
+            await CrearProducto();
+        else
+            await ActualizarProducto();
+    }
+
+    private async Task CrearProducto()
+    {
+        var httpResponse = await repository.Post("api/Productos", Producto);
+
+        if (httpResponse.Error)
+        {
+            if (Producto.MarcaId == 0)
+                toastService.ShowError("Debe seleccionar una marca", "Error");
+            else
+                toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        }
+        else
+        {
+            Clear();
+            await CargaProductos();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task ActualizarProducto()
+    {
+        var httpResponse = await repository.Put("api/Productos/" + Producto.ProductoId, Producto);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            await CargaProductos();
+            dialogIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+
+    private async Task GuardarMarca()
+    {
+        if (NuevaMarca.MarcaId == 0)
+            await CrearMarca();
+    }
+
+    private async Task CrearMarca()
+    {
+        var httpResponse = await repository.Post("api/Marcas", NuevaMarca);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            await CargaComboMarcas();
+            dialogMarcaIsOpen = false;
+            toastService.ShowSuccess("Registro completo", "Guardado");
+            NuevaMarca = new MarcaDTO();
+        }
+    }
+
+
+    private async Task Buscar()
+    {
+        var queryStrings = GenerarQueryStrings();
+        var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/ObtenerProductosFilter?" + queryStrings);
+        Productos = responseHttp.Response;
+    }
+
+    private void Clear()
+    {
+        NoParteBusqueda = string.Empty;
+        NombreBusqueda = string.Empty;
+        ModeloBusqueda = string.Empty;
+        MarcaBusqueda = new MarcaDTO();
+        Marca = new MarcaDTO();
+
+        Producto = new ProductoDTO();
+    }
+
+
+    private string GenerarQueryStrings()
+    {
+        if (queryStringsDict == null)
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["NoParte"] = NoParteBusqueda;
+        queryStringsDict["Nombre"] = NombreBusqueda;
+        queryStringsDict["Modelo"] = ModeloBusqueda;
+        queryStringsDict["MarcaId"] = MarcaBusqueda.MarcaId.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+}
