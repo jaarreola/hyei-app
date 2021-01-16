@@ -21,6 +21,10 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
 
             CreateMap<Cliente, ClienteDTO>().ReverseMap();
             CreateMap<Cliente, ClienteCreacionDTO>().ReverseMap();
+
+            CreateMap<Producto, ProductoDTO>().ReverseMap();
+
+            CreateMap<Marca, MarcaDTO>().ReverseMap();
         }
     }
 }

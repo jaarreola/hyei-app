@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Pages\Cliente\" />
+    <Folder Include="Pages\Productos\Marca\" />
   </ItemGroup>
 
 </Project>
