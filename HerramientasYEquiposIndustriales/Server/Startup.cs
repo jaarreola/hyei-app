@@ -4,13 +4,11 @@ using HerramientasYEquiposIndustriales.Server.Context;
 using MatBlazor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
+using System.Globalization;
 
 namespace HerramientasYEquiposIndustriales.Server
 {
@@ -19,6 +17,8 @@ namespace HerramientasYEquiposIndustriales.Server
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         }
 
         public IConfiguration Configuration { get; }

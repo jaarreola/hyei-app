@@ -1,4 +1,5 @@
 ﻿@page "/Producto"
+@using System.Globalization
 
 @inject IRepository repository
 @inject IToastService toastService
@@ -51,14 +52,14 @@
 <div>
     <MatTable Items="@Productos" class="mat-elevation-z5">
         <MatTableHeader>
-            <th>NoParte</th>
-            <th>Nombre</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Ubicación</th>
-            <th>Costo Compra</th>
-            <th>Costo Venta</th>
-            <th></th>
+            <th style="width:10%;">NoParte</th>
+            <th style="width:25%;">Nombre</th>
+            <th style="width:15%;">Marca</th>
+            <th style="width:10%;">Modelo</th>
+            <th style="width:15%;">Ubicación</th>
+            <th style="width:10%;">Costo Compra</th>
+            <th style="width:10%;">Costo Venta</th>
+            <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
             <td>@context.NoParte</td>
@@ -66,8 +67,8 @@
             <td>@context.Marca.Descripcion</td>
             <td>@context.Modelo</td>
             <td></td>
-            <td>@context.CostoCompra</td>
-            <td>@context.CostoVenta</td>
+            <td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
+            <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
             <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
         </MatTableRow>
     </MatTable>
@@ -75,9 +76,9 @@
 
 
 <div>
-    <EditForm Model="@Producto" OnValidSubmit="GuardarProducto">
+    <EditForm Model="@Producto">
         <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogIsOpen">
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false">
             <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -113,8 +114,8 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
-                <MatButton Type="submit">Guardar</MatButton>
+                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
             </MatDialogActions>
         </MatDialog>
     </EditForm>
@@ -125,7 +126,7 @@
 <div>
     <EditForm Model="@NuevaMarca" OnValidSubmit="GuardarMarca">
         <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogMarcaIsOpen">
+        <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
             <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -138,8 +139,8 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@(e => { dialogMarcaIsOpen = false; CancelaDialogMarca(); })">Cancel</MatButton>
-                <MatButton Type="submit">Guardar</MatButton>
+                <MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton Type="submit" class="mdc-button-modal">Guardar</MatButton>
             </MatDialogActions>
         </MatDialog>
     </EditForm>
@@ -167,10 +168,13 @@
     private bool dialogMarcaIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
-
+    
 
     protected async override Task OnInitializedAsync()
     {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
         await CargaComboMarcas();
         await CargaProductos();
     }
@@ -178,14 +182,18 @@
 
     private void OpenDialog()
     {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
         if (!Expandido) { Expandido = false; }
         dialogIsOpen = true;
     }
 
-    private void CancelaDialog()
+    private async Task CancelaDialog()
     {
-        Clear();
         dialogIsOpen = false;
+        await CargaProductos();
+        Clear();
     }
 
     private void OpenDialogMarca()
@@ -194,10 +202,12 @@
         dialogMarcaIsOpen = true;
     }
 
-    private void CancelaDialogMarca()
+    private async Task CancelaDialogMarca()
     {
-        NuevaMarca = new MarcaDTO();
         dialogMarcaIsOpen = false;
+        dialogIsOpen = false;
+        await CargaProductos();
+        Clear();
     }
 
     private void OpenDialogEdit(ProductoDTO productoEdicion)
@@ -228,7 +238,7 @@
         MarcasBusqueda.Add(new MarcaDTO() { Descripcion = "" });
         MarcasBusqueda.AddRange(responseHttp.Response);
     }
-    
+
 
     private async Task CargaProductos()
     {
@@ -260,8 +270,8 @@
         else
         {
             Clear();
-            await CargaProductos();
             dialogIsOpen = false;
+            await CargaProductos();
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -275,8 +285,8 @@
         else
         {
             Clear();
-            await CargaProductos();
             dialogIsOpen = false;
+            await CargaProductos();
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -296,8 +306,9 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            await CargaComboMarcas();
             dialogMarcaIsOpen = false;
+            await CargaComboMarcas();
+            await CargaProductos();
             toastService.ShowSuccess("Registro completo", "Guardado");
             NuevaMarca = new MarcaDTO();
         }
@@ -318,6 +329,7 @@
         ModeloBusqueda = string.Empty;
         MarcaBusqueda = new MarcaDTO();
         Marca = new MarcaDTO();
+        NuevaMarca = new MarcaDTO();
 
         Producto = new ProductoDTO();
     }
@@ -338,6 +350,17 @@
         return string.Join("&", queryStringsDict
             .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
             .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
     }
 
 }

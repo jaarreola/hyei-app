@@ -45,15 +45,15 @@
 <div>
     <MatTable Items="@Empleados" class="mat-elevation-z5">
         <MatTableHeader>
-            <th>Numero Empleado</th>
-            <th>Nombre</th>
-            <th>Dirección</th>
-            <th>Telefono</th>
-            <th>Puesto</th>
-            <th>Activo</th>
-            <th>Fecha Registro</th>
-            <th>Fecha Baja</th>
-            <th></th>
+            <th style="width:10%;">No Empleado</th>
+            <th style="width:20%;">Nombre</th>
+            <th style="width:20%;">Dirección</th>
+            <th style="width:10%;">Telefono</th>
+            <th style="width:10%;">Puesto</th>
+            <th style="width:5%;">Activo</th>
+            <th style="width:10%;">Fecha Registro</th>
+            <th style="width:10%;">Fecha Baja</th>
+            <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
             <td>@context.NumeroEmpleado</td>
@@ -70,10 +70,10 @@
 </div>
 
 <div>
-    <EditForm Model="@Empleado" OnValidSubmit="GuardarEmpleado">
+    <EditForm Model="@Empleado">
         <DataAnnotationsValidator />
 
-        <MatDialog @bind-IsOpen="@dialogIsOpen">
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false">
             <MatDialogTitle><h5>Empleado</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -116,8 +116,8 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
-                <MatButton Type="submit">Guardar</MatButton>
+                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@GuardarEmpleado" class="mdc-button-modal">Guardar</MatButton>
             </MatDialogActions>
         </MatDialog>
 
@@ -217,9 +217,9 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
+            dialogIsOpen = false;
             Clear();
             await CargaEmpleados();
-            dialogIsOpen = false;
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -237,9 +237,9 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
+            dialogIsOpen = false;
             Clear();
             await CargaEmpleados();
-            dialogIsOpen = false;
             toastService.ShowSuccess("Actualización completa", "Guardado");
         }
     }
@@ -264,10 +264,11 @@
     }
 
 
-    private void CancelaDialog()
+    private async Task CancelaDialog()
     {
-        Clear();
         dialogIsOpen = false;
+        await CargaEmpleados();
+        Clear();
     }
 
 

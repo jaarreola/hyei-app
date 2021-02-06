@@ -35,8 +35,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var empleados = await context.Empleados.Include(x => x.Puesto).ToListAsync();
                 return mapper.Map<List<EmpleadoDTO>>(empleados);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                System.Console.WriteLine(e.Message);
+
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -92,7 +94,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var numeroEmpleado = (context.Empleados.Max(x => x.EmpleadoId) + 1).ToString("D4");
-                return $"{DateTime.Now.Year}-{numeroEmpleado}"; ;
+                return $"{DateTime.Now.Year}-{numeroEmpleado}";
             }
             catch (Exception)
             {
@@ -124,6 +126,27 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al crear el empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        [HttpPost("ObtenerEmpleadoByNumero")]
+        public async Task<ActionResult<EmpleadoDTO>> GetEmpleadoByNumero([FromBody] string numeroEmpleado)
+        {
+            try
+            {
+                var empleado = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.NumeroEmpleado == numeroEmpleado);
+
+                if (empleado == null) return NotFound();
+
+                var dto = mapper.Map<EmpleadoDTO>(empleado);
+
+                return dto;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
