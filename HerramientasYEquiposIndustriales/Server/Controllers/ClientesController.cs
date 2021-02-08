@@ -191,5 +191,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener la información de los empleados. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+        [HttpGet("ObtenerClientesOTFilter")]
+        public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetClientesOTFilter([FromQuery] ClienteFilter filtrosCliente)
+        {
+            try
+            {
+                var clientes = await context.Clientes.Where(x =>
+                    (x.Nombre.Contains(filtrosCliente.Nombre) && filtrosCliente.Nombre != null) ||
+                    (x.Apellido.Contains(filtrosCliente.Apellido) && filtrosCliente.Apellido != null) ||
+                    (x.Telefono.Contains(filtrosCliente.Telefono) && filtrosCliente.Telefono != null) ||
+                    (x.RFC.Contains(filtrosCliente.RFC) && filtrosCliente.RFC != null)
+                ).ToListAsync();
+
+                return mapper.Map<List<ClienteDTO>>(clientes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
     }
 }

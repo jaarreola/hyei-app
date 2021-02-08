@@ -23,6 +23,11 @@ namespace HerramientasYEquiposIndustriales.Server.Context
             builder.Entity<Empleado>()
                 .HasIndex(e => e.NumeroEmpleado)
                 .IsUnique();
+
+            //builder.Entity<OrdenTrabajoDetalle>(e =>
+            //    {
+            //        e.HasNoKey();
+            //    });
         }
 
         public DbSet<Puesto> Puestos { get; set; }
@@ -31,6 +36,9 @@ namespace HerramientasYEquiposIndustriales.Server.Context
 
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Marca> Marcas { get; set; }
+
+        public DbSet<OrdenTrabajo> OrdenTrabajo { get; set; }
+        public DbSet<OrdenTrabajoDetalle> OrdenTrabajoDetalle { get; set; }
 
     }
 }

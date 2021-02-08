@@ -17,6 +17,7 @@ namespace HerramientasYEquiposIndustriales.Client
             builder.RootComponents.Add<App>("app");
 
             builder.Services.AddBlazoredToast();
+            builder.Services.AddMatBlazor();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

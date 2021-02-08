@@ -56,15 +56,15 @@
 <div>
     <MatTable Items="@Clientes" class="mat-elevation-z5">
         <MatTableHeader>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Direccion</th>
-            <th>Telefono</th>
-            <th>Correo</th>
-            <th>RFC</th>
-            <th>Es Frecuente</th>
-            <th></th>
+            <th style="width:4%;">Código</th>
+            <th style="width:15%;">Nombre</th>
+            <th style="width:15%;">Apellido</th>
+            <th style="width:25%;">Direccion</th>
+            <th style="width:15%;">Telefono</th>
+            <th style="width:14%;">Correo</th>
+            <th style="width:5%;">RFC</th>
+            <th style="width:4%;">Frecuente</th>
+            <th style="width:3%;"></th>
         </MatTableHeader>
         <MatTableRow>
             <td>@context.ClienteId.ToString("00000")</td>
@@ -82,9 +82,9 @@
 
 
 <div>
-    <EditForm Model="@Cliente" OnValidSubmit="GuardarCliente">
+    <EditForm Model="@Cliente">
         <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogIsOpen">
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false">
             <MatDialogTitle><h5>Cliente</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -121,8 +121,8 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@(e => { dialogIsOpen = false; CancelaDialog(); })">Cancel</MatButton>
-                <MatButton Type="submit">Guardar</MatButton>
+                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@GuardarCliente" class="mdc-button-modal">Guardar</MatButton>
             </MatDialogActions>
         </MatDialog>
     </EditForm>
@@ -171,10 +171,11 @@
         dialogIsOpen = true;
     }
 
-    private void CancelaDialog()
+    private async Task CancelaDialog()
     {
-        Clear();
         dialogIsOpen = false;
+        await CargaClientes();
+        Clear();        
     }
 
     private void OpenDialogEdit(ClienteDTO clienteEdicion)
@@ -219,9 +220,9 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            Clear();
-            await CargaClientes();
             dialogIsOpen = false;
+            await CargaClientes();
+            Clear();
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -234,9 +235,9 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            Clear();
-            await CargaClientes();
             dialogIsOpen = false;
+            await CargaClientes();
+            Clear();
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
