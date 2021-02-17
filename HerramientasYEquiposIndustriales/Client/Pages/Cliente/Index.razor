@@ -175,7 +175,7 @@
     {
         dialogIsOpen = false;
         await CargaClientes();
-        Clear();        
+        Clear();
     }
 
     private void OpenDialogEdit(ClienteDTO clienteEdicion)
@@ -214,6 +214,9 @@
 
     private async Task CrearCliente()
     {
+        if (Cliente.EsFrecuente != true)
+            Cliente.EsFrecuente = false;
+
         var httpResponse = await repository.Post("api/Clientes", Cliente);
 
         if (httpResponse.Error)
@@ -267,10 +270,10 @@
         if (queryStringsDict == null)
             queryStringsDict = new Dictionary<string, string>();
 
-        queryStringsDict["Nombre"] = NombreClienteBusqueda;
-        queryStringsDict["Apellido"] = ApellidoClienteBusqueda;
-        queryStringsDict["Direccion"] = DireccionClienteBusqueda;
-        queryStringsDict["RFC"] = RfcClienteBusqueda;
+        queryStringsDict["Nombre"] = NombreClienteBusqueda != null ? NombreClienteBusqueda : String.Empty;
+        queryStringsDict["Apellido"] = ApellidoClienteBusqueda != null ? ApellidoClienteBusqueda : String.Empty;
+        queryStringsDict["Direccion"] = DireccionClienteBusqueda != null ? DireccionClienteBusqueda : String.Empty;
+        queryStringsDict["RFC"] = RfcClienteBusqueda != null ? RfcClienteBusqueda : String.Empty;
         queryStringsDict["EsFrecuente"] = ClienteFecuente.ToString();
         queryStringsDict["Todos"] = TodosBusqueda.ToString();
 

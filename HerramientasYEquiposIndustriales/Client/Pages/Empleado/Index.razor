@@ -301,8 +301,8 @@
         if (queryStringsDict == null)
             queryStringsDict = new Dictionary<string, string>();
 
-        queryStringsDict["Nombre"] = NombreBusqueda;
-        queryStringsDict["Direccion"] = DireccionBusqueda;
+        queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
+        queryStringsDict["Direccion"] = DireccionBusqueda != null ? DireccionBusqueda : String.Empty;
         queryStringsDict["Activo"] = ActivoBusqueda.ToString();
         queryStringsDict["Todos"] = TodosBusqueda.ToString();
 

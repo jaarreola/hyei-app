@@ -72,9 +72,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var empleados = await context.Empleados.Include(x => x.Puesto).Where(x => 
-                    (x.Nombre.Contains(filtrosEmpleado.Nombre) || filtrosEmpleado.Nombre == null) && 
-                    (x.Direccion.Contains(filtrosEmpleado.Direccion) || filtrosEmpleado.Direccion == null) && 
+                var empleados = await context.Empleados.Include(x => x.Puesto).Where(x =>
+                    (x.Nombre.Contains(filtrosEmpleado.Nombre) || filtrosEmpleado.Nombre == null) &&
+                    (x.Direccion.Contains(filtrosEmpleado.Direccion) || filtrosEmpleado.Direccion == null) &&
                     (x.Activo == filtrosEmpleado.Activo || (filtrosEmpleado.Todos))
                 ).ToListAsync();
                 return mapper.Map<List<EmpleadoDTO>>(empleados);
@@ -93,11 +93,15 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var numeroEmpleado = (context.Empleados.Max(x => x.EmpleadoId) + 1).ToString("D4");
-                return $"{DateTime.Now.Year}-{numeroEmpleado}";
+                int ultimoNumeroEmpleado = 0;
+                if (context.Empleados.Any())
+                    ultimoNumeroEmpleado = context.Empleados.Max(x => x.EmpleadoId);
+                return $"{DateTime.Now.Year}-{(ultimoNumeroEmpleado + 1):D4}";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
+
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");

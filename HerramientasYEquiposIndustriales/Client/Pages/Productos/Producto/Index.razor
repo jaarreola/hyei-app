@@ -168,7 +168,7 @@
     private bool dialogMarcaIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
-    
+
 
     protected async override Task OnInitializedAsync()
     {
@@ -340,9 +340,9 @@
         if (queryStringsDict == null)
             queryStringsDict = new Dictionary<string, string>();
 
-        queryStringsDict["NoParte"] = NoParteBusqueda;
-        queryStringsDict["Nombre"] = NombreBusqueda;
-        queryStringsDict["Modelo"] = ModeloBusqueda;
+        queryStringsDict["NoParte"] = NoParteBusqueda != null ? NoParteBusqueda : String.Empty;
+        queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
+        queryStringsDict["Modelo"] = ModeloBusqueda != null ? ModeloBusqueda : String.Empty;
         queryStringsDict["MarcaId"] = MarcaBusqueda.MarcaId.ToString();
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };

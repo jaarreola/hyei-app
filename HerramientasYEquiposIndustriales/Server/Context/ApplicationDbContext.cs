@@ -40,5 +40,8 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<OrdenTrabajo> OrdenTrabajo { get; set; }
         public DbSet<OrdenTrabajoDetalle> OrdenTrabajoDetalle { get; set; }
 
+        public DbSet<Movimiento> Movimientos { get; set; }
+        public DbSet<FacturaMovimiento> FacturaMovimientos { get; set; }
+
     }
 }

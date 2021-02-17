@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HerramientasYEquiposIndustriales.Server.Helpers
 {
-    public class AutoMapperProfiles: Profile
+    public class AutoMapperProfiles : Profile
     {
         public AutoMapperProfiles()
         {
@@ -27,8 +27,10 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
             CreateMap<Marca, MarcaDTO>().ReverseMap();
 
             CreateMap<OrdenTrabajo, OrdenTrabajoDTO>().ReverseMap();
-
             CreateMap<OrdenTrabajoDetalle, OrdenTrabajoDetalleDTO>().ReverseMap();
+
+            CreateMap<Movimiento, MovimientoDTO>().ReverseMap();
+            CreateMap<FacturaMovimiento, FacturaMovimientoDTO>().ReverseMap();
         }
     }
 }
