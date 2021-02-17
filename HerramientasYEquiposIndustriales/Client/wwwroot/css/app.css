@@ -195,14 +195,17 @@ app {
 
 /* MatDialog*/
 .mdc-dialog700 .mdc-dialog__surface {
+    min-width: 700px !important;
     max-width: 700px !important;
 }
 
 .mdc-dialog800 .mdc-dialog__surface {
+    min-width: 800px !important;
     max-width: 800px !important;
 }
 
 .mdc-dialog900 .mdc-dialog__surface {
+    min-width: 900px !important;
     max-width: 900px !important;
 }
 

@@ -87,6 +87,54 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        //
+        [HttpGet("BuscaProductosFilter")]
+        public async Task<ActionResult<IEnumerable<ProductoDTO>>> BuscaProductosFilter([FromQuery] ProductoFilter filtrosProducto)
+        {
+            try
+            {
+                var Productos = await context.Productos.Include(x => x.Marca).Where(x =>
+                    (x.NoParte.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                    (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
+                    (x.Marca.Descripcion.Contains(filtrosProducto.Marca) && filtrosProducto.Marca != null)
+                ).ToListAsync();
+                return mapper.Map<List<ProductoDTO>>(Productos);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("BuscaProductoPorNumeroParte")]
+        public async Task<ActionResult<ProductoDTO>> BuscaProductoPorNumeroParte([FromQuery] ProductoFilter filtrosProducto)
+        {
+            try
+            {
+                var Producto = await context.Productos.Include(x => x.Marca).FirstOrDefaultAsync(x => x.NoParte == filtrosProducto.NoParte);
+                if (Producto == null)
+                    return new ProductoDTO();
+                else
+                    return mapper.Map<ProductoDTO>(Producto);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del Producto a buscar. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+        //
+        //
+
+
         [HttpPost]
         public async Task<ActionResult<ProductoDTO>> PostProducto(ProductoDTO ProductoCreacionDTO)
         {
@@ -94,7 +142,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             {
                 var Producto = mapper.Map<Producto>(ProductoCreacionDTO);
                 Producto.FechaRegistro = DateTime.Now;
-                
+
                 context.Productos.Add(Producto);
                 await context.SaveChangesAsync();
 
@@ -163,6 +211,45 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         private bool ProductoExists(int id)
         {
             return context.Productos.Any(x => x.ProductoId == id);
+        }
+
+
+        [HttpGet("ObtenerProductoByNoParte")]
+        public async Task<ActionResult<ProductoDTO>> ObtenerProductoByNoParte([FromQuery] ProductoFilter filtrosProducto)
+        {
+            try
+            {
+                var Productos = await context.Productos.Include(x => x.Marca).Where(x => x.NoParte.Contains(filtrosProducto.NoParte)).ToListAsync();
+                return mapper.Map<ProductoDTO>(Productos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("ObtenerProductoByFilter")]
+        public async Task<ActionResult<IEnumerable<ProductoDTO>>> ObtenerProductoByFilter([FromQuery] ProductoFilter filtrosProducto)
+        {
+            try
+            {
+                var Productos = await context.Productos.Include(x => x.Marca).Where(x =>
+                    (x.NoParte.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                    (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
+                    (x.Modelo.Contains(filtrosProducto.Modelo) && filtrosProducto.Modelo != null) ||
+                    (x.MarcaId == filtrosProducto.MarcaId && filtrosProducto.MarcaId != 0)
+                ).ToListAsync();
+                return mapper.Map<List<ProductoDTO>>(Productos);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
         }
     }
 }

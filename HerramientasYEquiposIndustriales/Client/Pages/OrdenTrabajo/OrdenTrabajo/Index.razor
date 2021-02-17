@@ -226,11 +226,11 @@
     private String _numeroEmpleado;
 
 
-    protected async override Task OnInitializedAsync()
-    {
-        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-    }
+    //protected async override Task OnInitializedAsync()
+    //{
+    //    System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+    //    CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+    //}
 
 
     private async Task BuscarCliente()
@@ -245,12 +245,10 @@
         if (_queryStringsDict == null)
             _queryStringsDict = new Dictionary<string, string>();
 
-        _queryStringsDict["Nombre"] = _nombreClienteBuscar;
-        _queryStringsDict["Apellido"] = _nombreClienteBuscar;
-        _queryStringsDict["Direccion"] = "";
-        _queryStringsDict["RFC"] = _rfcClienteBuscar;
-        _queryStringsDict["Telefono"] = _telefonoClienteBuscar;
-        _queryStringsDict["EsFrecuente"] = "";
+        _queryStringsDict["Nombre"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
+        _queryStringsDict["Apellido"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
+        _queryStringsDict["RFC"] = _rfcClienteBuscar != null ? _rfcClienteBuscar : String.Empty;
+        _queryStringsDict["Telefono"] = _telefonoClienteBuscar != null ? _telefonoClienteBuscar : String.Empty;
         _queryStringsDict["Todos"] = "true";
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
@@ -372,15 +370,18 @@
             _ordenesTrabajoDetalle.Add(_ordenTrabajoDetalle);
         }
         _dialogAgregaHerramientaIsOpen = false;
+        await Task.Delay(100);
+
         _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
         CargaGridHerramientas();
         MuestraOcultarPaginadorHerramientas();
     }
 
 
-    private void CancelaDialogOrdenTrabajo()
+    private async Task CancelaDialogOrdenTrabajo()
     {
         _dialogAgregaHerramientaIsOpen = false;
+        await Task.Delay(100);
 
         _ordenTrabajoDetalle.NumeroOrdenTrabajo = _ordenTrabajoDetalleEditar.NumeroOrdenTrabajo;
         _ordenTrabajoDetalle.NombreHerramienta = _ordenTrabajoDetalleEditar.NombreHerramienta;
