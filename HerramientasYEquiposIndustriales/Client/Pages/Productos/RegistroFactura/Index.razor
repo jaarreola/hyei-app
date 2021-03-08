@@ -1,0 +1,837 @@
+﻿@page "/RegistroFactura"
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+<div>
+    <div class="row">
+        <div class="col-md-12">
+            <MatHeadline6 class="demo-mat-card-clean-margin">
+                Registro de Facturas
+            </MatHeadline6>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2">
+            <MatTextField @bind-Value="@facturaRegistro" Label="No Factura" Outlined="true" InputStyle="color: red" Disabled="@deshabilitaFactura"></MatTextField>
+        </div>
+        <div class="col-md-7">
+            <MatTextField FullWidth="true" @bind-Value="@descripcionFacturaRegistro" Label="Descripción" TextArea="true"></MatTextField>
+        </div>
+        <div class="col-md-3">
+            <MatButton Raised="true" Icon="search" OnClick="@OpenDialogBuscarFactura" class="mdc-button-background">Consulta Factura</MatButton>
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div>
+    <div class="row">
+        <div class="col-md-5">
+            <h4>Detalle Factura</h4>
+        </div>
+        <div class="col-md-3">
+            <MatButton Raised="true" Icon="note_add" OnClick="@OpenDialogAgregaRegistro" class="mdc-button-background">Agregar Registro</MatButton>
+        </div>
+        <div class="col-md-2">
+            <MatButton Raised="true" Icon="save" OnClick="@GuardaFactura" class="mdc-button-background">GUARDAR</MatButton>
+        </div>
+        <div class="col-md-2">
+            <MatButton Raised="true" OnClick="@ValidaClear" class="mdc-button-background">Limpiar</MatButton>
+        </div>
+    </div>
+    <MatTable Items="@movimientosRegistro" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10">
+        <MatTableHeader>
+            <th style="width:10%;">No Parte</th>
+            <th style="width:60%;">Nombre</th>
+            <th style="width:10%;">Tipo</th>
+
+            <th style="width:10%;">Cantidad</th>
+            <th style="width:10%;"></th>
+            <th style="width:10%;"></th>
+        </MatTableHeader>
+        <MatTableRow>
+
+            @if (context.MovimientoId != 0)
+                {<td style="font-weight:bold">@context.Producto.NoParte</td>}
+            @if (context.MovimientoId == 0)
+                {<td style="color:Grey">@context.Producto.NoParte</td>}
+
+            <td>@context.Producto.Nombre</td>
+
+            @if (context.EsEntrada)
+                {<td style="color:green; font-weight:bold">Entrada</td>}
+            @if (context.EsSalida)
+                {<td style="color:red; font-weight:bold">Salida</td>}
+
+            <td>@FormatoDecimal(@context.Cantidad.ToString())</td>
+            <td><MatIconButton OnClick="@(_=>OpenDialogEditaRegistro(@context))" Icon="edit"></MatIconButton></td>
+            <td><MatIconButton OnClick="@(_=>EliminaRegistroGrid(@context))" Icon="delete"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogRegistroIsOpen" CanBeClosed="false" class="mdc-dialog800">
+        <MatDialogTitle><h5>Registro de movimiento</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroParteRegistro" Label="No Parte" OnKeyPress="@KeyPressNoParte" OnFocusOut="@LostFocusNoParte"></MatTextField>
+                </div>
+                <div class="col-md-8">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreProductoRegistro" ReadOnly="true"></MatTextField>
+                </div>
+                <div class="col-md-1">
+                    <MatIconButton OnClick="@OpenDialogBuscarProducto" Icon="search"></MatIconButton>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatRadioGroup @bind-Value="@tipoEntradaRegistro" TValue="int">
+                        <MatRadioButton Value="1" TValue="int">Entrada</MatRadioButton>
+                        <MatRadioButton Value="-1" TValue="int">Salida</MatRadioButton>
+                    </MatRadioGroup>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField @bind-Value="@cantidadRegistro" Label="Cantidad"></MatTextField>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@comentarioRegistro" Label="Detalle" TextArea="true"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogRegistro" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@GuardarRegistro" class="mdc-button-modal">Guardar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogBuscarProductoIsOpen" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Busqueda Producto</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroParteProductoBusqueda" Label="No Parte" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-6">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreProductoBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@marcaProductoBusqueda" Label="Marca" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@productos" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeProductos">
+                        <MatTableHeader>
+                            <th style="width:15%;">NoParte</th>
+                            <th style="width:35%;">Nombre</th>
+                            <th style="width:15%;">Marca</th>
+                            <th style="width:15%;">Modelo</th>
+                            <th style="width:10%;">Costo Compra</th>
+                            <th style="width:10%;">Costo Venta</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.NoParte</td>
+                            <td>@context.Nombre</td>
+                            <td>@context.Marca.Descripcion</td>
+                            <td>@context.Modelo</td>
+                            <td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
+                            <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogSeleccionaProducto" class="mdc-button-modal">Cancel</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleadoEdicion" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleadoEdit" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogBuscarFacturasIsOpen" CanBeClosed="false" class="mdc-dialog800">
+        <MatDialogTitle><h5>Facturas</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroFacturaBusqueda" Label="Número Factura" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatDatePicker>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@facturas" OnRowDbClick="@OnDbClickedFactura" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
+                        <MatTableHeader>
+                            <th style="width:20%;">Factura</th>
+                            <th style="width:70%;">Descripción</th>
+                            <th style="width:20%;">Fecha Registro</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.Factura</td>
+                            <td>@context.Descripcion</td>
+                            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogFacturas" class="mdc-button-modal">Cancel</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+@code{
+    //VARIABLES
+    private FacturaMovimientoDTO factura = new FacturaMovimientoDTO();
+    private String facturaRegistro = String.Empty;
+    private string descripcionFacturaRegistro = String.Empty;
+
+    private List<MovimientoDTO> movimientosRegistro = new List<MovimientoDTO>();
+    private MovimientoDTO movimiento = new MovimientoDTO();
+    private MovimientoDTO registroEditar = new MovimientoDTO();
+
+    private MovimientoDTO movimientoEdicion = new MovimientoDTO();
+
+    private List<ProductoDTO> productos = new List<ProductoDTO>();
+    private ProductoDTO producto = new ProductoDTO();
+    private ProductoDTO productoRegistro = new ProductoDTO();
+    private string numeroParteProductoBusqueda;
+    private string nombreProductoBusqueda;
+    private string marcaProductoBusqueda;
+
+    private string numeroParteRegistro;
+    private string nombreProductoRegistro;
+    private int tipoEntradaRegistro = 1;
+    private decimal? cantidadRegistro;
+    private string comentarioRegistro;
+
+    private bool dialogRegistroIsOpen = false;
+    private bool dialogBuscarProductoIsOpen = false;
+
+    Dictionary<string, string> queryStringsMovimiento = new Dictionary<string, string>();
+    Dictionary<string, string> queryStringsProducto = new Dictionary<string, string>();
+    Dictionary<string, string> queryStringsFactura = new Dictionary<string, string>();
+
+    private bool dialogValidaEmpleado = false;
+    private bool dialogValidaEmpleadoEdicion = false;
+    private EmpleadoDTO empleado = new EmpleadoDTO();
+    private String numeroEmpleado = String.Empty;
+
+    private int opcionEdicion = 0; // 1 = Actualizar, 2 = Eliminar
+
+    private bool dialogBuscarFacturasIsOpen = false;
+    private String numeroFacturaBusqueda;
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+    private List<FacturaMovimientoDTO> facturas = new List<FacturaMovimientoDTO>();
+
+
+    private int pageSize = 0;
+    private int pageSizeProductos = 0;
+
+    //disableElements
+    private bool deshabilitaFactura = false;
+
+
+
+    private async Task OpenDialogEditaRegistro(MovimientoDTO entidad)
+    {
+        registroEditar = new MovimientoDTO()
+        {
+            MovimientoId = entidad.MovimientoId,
+            ProductoId = entidad.ProductoId,
+            Producto = entidad.Producto,
+            EsEntrada = entidad.EsEntrada,
+            EsSalida = entidad.EsSalida,
+            Cantidad = entidad.Cantidad,
+            Comentario = entidad.Comentario,
+            FechaRegistro = entidad.FechaRegistro,
+            EmpleadoCreacion = entidad.EmpleadoCreacion,
+            FechaUltimaModificacion = entidad.FechaUltimaModificacion,
+            EmpleadoModificacion = entidad.EmpleadoModificacion,
+            FacturaMovimientoId = entidad.FacturaMovimientoId
+        };
+        movimiento = entidad;
+
+        numeroParteRegistro = movimiento.Producto.NoParte;
+        await BuscarNombreProducto();
+        tipoEntradaRegistro = movimiento.EsEntrada ? 1 : -1;
+        cantidadRegistro = movimiento.Cantidad;
+        comentarioRegistro = movimiento.Comentario;
+
+        dialogRegistroIsOpen = true;
+    }
+
+
+    private void OpenDialogAgregaRegistro()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+        nombreProductoRegistro = String.Empty;
+        dialogRegistroIsOpen = true;
+    }
+
+
+    private void OpenDialogBuscarFactura()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+        dialogBuscarFacturasIsOpen = true;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        if (productoRegistro.ProductoId != 0)
+        {
+            if (registroEditar.MovimientoId != 0)
+                movimiento = registroEditar;
+
+            movimiento.Producto = new Producto();
+            movimiento.Producto.NoParte = productoRegistro.NoParte;
+            movimiento.Producto.Nombre = productoRegistro.Nombre;
+
+            movimiento.ProductoId = productoRegistro.ProductoId;
+            movimiento.Cantidad = cantidadRegistro != null ? cantidadRegistro : 0;
+            movimiento.Comentario = comentarioRegistro;
+            if (tipoEntradaRegistro == 1)
+            {
+                movimiento.EsEntrada = true;
+                movimiento.EsSalida = false;
+            }
+            else
+            {
+                movimiento.EsEntrada = false;
+                movimiento.EsSalida = true;
+            }
+
+            if (registroEditar.ProductoId == 0)
+            {
+                movimientosRegistro.Add(movimiento);
+                pageSize = movimientosRegistro.Count;
+            }
+
+            if (registroEditar.MovimientoId != 0)
+            {
+                if (await OpenConfirmacion("Desea actualizar este registro de la factura guardada?") == 1)
+                {
+                    opcionEdicion = 1;
+                    dialogValidaEmpleadoEdicion = true;
+                }
+            }
+            else
+            {
+                dialogRegistroIsOpen = false;
+                await Task.Delay(50);
+
+                movimiento = new MovimientoDTO();
+                registroEditar = new MovimientoDTO();
+                numeroParteRegistro = String.Empty;
+                nombreProductoRegistro = String.Empty;
+                tipoEntradaRegistro = 1;
+                cantidadRegistro = null;
+                comentarioRegistro = String.Empty;
+            }
+        }
+        else
+            toastService.ShowError("Debe seleccionar un producto primero.", "Error");
+    }
+
+    private async Task GuardaFactura()
+    {
+        //FALTA COMPLETAR
+        if (facturaRegistro == String.Empty)
+        {
+            toastService.ShowWarning("Debe capturar un número de factura", "Atención");
+            return;
+        }
+
+        //Validamos que la factura no exista
+        if (factura.FacturaMovimientoId == 0)
+        {
+            var httpResponse = await repository.Get<FacturaMovimientoDTO>("api/Inventarios/GetFactura/" + facturaRegistro);
+            if (!httpResponse.Error)
+            {
+                toastService.ShowWarning("La factura ingresada ya fue capturada", "Atención");
+                return;
+            }
+        }
+
+        //validamos que todas tengan un producto
+        if (movimientosRegistro.Count > 0)
+        {
+            foreach (MovimientoDTO m in movimientosRegistro)
+            {
+                if (m.ProductoId == 0)
+                {
+                    toastService.ShowWarning("Se deben capturar productos validos", "Atención");
+                    await Task.Delay(50);
+                    return;
+                }
+            }
+            dialogValidaEmpleado = true;
+        }
+        else
+            toastService.ShowWarning("Debe de agregar algun producto a la factura.", "Atención");
+    }
+
+    private void OpenDialogBuscarProducto()
+    {
+        dialogBuscarProductoIsOpen = true;
+    }
+
+
+    private async Task CancelaDialogRegistro()
+    {
+        dialogRegistroIsOpen = false;
+        await Task.Delay(50);
+
+        movimiento.MovimientoId = registroEditar.MovimientoId;
+        movimiento.ProductoId = registroEditar.ProductoId;
+        movimiento.EsEntrada = registroEditar.EsEntrada;
+        movimiento.EsSalida = registroEditar.EsSalida;
+        movimiento.Cantidad = registroEditar.Cantidad;
+        movimiento.Comentario = registroEditar.Comentario;
+        movimiento.FechaRegistro = registroEditar.FechaRegistro;
+        movimiento.EmpleadoCreacion = registroEditar.EmpleadoCreacion;
+        movimiento.FechaUltimaModificacion = registroEditar.FechaUltimaModificacion;
+        movimiento.EmpleadoModificacion = registroEditar.EmpleadoModificacion;
+        registroEditar.FacturaMovimientoId = registroEditar.FacturaMovimientoId;
+
+        numeroParteRegistro = String.Empty;
+        nombreProductoRegistro = String.Empty;
+        tipoEntradaRegistro = 1;
+        cantidadRegistro = null;
+        comentarioRegistro = String.Empty;
+
+        registroEditar = new MovimientoDTO();
+    }
+
+    private void CancelaDialogFacturas()
+    {
+        dialogBuscarFacturasIsOpen = false;
+    }
+
+    private async Task KeyPressNoParte(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await BuscarNombreProducto();
+        await Task.Delay(50);
+    }
+
+    private async Task LostFocusNoParte(FocusEventArgs e)
+    {
+        await BuscarNombreProducto();
+    }
+
+    private async Task BuscarNombreProducto()
+    {
+        var queryStrings = GenerarQueryStringsProductoNoParte();
+        var responseHttp = await repository.Get<ProductoDTO>("api/Productos/BuscaProductoPorNumeroParte?" + queryStrings);
+        productoRegistro = responseHttp.Response;
+        nombreProductoRegistro = productoRegistro.Nombre;
+
+        await Task.Delay(50);
+    }
+
+
+    private async Task KeyPressFactura(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await BuscarFacturas();
+        await Task.Delay(50);
+    }
+
+    private async Task LostFocusFactura(FocusEventArgs e)
+    {
+        await BuscarFacturas();
+    }
+
+    private async Task BuscarFacturas()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var queryStrings = GenerarQueryStringsFactura();
+        var responseHttp = await repository.Get<List<FacturaMovimientoDTO>>("api/Inventarios/BuscaFacturas?" + queryStrings);
+        facturas = responseHttp.Response;
+
+        await Task.Delay(50);
+    }
+
+
+
+    private async Task KeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await BuscarProductos();
+        await Task.Delay(50);
+    }
+
+    private async Task LostFocus(FocusEventArgs e)
+    {
+        await BuscarProductos();
+    }
+
+    private async Task BuscarProductos()
+    {
+        var queryStrings = GenerarQueryStringsProducto();
+        var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/BuscaProductosFilter?" + queryStrings);
+        productos = responseHttp.Response;
+        pageSizeProductos = productos.Count;
+        await Task.Delay(50);
+    }
+
+    private void CancelaDialogSeleccionaProducto()
+    {
+        dialogBuscarProductoIsOpen = false;
+    }
+
+
+    private String FormatoDecimal(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        String result = "";
+
+        if (value != string.Empty)
+            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",", ".")));
+
+        return result;
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
+    }
+
+
+    private void OnDbClicked(object item)
+    {
+        var productoSeleccionado = item as ProductoDTO;
+        if (productoSeleccionado != null)
+        {
+            dialogBuscarProductoIsOpen = false;
+            productoRegistro = productoSeleccionado;
+            numeroParteRegistro = productoRegistro.NoParte;
+            nombreProductoRegistro = productoRegistro.Nombre;
+        }
+    }
+
+
+
+    private async Task OnDbClickedFactura(object item)
+    {
+        factura = item as FacturaMovimientoDTO;
+        if (factura.FacturaMovimientoId != 0)
+        {
+            //buscamos el detalle de la factura (elelemtos)
+            var responseHttp = await repository.Post("api/Inventarios/ObtenerRegistrosPorFactura/", factura.FacturaMovimientoId);
+            JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+            var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+            movimientosRegistro = JsonSerializer.Deserialize<List<MovimientoDTO>>(responseString, JsonSerializerOptions);
+            facturaRegistro = factura.Factura;
+            descripcionFacturaRegistro = factura.Descripcion;
+
+            dialogBuscarFacturasIsOpen = false;
+            await Task.Delay(50);
+        }
+    }
+
+
+    private async Task EliminaRegistroGrid(MovimientoDTO registro)
+    {
+        if (registro.MovimientoId != 0)
+        {
+            if (await OpenConfirmacion("Desea eliminar este registro de la factura guardada?") == 1)
+            {
+                opcionEdicion = 2;
+                movimientoEdicion = registro;
+                dialogValidaEmpleadoEdicion = true;
+            }
+        }
+        else if (await OpenConfirmacion("Desea eliminar este registro?") == 1)
+        {
+            movimientosRegistro.Remove(registro);
+            pageSize = movimientosRegistro.Count;
+        }
+    }
+
+
+    private async Task ValidaEmpleadoSave()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            if (movimientosRegistro.Count > 0)
+            {
+                //se agrega el registro del empleado de creacion/modificacion a los registros de factura
+                factura.Factura = facturaRegistro;
+                factura.Descripcion = descripcionFacturaRegistro;
+                if (factura.FacturaMovimientoId == 0)
+                    factura.EmpleadoCreacion = empleado.EmpleadoId;
+                else
+                    factura.EmpleadoModificacion = empleado.EmpleadoId;
+
+                //eliminamos los registros que ya pertenezcan a una factura
+                foreach (MovimientoDTO m in movimientosRegistro)
+                {
+                    if (m.MovimientoId == 0)
+                        m.EmpleadoCreacion = empleado.EmpleadoId;
+                }
+
+                //se manda guardar toda la lista
+                List<Object> enviar = new List<Object>();
+                enviar.Add(factura);
+                enviar.Add(movimientosRegistro);
+
+                var httpResponse = await repository.Post("api/Inventarios/SaveFactura", enviar);
+
+                if (httpResponse.Error)
+                    toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                else
+                {
+                    CancelaDialogValidaEmpleado();
+                    await Task.Delay(50);
+                    await CancelaDialogRegistro();
+                    Clear();
+                    toastService.ShowSuccess("Registro completo", "Guardado");
+                }
+            }
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+
+    private async Task ValidaEmpleadoEdit()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            switch (opcionEdicion)
+            {
+                case 1: //Modificar
+                    movimiento.EmpleadoModificacion = empleado.EmpleadoId;
+                    var httpResponse1 = await repository.Put("api/Inventarios/" + movimiento.MovimientoId, movimiento);
+
+                    if (httpResponse1.Error)
+                    {
+                        toastService.ShowError(await httpResponse1.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                        return;
+                    }
+                    else
+                    {
+                        toastService.ShowSuccess("Actualización completa", "Guardado");
+                        dialogRegistroIsOpen = false;
+                        await Task.Delay(50);
+
+                        movimiento = new MovimientoDTO();
+                        registroEditar = new MovimientoDTO();
+                        numeroParteRegistro = String.Empty;
+                        nombreProductoRegistro = String.Empty;
+                        tipoEntradaRegistro = 1;
+                        cantidadRegistro = null;
+                        comentarioRegistro = String.Empty;
+                    }
+                    break;
+                case 2: //Eliminar
+                    movimientoEdicion.EmpleadoModificacion = empleado.EmpleadoId;
+                    var httpResponse2 = await repository.Delete("api/Inventarios/" + movimientoEdicion.MovimientoId);
+
+                    if (httpResponse2.Error)
+                    {
+                        toastService.ShowError(await httpResponse2.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                        return;
+                    }
+                    else
+                        toastService.ShowSuccess("Registro eliminado", "Guardado");
+                    break;
+            }
+            CancelaDialogValidaEmpleado();
+            await OnDbClickedFactura(factura);
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+
+    private void CancelaDialogValidaEmpleado()
+    {
+        numeroEmpleado = String.Empty;
+        empleado = new EmpleadoDTO();
+        dialogValidaEmpleado = false;
+        dialogValidaEmpleadoEdicion = false;
+    }
+
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+
+    private async Task ValidaClear()
+    {
+        if (facturaRegistro != String.Empty || movimientosRegistro.Count > 0)
+        {
+            if (await OpenConfirmacion("Desea limpiar la información de la ventana?") == 1)
+                Clear();
+        }
+    }
+
+    private void Clear()
+    {
+        factura = new FacturaMovimientoDTO();
+        facturaRegistro = String.Empty;
+        descripcionFacturaRegistro = String.Empty;
+
+        movimientosRegistro = new List<MovimientoDTO>();
+        movimiento = new MovimientoDTO();
+        registroEditar = new MovimientoDTO();
+
+        numeroParteRegistro = String.Empty;
+        nombreProductoRegistro = String.Empty;
+        tipoEntradaRegistro = 1;
+        cantidadRegistro = 0;
+        comentarioRegistro = String.Empty;
+
+        pageSize = 0;
+    }
+
+
+    private string GenerarQueryStringsProducto()
+    {
+        if (queryStringsProducto == null)
+            queryStringsProducto = new Dictionary<string, string>();
+
+        queryStringsProducto["NoParte"] = numeroParteProductoBusqueda != null ? numeroParteProductoBusqueda : String.Empty;
+        queryStringsProducto["Nombre"] = nombreProductoBusqueda != null ? nombreProductoBusqueda : String.Empty;
+        queryStringsProducto["Marca"] = marcaProductoBusqueda != null ? marcaProductoBusqueda : String.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsProducto
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private string GenerarQueryStringsProductoNoParte()
+    {
+        if (queryStringsProducto == null)
+            queryStringsProducto = new Dictionary<string, string>();
+
+        queryStringsProducto["NoParte"] = numeroParteRegistro != null ? numeroParteRegistro : String.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsProducto
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private string GenerarQueryStringsFactura()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        if (queryStringsFactura == null)
+            queryStringsFactura = new Dictionary<string, string>();
+
+        queryStringsFactura["Factura"] = numeroFacturaBusqueda == null ? String.Empty : numeroFacturaBusqueda;
+        queryStringsFactura["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringsFactura["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsFactura
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+}

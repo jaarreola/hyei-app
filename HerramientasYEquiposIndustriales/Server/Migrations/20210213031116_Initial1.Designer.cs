@@ -4,14 +4,16 @@ using HerramientasYEquiposIndustriales.Server.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HerramientasYEquiposIndustriales.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210213031116_Initial1")]
+    partial class Initial1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,10 +77,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Curp")
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
-
                     b.Property<string>("Direccion")
                         .HasColumnType("nvarchar(150)")
                         .HasMaxLength(150);
@@ -99,10 +97,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(80)")
                         .HasMaxLength(80);
-
-                    b.Property<string>("Nss")
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
@@ -155,10 +149,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
 
                     b.HasKey("FacturaMovimientoId");
 
-                    b.HasIndex("Factura")
-                        .IsUnique()
-                        .HasFilter("[Factura] IS NOT NULL");
-
                     b.ToTable("FacturaMovimientos");
                 });
 
@@ -193,7 +183,13 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("nvarchar(1000)")
                         .HasMaxLength(1000);
 
+                    b.Property<int?>("EmpleadoCreaEmpleadoId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("EmpleadoCreacion")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EmpleadoModificaEmpleadoId")
                         .HasColumnType("int");
 
                     b.Property<int?>("EmpleadoModificacion")
@@ -218,6 +214,10 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("MovimientoId");
+
+                    b.HasIndex("EmpleadoCreaEmpleadoId");
+
+                    b.HasIndex("EmpleadoModificaEmpleadoId");
 
                     b.HasIndex("FacturaMovimientoId");
 
@@ -335,32 +335,17 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<float?>("CantidadMinimaInventario")
-                        .HasColumnType("real");
-
                     b.Property<float?>("CostoCompra")
                         .HasColumnType("real");
 
                     b.Property<float?>("CostoVenta")
                         .HasColumnType("real");
 
-                    b.Property<int?>("EmpleadoActivo")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EmpleadoBaja")
-                        .HasColumnType("int");
-
                     b.Property<int?>("EmpleadoCreacion")
                         .HasColumnType("int");
 
                     b.Property<int?>("EmpleadoModificacion")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("FechaActivo")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaBaja")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaRegistro")
                         .HasColumnType("datetime2");
@@ -388,9 +373,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.HasKey("ProductoId");
 
                     b.HasIndex("MarcaId");
-
-                    b.HasIndex("NoParte")
-                        .IsUnique();
 
                     b.ToTable("Productos");
                 });
@@ -432,6 +414,14 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
 
             modelBuilder.Entity("HerramientasYEquiposIndustriales.Shared.Models.Movimiento", b =>
                 {
+                    b.HasOne("HerramientasYEquiposIndustriales.Shared.Models.Empleado", "EmpleadoCrea")
+                        .WithMany()
+                        .HasForeignKey("EmpleadoCreaEmpleadoId");
+
+                    b.HasOne("HerramientasYEquiposIndustriales.Shared.Models.Empleado", "EmpleadoModifica")
+                        .WithMany()
+                        .HasForeignKey("EmpleadoModificaEmpleadoId");
+
                     b.HasOne("HerramientasYEquiposIndustriales.Shared.Models.FacturaMovimiento", "FacturaMovimiento")
                         .WithMany()
                         .HasForeignKey("FacturaMovimientoId");

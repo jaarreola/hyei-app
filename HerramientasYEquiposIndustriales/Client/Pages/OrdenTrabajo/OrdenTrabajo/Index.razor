@@ -312,6 +312,7 @@
 
     private async Task<bool> GuardaOrdenesTrabajo()
     {
+        await Task.Delay(50);
         if (_cliente.ClienteId == 0)
         {
             if (_cliente.Nombre == null && _cliente.Apellido == null && _cliente.Telefono == null && _cliente.Correo == null && _cliente.RFC == null && _cliente.Direccion == null)
@@ -328,7 +329,7 @@
             {
                 if (ot.NumeroOrdenTrabajo == null)
                 {
-                    toastService.ShowWarning("Orden de trabajo para {ot.Nombre} no cuenta con Numero de OT", "Atención");
+                    toastService.ShowWarning("La orden de trabajo para '{ot.Nombre}' no cuenta con Numero de OT", "Atención");
                     return false;
                 }
             }

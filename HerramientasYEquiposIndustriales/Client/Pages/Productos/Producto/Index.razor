@@ -1,8 +1,10 @@
 ﻿@page "/Producto"
 @using System.Globalization
+@using System.Text.Json
 
 @inject IRepository repository
 @inject IToastService toastService
+@inject IMatDialogService MatDialogService
 
 <div>
     <div class="row">
@@ -52,24 +54,37 @@
 <div>
     <MatTable Items="@Productos" class="mat-elevation-z5">
         <MatTableHeader>
-            <th style="width:10%;">NoParte</th>
-            <th style="width:25%;">Nombre</th>
+            <th style="width:13%;">NoParte</th>
+            <th style="width:28%;">Nombre</th>
             <th style="width:15%;">Marca</th>
             <th style="width:10%;">Modelo</th>
-            <th style="width:15%;">Ubicación</th>
-            <th style="width:10%;">Costo Compra</th>
-            <th style="width:10%;">Costo Venta</th>
+            @*<th style="width:13%;">Ubicación</th>*@
+            <th style="width:8%;">Costo Compra</th>
+            <th style="width:8%;">Costo Venta</th>
+            <th style="width:8%;">Registro</th>
+            <th style="width:5%;"></th>
             <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
-            <td>@context.NoParte</td>
+            @if (context.FechaBaja == null)
+                {<td style="font-weight:bold">@context.NoParte</td>}
+            @if (context.FechaBaja != null)
+                {<td style="color:Red">@context.NoParte</td>}
+
             <td>@context.Nombre</td>
             <td>@context.Marca.Descripcion</td>
             <td>@context.Modelo</td>
-            <td></td>
+            @*<td></td>*@
             <td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
             <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
             <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+
+            @if (context.FechaBaja == null)
+                {<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>}
+            @if (context.FechaBaja != null)
+                {<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>}
+
         </MatTableRow>
     </MatTable>
 </div>
@@ -78,38 +93,75 @@
 <div>
     <EditForm Model="@Producto">
         <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false">
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
             <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
                     &nbsp;
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
                     </div>
                     <div class="col-md-6">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
                             <ItemTemplate Context="Marca">
                                 @Marca?.Descripcion
                             </ItemTemplate>
                         </MatSelectItem>
                     </div>
-                    <div class="col-md-6">
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@Producto.FechaRegistro" Label="Fecha Creación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
                     </div>
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@Producto.FechaUltimaModificacion" Label="Fecha Modificación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@Producto.FechaBaja" Label="Fecha Baja" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@Producto.FechaActivo" Label="Fecha Reactivación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoCreacion" Label="Empleado Creación" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModificacion" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoBaja" Label="Empleado Baja" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoActivo" Label="Empleado Activación" ReadOnly="true"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+                    </div>
+                    <div class="col-md-7">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-1">
+                        <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete"></MatIconButton>
                     </div>
                 </div>
             </MatDialogContent>
@@ -148,6 +200,43 @@
 
 
 
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
 @code{
     //FILTROS BUSQUEDA
     private string NoParteBusqueda = string.Empty;
@@ -168,6 +257,19 @@
     private bool dialogMarcaIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
+    private ProductoDTO productoSeleccionado;
+    private bool dialogValidaEmpleado;
+    private bool dialogValidaEmpleadoSave;
+    private String numeroEmpleado = String.Empty;
+    private EmpleadoDTO empleado = new EmpleadoDTO();
+
+    private String nombreEmpleadoCreacion = String.Empty;
+    private String nombreEmpleadoModificacion = String.Empty;
+    private String nombreEmpleadoBaja = String.Empty;
+    private String nombreEmpleadoActivo = String.Empty;
+
+    private int idProductoEliminar = 0;
+
 
 
     protected async override Task OnInitializedAsync()
@@ -177,6 +279,7 @@
 
         await CargaComboMarcas();
         await CargaProductos();
+        await Task.Delay(50);
     }
 
 
@@ -194,6 +297,7 @@
         dialogIsOpen = false;
         await CargaProductos();
         Clear();
+        await Task.Delay(50);
     }
 
     private void OpenDialogMarca()
@@ -208,9 +312,10 @@
         dialogIsOpen = false;
         await CargaProductos();
         Clear();
+        await Task.Delay(50);
     }
 
-    private void OpenDialogEdit(ProductoDTO productoEdicion)
+    private async Task OpenDialogEdit(ProductoDTO productoEdicion)
     {
         if (!Expandido) { Expandido = false; }
         Producto = new ProductoDTO()
@@ -222,9 +327,35 @@
             MarcaId = productoEdicion.MarcaId,
             CostoCompra = productoEdicion.CostoCompra,
             CostoVenta = productoEdicion.CostoVenta,
-            Marca = productoEdicion.Marca
+            Marca = productoEdicion.Marca,
+            FechaRegistro = productoEdicion.FechaRegistro,
+            FechaUltimaModificacion = productoEdicion.FechaUltimaModificacion,
+            FechaBaja = productoEdicion.FechaBaja,
+            FechaActivo = productoEdicion.FechaActivo,
+            CantidadMinimaInventario = productoEdicion.CantidadMinimaInventario
         };
         Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
+
+        if (productoEdicion.EmpleadoCreacion != null)
+            nombreEmpleadoCreacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoCreacion)).Response.Nombre;
+        else
+            nombreEmpleadoCreacion = String.Empty;
+
+        if (productoEdicion.EmpleadoModificacion != null)
+            nombreEmpleadoModificacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoModificacion)).Response.Nombre;
+        else
+            nombreEmpleadoModificacion = String.Empty;
+
+        if (productoEdicion.EmpleadoBaja != null)
+            nombreEmpleadoBaja = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoBaja)).Response.Nombre;
+        else
+            nombreEmpleadoBaja = String.Empty;
+
+        if (productoEdicion.EmpleadoActivo != null)
+            nombreEmpleadoActivo = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoActivo)).Response.Nombre;
+        else
+            nombreEmpleadoActivo = String.Empty;
+
         dialogIsOpen = true;
     }
 
@@ -246,20 +377,106 @@
         Productos = responseHttp.Response;
     }
 
+
+    private async Task BajaArticulo(object item)
+    {
+        productoSeleccionado = item as ProductoDTO;
+        if (await OpenConfirmacion("Desea dar de baja el producto seleccionado?") == 1)
+            dialogValidaEmpleado = true;
+    }
+
+    private async Task AltaArticulo(object item)
+    {
+        productoSeleccionado = item as ProductoDTO;
+        if (await OpenConfirmacion("Desea volver a activar el producto seleccionado?") == 1)
+            dialogValidaEmpleado = true;
+    }
+
+    private async Task EliminarArticulo(int id)
+    {
+        idProductoEliminar = id;
+        if (idProductoEliminar != 0)
+            if (await OpenConfirmacion("Desea eliminar de forma permanente el producto seleccionado?") == 1)
+                dialogValidaEmpleado = true;
+    }
+
+
+
+    private async Task ValidaEmpleadoSave()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            Producto.MarcaId = Marca.MarcaId;
+            if (Producto.ProductoId == 0)
+            {
+                Producto.EmpleadoCreacion = empleado.EmpleadoId;
+                await CrearProducto();
+            }
+            else
+            {
+                Producto.EmpleadoModificacion = empleado.EmpleadoId;
+                await ActualizarProducto();
+            }
+            CancelaDialogValidaEmpleado();
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+    private async Task ValidaEmpleado()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            if (idProductoEliminar != 0)
+                await EliminarProducto();
+            else
+            {
+                productoSeleccionado.EmpleadoModificacion = empleado.EmpleadoId;
+                await ActivarDesactivarProducto();
+            }
+            CancelaDialogValidaEmpleado();
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+
     private async Task GuardarProducto()
     {
-        Producto.MarcaId = Marca.MarcaId;
+        if (Producto.NoParte == String.Empty)
+        {
+            await OpenMessage("Debe capturar un numero de parte");
+            return;
+        }
 
         if (Producto.ProductoId == 0)
-            await CrearProducto();
-        else
-            await ActualizarProducto();
+        {
+            //validamos si ya existe un producto con ese numero de parte
+            var httpResponseExiste = await repository.Get<ProductoDTO>("api/Productos/GetProductoPorNoParte/" + Producto.NoParte);
+            if (!httpResponseExiste.Error)
+            {
+                await OpenMessage("Ya existe un producto con ese Número de parte");
+                return;
+            }
+        }
+        dialogValidaEmpleadoSave = true;
     }
 
     private async Task CrearProducto()
     {
         var httpResponse = await repository.Post("api/Productos", Producto);
-
         if (httpResponse.Error)
         {
             if (Producto.MarcaId == 0)
@@ -272,6 +489,7 @@
             Clear();
             dialogIsOpen = false;
             await CargaProductos();
+            await Task.Delay(50);
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -287,7 +505,41 @@
             Clear();
             dialogIsOpen = false;
             await CargaProductos();
+            await Task.Delay(50);
             toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task ActivarDesactivarProducto()
+    {
+        var httpResponse = await repository.Put("api/Productos/ActivarDesactivarProducto/" + productoSeleccionado.ProductoId, productoSeleccionado);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            dialogIsOpen = false;
+            await CargaProductos();
+            await Task.Delay(50);
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+
+    private async Task EliminarProducto()
+    {
+        var httpResponse = await repository.Delete("api/Productos/" + idProductoEliminar);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            Clear();
+            dialogIsOpen = false;
+            await CargaProductos();
+            await Task.Delay(50);
+            toastService.ShowSuccess("Producto Eliminado", "Completo");
         }
     }
 
@@ -309,6 +561,7 @@
             dialogMarcaIsOpen = false;
             await CargaComboMarcas();
             await CargaProductos();
+            await Task.Delay(50);
             toastService.ShowSuccess("Registro completo", "Guardado");
             NuevaMarca = new MarcaDTO();
         }
@@ -332,6 +585,11 @@
         NuevaMarca = new MarcaDTO();
 
         Producto = new ProductoDTO();
+
+        nombreEmpleadoCreacion = String.Empty;
+        nombreEmpleadoModificacion = String.Empty;
+        nombreEmpleadoBaja = String.Empty;
+        nombreEmpleadoActivo = String.Empty;
     }
 
 
@@ -361,6 +619,45 @@
             return string.Format("{0:C2}", Convert.ToDecimal(value));
         else
             return "";
+    }
+
+
+    private void CancelaDialogValidaEmpleado()
+    {
+        numeroEmpleado = String.Empty;
+        empleado = new EmpleadoDTO();
+        dialogValidaEmpleado = false;
+        dialogValidaEmpleadoSave = false;
+        idProductoEliminar = 0;
+    }
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
     }
 
 }

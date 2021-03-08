@@ -4,14 +4,16 @@ using HerramientasYEquiposIndustriales.Server.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HerramientasYEquiposIndustriales.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210223040334_Initial3")]
+    partial class Initial3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,6 +36,10 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("nvarchar(40)")
                         .HasMaxLength(40);
 
+                    b.Property<string>("Curp")
+                        .HasColumnType("nvarchar(20)")
+                        .HasMaxLength(20);
+
                     b.Property<string>("Direccion")
                         .HasColumnType("nvarchar(150)")
                         .HasMaxLength(150);
@@ -51,6 +57,10 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(40)")
                         .HasMaxLength(40);
+
+                    b.Property<string>("Nss")
+                        .HasColumnType("nvarchar(15)")
+                        .HasMaxLength(15);
 
                     b.Property<string>("RFC")
                         .HasColumnType("nvarchar(13)")
@@ -75,10 +85,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Curp")
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
-
                     b.Property<string>("Direccion")
                         .HasColumnType("nvarchar(150)")
                         .HasMaxLength(150);
@@ -99,10 +105,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(80)")
                         .HasMaxLength(80);
-
-                    b.Property<string>("Nss")
-                        .HasColumnType("nvarchar(15)")
-                        .HasMaxLength(15);
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
@@ -154,10 +156,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("FacturaMovimientoId");
-
-                    b.HasIndex("Factura")
-                        .IsUnique()
-                        .HasFilter("[Factura] IS NOT NULL");
 
                     b.ToTable("FacturaMovimientos");
                 });
@@ -344,9 +342,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                     b.Property<float?>("CostoVenta")
                         .HasColumnType("real");
 
-                    b.Property<int?>("EmpleadoActivo")
-                        .HasColumnType("int");
-
                     b.Property<int?>("EmpleadoBaja")
                         .HasColumnType("int");
 
@@ -355,9 +350,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
 
                     b.Property<int?>("EmpleadoModificacion")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("FechaActivo")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
