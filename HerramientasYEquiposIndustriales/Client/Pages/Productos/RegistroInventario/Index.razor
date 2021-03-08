@@ -150,7 +150,7 @@
             <br />
             <div class="row">
                 <div class="col-md-12">
-                    <MatTable Items="@productos" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
+                    <MatTable Items="@productos" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeProductos">
                         <MatTableHeader>
                             <th style="width:15%;">NoParte</th>
                             <th style="width:35%;">Nombre</th>
@@ -209,7 +209,7 @@
             </div>
             <div class="row">
                 <div class="col-md-6">
-                    <MatTextField @bind-Value="@nombreEmpleadoDetalle" Label="Empleado Creación" ReadOnly="true"></MatTextField>
+                    <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoDetalle" Label="Empleado Creación" ReadOnly="true"></MatTextField>
                 </div>
                 <div class="col-md-6">
                     <MatDatePicker @bind-Value="@fechaRegistroDetalle" Label="Fecha Creación" ReadOnly="true"></MatDatePicker>
@@ -217,7 +217,7 @@
             </div>
             <div class="row">
                 <div class="col-md-6">
-                    <MatTextField @bind-Value="@nombreEmpleadoModDetalle" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
+                    <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModDetalle" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
                 </div>
                 <div class="col-md-6">
                     <MatDatePicker @bind-Value="@fechaModDetalle" Label="Fecha Modificación" ReadOnly="true"></MatDatePicker>
@@ -298,6 +298,7 @@
     Dictionary<string, string> queryStringsMovimiento = new Dictionary<string, string>();
     Dictionary<string, string> queryStringsProducto = new Dictionary<string, string>();
 
+    private int pageSizeProductos = 0;
 
 
     //protected async override Task OnInitializedAsync()
@@ -417,6 +418,7 @@
     {
         if (e.Key == "Enter")
             await BuscarNombreProducto();
+        await Task.Delay(100);
     }
 
     private async Task LostFocusNoParte
@@ -429,6 +431,7 @@
     {
         if (e.Key == "Enter")
             await BuscarProductos();
+        await Task.Delay(100);
     }
 
     private async Task LostFocus(FocusEventArgs e)
@@ -451,8 +454,8 @@
         var queryStrings = GenerarQueryStringsProducto();
         var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/BuscaProductosFilter?" + queryStrings);
         productos = responseHttp.Response;
-
-        await Task.Delay(100);
+        pageSizeProductos = productos.Count;
+        await Task.Delay(50);
     }
 
 
@@ -476,6 +479,8 @@
 
             if (movimientoDetalle.EmpleadoModificacion != null)
                 nombreEmpleadoModDetalle = (await repository.Get<EmpleadoDTO>("api/Empleados/" + movimientoDetalle.EmpleadoModificacion)).Response.Nombre;
+            else
+                nombreEmpleadoModDetalle = String.Empty;
 
             dialogDetalleMovimientoIsOpen = true;
         }
@@ -606,10 +611,10 @@
                 else
                 {
                     CancelaDialogValidaEmpleado();
-                    await Task.Delay(100);
                     CancelaDialogRegistro();
                     toastService.ShowSuccess("Registro completo", "Guardado");
-                    //await BuscaMovimientos();
+                    await BuscaMovimientos();
+                    await Task.Delay(50);
                 }
             }
             else

@@ -96,7 +96,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 int ultimoNumeroEmpleado = 0;
                 if (context.Empleados.Any())
                     ultimoNumeroEmpleado = context.Empleados.Max(x => x.EmpleadoId);
-                return $"{DateTime.Now.Year}-{(ultimoNumeroEmpleado + 1):D4}";
+                //return $"{DateTime.Now.Year}-{(ultimoNumeroEmpleado + 1):D4}";
+                return $"{(ultimoNumeroEmpleado + 1):D4}";
             }
             catch (Exception ex)
             {

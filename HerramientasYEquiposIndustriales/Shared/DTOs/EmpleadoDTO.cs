@@ -20,6 +20,10 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public string Direccion { get; set; }
         [StringLength(10)]
         public string Telefono { get; set; }
+        [StringLength(15)]
+        public string Nss { get; set; }
+        [StringLength(20)]
+        public string Curp { get; set; }
         public int PuestoId { get; set; }
         public bool Activo { get; set; }
         public DateTime? FechaRegistro { get; set; }

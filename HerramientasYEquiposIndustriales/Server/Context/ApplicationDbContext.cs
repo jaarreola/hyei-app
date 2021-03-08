@@ -24,6 +24,14 @@ namespace HerramientasYEquiposIndustriales.Server.Context
                 .HasIndex(e => e.NumeroEmpleado)
                 .IsUnique();
 
+            builder.Entity<Producto>()
+                .HasIndex(e => e.NoParte)
+                .IsUnique();
+
+            builder.Entity<FacturaMovimiento>()
+                .HasIndex(e => e.Factura)
+                .IsUnique();
+
             //builder.Entity<OrdenTrabajoDetalle>(e =>
             //    {
             //        e.HasNoKey();

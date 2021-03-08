@@ -1,6 +1,10 @@
 ﻿@page "/Empleado"
+@using System.Globalization
+@using System.Text.Json
+
 @inject IRepository repository
 @inject IToastService toastService
+@inject IMatDialogService MatDialogService
 
 
 <div>
@@ -56,7 +60,11 @@
             <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
-            <td>@context.NumeroEmpleado</td>
+            @if (context.FechaBaja == null)
+                {<td style="font-weight:bold">@context.NumeroEmpleado</td>}
+            @if (context.FechaBaja != null)
+                {<td style="color:red; font-weight:bold">@context.NumeroEmpleado</td>}
+
             <td>@context.Nombre</td>
             <td>@context.Direccion</td>
             <td>@context.Telefono</td>
@@ -69,11 +77,11 @@
     </MatTable>
 </div>
 
+
 <div>
     <EditForm Model="@Empleado">
         <DataAnnotationsValidator />
-
-        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false">
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
             <MatDialogTitle><h5>Empleado</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -90,15 +98,21 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <MatTextField FullWidth="true" @bind-Value="@Empleado.Telefono" Label="Telefono"></MatTextField>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <MatSelectItem @bind-Value="@Puesto" Items="@Puestos" Label="Puesto">
                             <ItemTemplate Context="Puesto">
                                 @Puesto?.Nombre
                             </ItemTemplate>
                         </MatSelectItem>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.Nss" Label="NSS"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@Empleado.Curp" Label="CURP"></MatTextField>
                     </div>
                 </div>
                 <div class="row">
@@ -124,6 +138,7 @@
     </EditForm>
 </div>
 
+
 @code{
     @*Variables*@
     private List<EmpleadoDTO> Empleados = new List<EmpleadoDTO>();
@@ -144,7 +159,7 @@
 
     protected async override Task OnInitializedAsync()
     {
-        await CargaEmpleados();
+        //await CargaEmpleados();
         await CargaComboPuestos();
     }
 
@@ -181,12 +196,6 @@
         Empleados = responseHttpEmpleados.Response;
     }
 
-    private async Task CargaEmpleados()
-    {
-        var responseHttpEmpleados = await repository.Get<List<EmpleadoDTO>>("api/Empleados");
-        Empleados = responseHttpEmpleados.Response;
-    }
-
 
     private async Task CargaComboPuestos()
     {
@@ -198,6 +207,12 @@
 
     private async Task GuardarEmpleado()
     {
+        if (Puesto == null)
+        {
+            await OpenMessage("Debe seleccionar un puesto");
+            return;
+        }
+
         Empleado.PuestoId = Puesto.PuestoId;
 
         if (Empleado.EmpleadoId == 0)
@@ -217,30 +232,21 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            dialogIsOpen = false;
-            Clear();
-            await CargaEmpleados();
             toastService.ShowSuccess("Registro completo", "Guardado");
+            await CancelaDialog();
         }
     }
 
     private async Task ActualizarEmpleado()
     {
         var httpResponse = await repository.Put("api/Empleados/" + Empleado.EmpleadoId, Empleado);
-        await RespuestaResponseHttp(httpResponse);
-    }
 
-
-    private async Task RespuestaResponseHttp(HttpResponseWrapper<object> httpResponse)
-    {
         if (httpResponse.Error)
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            dialogIsOpen = false;
-            Clear();
-            await CargaEmpleados();
-            toastService.ShowSuccess("Actualización completa", "Guardado");
+            toastService.ShowSuccess("Registro actualizado", "Guardado");
+            await CancelaDialog();
         }
     }
 
@@ -250,6 +256,7 @@
         NombreBusqueda = "";
         DireccionBusqueda = "";
         ActivoBusqueda = false;
+        dialogIsOpen = false;
 
         Empleado = new EmpleadoDTO();
         Empleado.Activo = true;
@@ -267,8 +274,10 @@
     private async Task CancelaDialog()
     {
         dialogIsOpen = false;
-        await CargaEmpleados();
+        //await CargaEmpleados();
+        await Buscar();
         Clear();
+        await Task.Delay(100);
     }
 
 
@@ -283,6 +292,8 @@
             Nombre = empleadoEdicion.Nombre,
             Direccion = empleadoEdicion.Direccion,
             Telefono = empleadoEdicion.Telefono,
+            Nss = empleadoEdicion.Nss,
+            Curp = empleadoEdicion.Curp,
             PuestoId = empleadoEdicion.PuestoId,
             Activo = empleadoEdicion.Activo,
             FechaRegistro = empleadoEdicion.FechaRegistro,
@@ -311,5 +322,19 @@
         return string.Join("&", queryStringsDict
             .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
             .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
     }
 }

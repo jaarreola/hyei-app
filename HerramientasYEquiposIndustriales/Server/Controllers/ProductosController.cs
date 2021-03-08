@@ -64,6 +64,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+        [HttpGet("GetProductoPorNoParte/{noParte}")]
+        public async Task<ActionResult<ProductoDTO>> GetProductoPorNoParte(String noParte)
+        {
+            try
+            {
+                var producto = await context.Productos.FirstOrDefaultAsync(x => x.NoParte == noParte);
+
+                if (producto == null) { return NotFound(); }
+
+                var dto = mapper.Map<ProductoDTO>(producto);
+
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del Movimiento. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
 
         [HttpGet("ObtenerProductosFilter")]
         public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductoFilter([FromQuery] ProductoFilter filtrosProducto)
@@ -173,6 +195,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 context.Entry(Producto).State = EntityState.Modified;
                 context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
+                context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
 
                 await context.SaveChangesAsync();
 
@@ -185,6 +209,51 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al actualizar la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+        [HttpPut("ActivarDesactivarProducto/{id}")]
+        public async Task<ActionResult<ProductoDTO>> ActivarDesactivarProducto(int id, [FromBody] ProductoDTO ProductoModificacionDTO)
+        {
+            try
+            {
+                if (!ProductoExists(id)) { return NotFound(); }
+
+                var Producto = mapper.Map<Producto>(ProductoModificacionDTO);
+                var fecha = DateTime.Now;
+
+                Producto.ProductoId = id;
+                Producto.FechaUltimaModificacion = DateTime.Now;
+
+                context.Entry(Producto).State = EntityState.Modified;
+                context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+
+                if (Producto.FechaBaja == null)
+                {
+                    Producto.FechaActivo = null;
+                    Producto.EmpleadoActivo = null;
+                    Producto.FechaBaja = fecha;
+                    Producto.EmpleadoBaja = Producto.EmpleadoModificacion;
+                }
+                else if (Producto.FechaBaja != null)
+                {
+                    Producto.FechaBaja = null;
+                    Producto.EmpleadoBaja = null;
+                    Producto.FechaActivo = fecha;
+                    Producto.EmpleadoActivo = Producto.EmpleadoModificacion;
+                }
+
+                await context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al actualizar la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
 
 
         [HttpDelete("{id}")]
