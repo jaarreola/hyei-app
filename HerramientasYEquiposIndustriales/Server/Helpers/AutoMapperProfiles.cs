@@ -31,6 +31,9 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
 
             CreateMap<Movimiento, MovimientoDTO>().ReverseMap();
             CreateMap<FacturaMovimiento, FacturaMovimientoDTO>().ReverseMap();
+
+            CreateMap<Cotizacion, CotizacionDTO>().ReverseMap();
+            CreateMap<CotizacionDetalle, CotizacionDetalleDTO>().ReverseMap();
         }
     }
 }

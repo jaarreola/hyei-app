@@ -4,13 +4,10 @@ using System.Text;
 
 namespace HerramientasYEquiposIndustriales.Shared.Filters
 {
-    public class OrdenTrabajoFilter
+    public class CotizacionFilter
     {
         public int? OrdenTrabajoId { get; set; }
         public int? EmpleadoId { get; set; }
         public string NumeroOrdenTrabajo { get; set; }
-
-        public DateTime? FechaInicio { get; set; }
-        public DateTime? FechaFin { get; set; }
     }
 }

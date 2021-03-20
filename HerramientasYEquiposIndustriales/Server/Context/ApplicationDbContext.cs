@@ -32,6 +32,11 @@ namespace HerramientasYEquiposIndustriales.Server.Context
                 .HasIndex(e => e.Factura)
                 .IsUnique();
 
+            builder.Entity<Cotizacion>()
+                .HasIndex(e => e.OrdenTrabajoDetalleId)
+                .IsUnique();
+
+
             //builder.Entity<OrdenTrabajoDetalle>(e =>
             //    {
             //        e.HasNoKey();
@@ -51,5 +56,10 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<Movimiento> Movimientos { get; set; }
         public DbSet<FacturaMovimiento> FacturaMovimientos { get; set; }
 
+        public DbSet<Cotizacion> Cotizaciones { get; set; }
+        public DbSet<CotizacionDetalle> CotizacionDetalles { get; set; }
+
+        public DbSet<EstatusOT> EstatusOTs { get; set; }
+        public DbSet<EstatusOTFlujo> EstatusOTFlujos { get; set; }
     }
 }

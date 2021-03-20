@@ -134,12 +134,12 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
-        [HttpPost("ObtenerEmpleadoByNumero")]
+        [HttpPost("ObtenerEmpleadoValidoByNumero")]
         public async Task<ActionResult<EmpleadoDTO>> GetEmpleadoByNumero([FromBody] string numeroEmpleado)
         {
             try
             {
-                var empleado = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.NumeroEmpleado == numeroEmpleado);
+                var empleado = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => (x.NumeroEmpleado == numeroEmpleado && x.Activo && x.PuedeEditar));
 
                 if (empleado == null) return NotFound();
 

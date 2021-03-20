@@ -248,6 +248,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 var Facturas = await context.FacturaMovimientos.Where(x =>
                     (x.Factura.Contains(filtro.Factura) && filtro.Factura != null && filtro.Factura != String.Empty) ||
+                    (x.Descripcion.Contains(filtro.Descripcion) && filtro.Descripcion != null && filtro.Descripcion != String.Empty) ||
                     ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) && filtro.FechaInicio != null && filtro.FechaFin != null)
                 ).ToListAsync();
                 return mapper.Map<List<FacturaMovimientoDTO>>(Facturas);

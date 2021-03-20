@@ -65,6 +65,27 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpGet("GetMarcaByNombre/{nombre}")]
+        public async Task<ActionResult<MarcaDTO>> GetMarcaByNombre(string nombre)
+        {
+            try
+            {
+                var marca = await context.Marcas.FirstOrDefaultAsync(x => x.Descripcion == nombre);
+                if (marca == null) { return NotFound(); }
+
+                var dto = mapper.Map<MarcaDTO>(marca);
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
         [HttpGet("ObtenerMarcasFilter")]
         public async Task<ActionResult<IEnumerable<MarcaDTO>>> GetMarcaFilter([FromQuery] MarcaFilter filtrosMarca)
         {

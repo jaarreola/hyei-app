@@ -29,6 +29,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int? EmpleadoBaja { get; set; }
         public DateTime? FechaActivo { get; set; }
         public int? EmpleadoActivo { get; set; }
+        [StringLength(500)]
+        public String Ubicacion { get; set; }
 
 
         public virtual Marca Marca { get; set; }

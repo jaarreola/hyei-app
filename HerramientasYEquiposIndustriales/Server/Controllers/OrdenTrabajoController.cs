@@ -84,6 +84,30 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+
+        [HttpGet("GetOrdeTrabajoById/{id}")]
+        public async Task<ActionResult<OrdenTrabajoDTO>> GetOrdeTrabajoById(int id)
+        {
+            try
+            {
+                var OrdenTrabajo = await context.OrdenTrabajo.Include(x => x.Cliente).FirstOrDefaultAsync(x => x.OrdenTrabajoId == id);
+
+                if (OrdenTrabajo == null) return NotFound();
+
+                var dto = mapper.Map<OrdenTrabajoDTO>(OrdenTrabajo);
+                return dto;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Orden de Trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
         [HttpGet("{numeroOrdenTrabajo}", Name = "ObtenerOrdentrabajoDetalle")]
         public async Task<ActionResult<OrdenTrabajoDetalleDTO>> GetOrdeTrabajoDetalle(string numeroOrdenTrabajo)
         {

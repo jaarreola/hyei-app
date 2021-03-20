@@ -23,6 +23,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public string Curp { get; set; }
         public int PuestoId { get; set; }
         public bool Activo { get; set; }
+        public bool PuedeEditar { get; set; }
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
