@@ -477,7 +477,7 @@
 
     private async Task ValidaEmpleado()
     {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", _numeroEmpleado);
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", _numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace HerramientasYEquiposIndustriales.Shared.Models
 {
@@ -34,6 +32,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public int? EmpleadoModificacion { get; set; }
         public DateTime? FechaEntrega { get; set; }
         public DateTime? FechaFinaliacion { get; set; }
+        public bool TieneCoizacion { get; set; }
 
         public virtual OrdenTrabajo OrdenTrabajo { get; set; }
     }

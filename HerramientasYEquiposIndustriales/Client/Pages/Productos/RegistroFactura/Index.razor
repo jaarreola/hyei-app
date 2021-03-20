@@ -212,6 +212,9 @@
                     <MatTextField FullWidth="true" @bind-Value="@numeroFacturaBusqueda" Label="Número Factura" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatTextField>
                 </div>
                 <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@descripcionFacturaBusqueda" Label="Descripción" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatTextField>
+                </div>
+                <div class="col-md-3">
                     <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatDatePicker>
                 </div>
                 <div class="col-md-3">
@@ -285,6 +288,7 @@
 
     private bool dialogBuscarFacturasIsOpen = false;
     private String numeroFacturaBusqueda;
+    private String descripcionFacturaBusqueda;
     private DateTime? fechaInicio;
     private DateTime? fechaFin;
     private List<FacturaMovimientoDTO> facturas = new List<FacturaMovimientoDTO>();
@@ -625,7 +629,7 @@
 
     private async Task ValidaEmpleadoSave()
     {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -676,7 +680,7 @@
 
     private async Task ValidaEmpleadoEdit()
     {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -825,6 +829,7 @@
             queryStringsFactura = new Dictionary<string, string>();
 
         queryStringsFactura["Factura"] = numeroFacturaBusqueda == null ? String.Empty : numeroFacturaBusqueda;
+        queryStringsFactura["Descripcion"] = descripcionFacturaBusqueda == null ? String.Empty : descripcionFacturaBusqueda;
         queryStringsFactura["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
         queryStringsFactura["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
 

@@ -117,6 +117,12 @@
                 <div class="col-md-3">
                     <MatTextField @bind-Value="@cantidadRegistro" Label="Cantidad"></MatTextField>
                 </div>
+                <div class="col-md-3">
+                    <MatTextField @bind-Value="@facturaDato" Label="Factura" Disabled="@ocultaDatosFactura" ReadOnly="true"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField @bind-Value="@facturaDescripcionDato" Label="Descripción Factura" Disabled="@ocultaDatosFactura" ReadOnly="true"></MatTextField>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
@@ -269,6 +275,11 @@
     private string comentarioRegistro;
     private int tipoEntradaDetalle = 0;
 
+    private bool ocultaDatosFactura;
+    private string facturaDato;
+    private string facturaDescripcionDato;
+
+
     private string noParteDetalle = String.Empty;
     private string nombreDetalle = String.Empty;
     private string cantidadDetalle = String.Empty;
@@ -322,6 +333,8 @@
         System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
+        ocultaDatosFactura = true;
+
         if (!expandido) { expandido = false; }
         dialogRegistroIsOpen = true;
     }
@@ -354,6 +367,15 @@
             Producto = entidad.Producto,
             FacturaMovimiento = entidad.FacturaMovimiento
         };
+
+        if (movimiento.FacturaMovimiento != null)
+        {
+            ocultaDatosFactura = false;
+            facturaDato = movimiento.FacturaMovimiento.Factura;
+            facturaDescripcionDato = movimiento.FacturaMovimiento.Descripcion;
+        }
+        else
+            ocultaDatosFactura = true;
 
         numeroParteRegistro = movimiento.Producto.NoParte;
         if (movimiento.EsEntrada)
@@ -523,7 +545,7 @@
         String result = "";
 
         if (value != string.Empty)
-            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",",".")));
+            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",", ".")));
 
         return result;
     }
@@ -593,7 +615,7 @@
 
     private async Task ValidaEmpleadoSave()
     {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoByNumero", numeroEmpleado);
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();

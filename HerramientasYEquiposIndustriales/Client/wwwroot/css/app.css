@@ -2,6 +2,7 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /*overflow-y: scroll;*/
 }
 
 a, .btn-link {
@@ -216,6 +217,16 @@ app {
 }
 
 .mdc-button-modal {
+    background: white !important;
+    color: steelblue !important;
+}
+
+.mdc-button_withOutStyle {
+    background: transparent !important;
+    color: steelblue !important;
+}
+
+.mdc-button-modal__withOutStyle {
     background: white !important;
     color: steelblue !important;
 }

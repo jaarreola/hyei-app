@@ -116,11 +116,14 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <MatRadioGroup @bind-Value="@Empleado.Activo" TValue="bool">
                             <MatRadioButton Value="true" TValue="bool">Activo</MatRadioButton>
                             <MatRadioButton Value="false" TValue="bool">Baja</MatRadioButton>
                         </MatRadioGroup>
+                    </div>
+                    <div class="col-md-3">
+                        <MatCheckbox @bind-Value="@Empleado.PuedeEditar">Puede Editar</MatCheckbox>
                     </div>
                 </div>
                 <div class="row">
@@ -134,7 +137,6 @@
                 <MatButton OnClick="@GuardarEmpleado" class="mdc-button-modal">Guardar</MatButton>
             </MatDialogActions>
         </MatDialog>
-
     </EditForm>
 </div>
 
@@ -300,7 +302,8 @@
             FechaBaja = empleadoEdicion.FechaBaja,
             FechaUltimaModificacion = empleadoEdicion.FechaUltimaModificacion,
             MotivoBaja = empleadoEdicion.MotivoBaja,
-            Puesto = empleadoEdicion.Puesto
+            Puesto = empleadoEdicion.Puesto,
+            PuedeEditar = empleadoEdicion.PuedeEditar
         };
         Puesto = new PuestoComboDTO() { PuestoId = Empleado.Puesto.PuestoId, Nombre = Empleado.Puesto.Nombre };
         dialogIsOpen = true;
