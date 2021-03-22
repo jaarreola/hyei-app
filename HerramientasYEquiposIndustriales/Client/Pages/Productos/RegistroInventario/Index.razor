@@ -334,6 +334,8 @@
         CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
         ocultaDatosFactura = true;
+        facturaDato = String.Empty;
+        facturaDescripcionDato = String.Empty;
 
         if (!expandido) { expandido = false; }
         dialogRegistroIsOpen = true;
@@ -375,7 +377,11 @@
             facturaDescripcionDato = movimiento.FacturaMovimiento.Descripcion;
         }
         else
+        {
             ocultaDatosFactura = true;
+            facturaDato = String.Empty;
+            facturaDescripcionDato = String.Empty;
+        }
 
         numeroParteRegistro = movimiento.Producto.NoParte;
         if (movimiento.EsEntrada)

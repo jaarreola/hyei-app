@@ -55,9 +55,10 @@
     <MatTable Items="@Productos" class="mat-elevation-z5">
         <MatTableHeader>
             <th style="width:13%;">NoParte</th>
-            <th style="width:36%;">Nombre</th>
+            <th style="width:28%;">Nombre</th>
             <th style="width:15%;">Marca</th>
             <th style="width:10%;">Modelo</th>
+            <th style="width:8%;">Ubicación</th>
             @*<th style="width:8%;">Costo Compra</th>*@
             <th style="width:8%;">Costo Venta</th>
             <th style="width:8%;">Registro</th>
@@ -73,6 +74,12 @@
             <td>@context.Nombre</td>
             <td>@context.Marca.Descripcion</td>
             <td>@context.Modelo</td>
+
+            @if (context.Ubicacion != null)
+                {<td>@context.Ubicacion</td>}
+            else
+                {<td></td>}
+        
             @*<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>*@
             <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
             <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>

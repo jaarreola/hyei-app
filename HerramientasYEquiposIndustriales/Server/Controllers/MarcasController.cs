@@ -32,7 +32,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Marcas = await context.Marcas.ToListAsync();
+                var Marcas = await context.Marcas.OrderBy(x => x.Descripcion).ToListAsync();
                 return mapper.Map<List<MarcaDTO>>(Marcas);
             }
             catch (Exception)

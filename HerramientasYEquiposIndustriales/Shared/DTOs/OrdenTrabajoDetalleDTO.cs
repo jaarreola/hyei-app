@@ -32,7 +32,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int? EmpleadoModificacion { get; set; }
         public DateTime? FechaEntrega { get; set; }
         public DateTime? FechaFinaliacion { get; set; }
-        public bool TieneCoizacion { get; set; }
+        public bool TieneCotizacion { get; set; }
 
         public virtual OrdenTrabajo Ordentrabajo { get; set; }
     }
