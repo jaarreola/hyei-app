@@ -64,7 +64,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 var ordenesTrabajo = await context.OrdenTrabajoDetalle.Where(x =>
                     ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null) &&
-                    (!x.TieneCoizacion)
+                    (!x.TieneCotizacion)
                 ).OrderBy(x => x.FechaRegistro).ToListAsync();
                 return mapper.Map<List<OrdenTrabajoDetalleDTO>>(ordenesTrabajo);
             }
@@ -73,7 +73,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener la información de la orden de trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
             }
         }
 
@@ -190,7 +190,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                         //actualizamos la OT indicando que ya tiene cotizacion
                         var ot = context.OrdenTrabajoDetalle.FirstOrDefault(x => x.OrdenTrabajoDetalleId == cotizacion.OrdenTrabajoDetalleId);
-                        ot.TieneCoizacion = true;
+                        ot.TieneCotizacion = true;
                         context.Entry(ot).State = EntityState.Modified;
                         context.Entry(ot).Property(x => x.FechaRegistro).IsModified = false;
                         context.SaveChanges();
