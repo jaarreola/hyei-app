@@ -417,6 +417,21 @@
                     toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
                 else
                 {
+
+                    //se crea el registro de estatus de cotizada
+                    var httpResponseEstatus = await repository.Get<EstatusOTDTO>("api/EstatusOT/GetEstatusOTByDescripcion/Cotizada");
+                    if (!httpResponseEstatus.Error)
+                    {
+                        EstatusOTFlujoDTO estatusFlujoCreacionDTO = new EstatusOTFlujoDTO
+                        {
+                            EmpleadoCreacion = cotizacion.EmpleadoCreacion,
+                            OrdenTrabajoDetalleId = cotizacion.OrdenTrabajoDetalleId,
+                            EstatusOTId = httpResponseEstatus.Response.EstatusOTId
+                        };
+                        var httpResponseFlujoEstatus = await repository.Post("api/FlujoEstatusOT/GuardaFlujoEstatusOTByOT", estatusFlujoCreacionDTO);
+                    }
+
+
                     await Clear();
                     CancelaDialogValidaEmpleado();
                     await CancelaDialogRegistro();
@@ -653,20 +668,20 @@
         OrdenTrabajoCotizar = new OrdenTrabajoDTO();
         OrdenTrabajoCotizar.Cliente = new Cliente();
         OrdenTrabajoDetalleCotizar = new OrdenTrabajoDetalleDTO();
-        
+
         listaDetalleCotizacion = new List<CotizacionDetalleDTO>();
         detalleCotizacion = new CotizacionDetalleDTO();
         detalleCotizacionEdicion = new CotizacionDetalleDTO();
         registroEditar = new CotizacionDetalleDTO();
         cotizacion = new CotizacionDTO();
         empleado = new EmpleadoDTO();
-        
+
         nombreCompletoCliente = String.Empty;
         opcionEdicion = 0; // 1 = Actualizar, 2 = Eliminar
-        
+
         pageSize = 0;
         pageSizeProductos = 0;
-        
+
         totalCotizacion = String.Empty;
     }
 

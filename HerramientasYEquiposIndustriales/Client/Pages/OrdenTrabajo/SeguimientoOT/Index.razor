@@ -1,0 +1,433 @@
+﻿@page "/SeguimientoOT"
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+<div>
+    <div class="row">
+        <div class="col-md-12">
+            <MatAccordion>
+                <MatExpansionPanel @bind-Expanded="@Expandido">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h6>Seguimiento Ordenes de Trabajo</h6></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <MatSelectItem @bind-Value="@EstatusBusqueda" Items="@EstatusOTCombo" Label="Estatus">
+                                    <ItemTemplate Context="Estatus">
+                                        @Estatus?.Descripcion
+                                    </ItemTemplate>
+                                </MatSelectItem>
+                            </div>
+                            <div class="col-md-3">
+                                <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                            </div>
+                            <div class="col-md-3">
+                                <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                            </div>
+                            <div class="col-md-3">
+                                <MatButton Raised="true" Icon="search" OnClick="@BuscarOTs" class="mdc-button-background">Buscar</MatButton>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <MatTable Items="@estatusOTFlujos" AllowSelection="true" OnRowDbClick="SelectionRowOT" class="mat-elevation-z10">
+                                    <MatTableHeader>
+                                        <th style="width:150px;">Numero Orden</th>
+                                        <th style="width:500px;">Herramienta</th>
+                                        <th style="width:150px;">Estatus</th>
+                                        <th style="width:30%;">Fecha Estatus</th>
+                                    </MatTableHeader>
+                                    <MatTableRow>
+                                        <td style="width:150px; font-weight:bold">@context.OrdenTrabajoDetalle.NumeroOrdenTrabajo</td>
+                                        <td style="width:500px;">@context.OrdenTrabajoDetalle.NombreHerramienta</td>
+                                        <td style="width:150px;">@context.EstatusOT.Descripcion</td>
+                                        <td style="width:30%;">@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+                                    </MatTableRow>
+                                </MatTable>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <MatAccordion>
+        <MatExpansionPanel @bind-Expanded="@Expandido2">
+            <MatExpansionPanelSummary>
+                <MatExpansionPanelHeader><h6 style="color:red; font-weight:bold">@estatusOTFlujoSeleccion.OrdenTrabajoDetalle.NumeroOrdenTrabajo / @estatusOTFlujoSeleccion.EstatusOT.Descripcion</h6></MatExpansionPanelHeader>
+            </MatExpansionPanelSummary>
+            <MatExpansionPanelDetails>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@estatusOTFlujoSeleccion.OrdenTrabajoDetalle.NombreHerramienta" Label="Herramienta" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@estatusOTFlujoSeleccion.OrdenTrabajoDetalle.Marca" Label="Marca" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@estatusOTFlujoSeleccion.OrdenTrabajoDetalle.Modelo" Label="Modelo" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@estatusOTFlujoSeleccion.OrdenTrabajoDetalle.NumeroSerie" Label="Numero Serie" ReadOnly="true"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreCompletoCliente" Label="Cliente" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoSeleccion.Cliente.Telefono" Label="Teléfono" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoSeleccion.Cliente.Correo" Label="Correo" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@ordenTrabajoSeleccion.FechaRegistro" Label="Fecha Registro" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@comentarioCotizacion" Label="Comentario / Observación" ReadOnly="true" TextArea="true"></MatTextField>
+                    </div>
+                </div>
+                <MatTable Items="@cotizacionDetalleSeleccion" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:10%;">No Parte</th>
+                        <th style="width:50%;">Nombre</th>
+                        <th style="width:10%;">PU</th>
+                        <th style="width:10%;">Cantidad</th>
+                        <th style="width:10%;">Total</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.Producto.NoParte</td>
+                        <td>@context.Producto.Nombre</td>
+                        <td>@FormatoMoneda(@context.CostoUnitario.ToString())</td>
+                        <td>@context.Cantidad</td>
+                        <td style="font-weight:bold">@CalculaColumnaTotal(@context.CostoUnitario, @context.Cantidad)</td>
+                    </MatTableRow>
+                </MatTable>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Total Cotización: @totalCotizacion</h6>
+                    </div>
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-3">
+                        <MatButton Raised="true" Icon="cancel" OnClick="@CancelaOT" class="mdc-button-background">Cancelar OT</MatButton>
+                    </div>
+                    <div class="col-md-3">
+                        <MatButton Raised="true" Icon="skip_next" OnClick="@AvanzaEstatus" class="mdc-button-background">@siguienteEstatus.Descripcion</MatButton>
+                    </div>
+                </div>
+            </MatExpansionPanelDetails>
+        </MatExpansionPanel>
+    </MatAccordion>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+
+@code{
+    //FILTROS BUSQUEDA
+    private EstatusOTDTO EstatusBusqueda = new EstatusOTDTO();
+    private List<EstatusOTDTO> EstatusOT = new List<EstatusOTDTO>();
+    private List<EstatusOTDTO> EstatusOTCombo = new List<EstatusOTDTO>();
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+
+    //VARIABLES
+    private bool Expandido = true;
+    private bool Expandido2 = true;
+    private bool cancelaOt = false;
+    private String nombreCompletoCliente = String.Empty;
+    private String comentarioCotizacion = String.Empty;
+    Dictionary<string, string> queryStringsEstatusOt = new Dictionary<string, string>();
+
+    private EmpleadoDTO empleado = new EmpleadoDTO();
+    private bool dialogValidaEmpleadoSave = false;
+    private String numeroEmpleado = String.Empty;
+
+    private int pageSize = 0;
+    private string totalCotizacion;
+    private EstatusOTDTO siguienteEstatus = new EstatusOTDTO();
+
+    private List<EstatusOTFlujoDTO> estatusOTFlujos = new List<EstatusOTFlujoDTO>();
+    private EstatusOTFlujoDTO estatusOTFlujoSeleccion = new EstatusOTFlujoDTO();
+    private OrdenTrabajoDTO ordenTrabajoSeleccion = new OrdenTrabajoDTO();
+    private CotizacionDTO cotizacionSeleccion = new CotizacionDTO();
+    private List<CotizacionDetalleDTO> cotizacionDetalleSeleccion = new List<CotizacionDetalleDTO>();
+
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        estatusOTFlujoSeleccion.OrdenTrabajoDetalle = new OrdenTrabajoDetalle() { NumeroOrdenTrabajo = "", NombreHerramienta = "", Marca = "", Modelo = "", NumeroSerie = "" };
+        estatusOTFlujoSeleccion.EstatusOT = new EstatusOT();
+        ordenTrabajoSeleccion.Cliente = new Cliente() { Telefono = "", Correo = "" };
+        await CargaComboEstatus();
+    }
+
+    private async Task CargaComboEstatus()
+    {
+        var responseHttp = await repository.Get<List<EstatusOTDTO>>("api/EstatusOT/GetEstatusOT");
+        EstatusOT = responseHttp.Response;
+
+        EstatusOTCombo = new List<EstatusOTDTO>();
+        EstatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "", EstatusOTId = 0 });
+        EstatusOTCombo.AddRange(responseHttp.Response);
+    }
+
+    private async Task BuscarOTs()
+    {
+        var queryStrings = GenerarQueryStringsEstatusOt();
+        var responseHttp = await repository.Get<List<EstatusOTFlujoDTO>>("api/FlujoEstatusOT/GetEstatusOTByFilter?" + queryStrings);
+        estatusOTFlujos = responseHttp.Response;
+    }
+
+    private async void SelectionRowOT(object item)
+    {
+        var itemSeleccion = item as EstatusOTFlujoDTO;
+        estatusOTFlujoSeleccion = itemSeleccion;
+        estatusOTFlujoSeleccion.OrdenTrabajoDetalle = estatusOTFlujoSeleccion.OrdenTrabajoDetalle != null ? estatusOTFlujoSeleccion.OrdenTrabajoDetalle : new OrdenTrabajoDetalle();
+
+        //orden trabajo detalle
+        await GetOrdenTrabajoDetalle();
+
+        //cotizacion encabezado
+        await GetCotizacionEncabezado();
+
+        //cotizacion detalle
+        await GetCotizacionDetalle();
+
+        //siguiente estatus para OT
+        await GetSiguienteEstatus();
+
+        this.StateHasChanged();
+    }
+
+
+    private async Task AvanzaEstatus()
+    {
+        if (estatusOTFlujoSeleccion.EstatusOTFlujoId == 0)
+            return;
+
+        if (estatusOTFlujoSeleccion.EstatusOT.Descripcion == "Entregada")
+        {
+            toastService.ShowWarning("Esta Orden de trabajo ya fue entregada.", "Atención");
+            return;
+        }
+
+        if (estatusOTFlujoSeleccion.EstatusOT.Posicion == -1)
+            if (await OpenConfirmacion("Esta Orden de trabajo se encuentra cancelada, desea ponerla en cotizada?") != 1)
+                return;
+
+        cancelaOt = false;
+        dialogValidaEmpleadoSave = true;
+    }
+
+    private void CancelaOT()
+    {
+        if (estatusOTFlujoSeleccion.EstatusOTFlujoId == 0)
+            return;
+
+        if (estatusOTFlujoSeleccion.EstatusOT.Posicion == -1)
+        {
+            toastService.ShowWarning("Esta Orden de trabajo se encuentra cancelada.", "Atención");
+            return;
+        }
+
+        cancelaOt = true;
+        dialogValidaEmpleadoSave = true;
+    }
+
+
+    private async Task GetOrdenTrabajoDetalle()
+    {
+        var responseHttp = await repository.Get<OrdenTrabajoDTO>("api/OrdenTrabajo/GetOrdeTrabajoById/" + estatusOTFlujoSeleccion.OrdenTrabajoDetalle.OrdenTrabajoId);
+        ordenTrabajoSeleccion = responseHttp.Response;
+        nombreCompletoCliente = ordenTrabajoSeleccion.Cliente.Nombre + " " + (ordenTrabajoSeleccion.Cliente.Apellido != null ? ordenTrabajoSeleccion.Cliente.Apellido : String.Empty);
+    }
+
+    private async Task GetCotizacionEncabezado()
+    {
+        var responseHttpCotizacion = await repository.Get<CotizacionDTO>("api/Cotizaciones/GetCotizacionByOrdenTrabajoId/" + estatusOTFlujoSeleccion.OrdenTrabajoDetalleId);
+        cotizacionSeleccion = responseHttpCotizacion.Response;
+    }
+
+    private async Task GetCotizacionDetalle()
+    {
+        var responseHttpCotizacionDetalle = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + cotizacionSeleccion.CotizacionId);
+        cotizacionDetalleSeleccion = responseHttpCotizacionDetalle.Response;
+        comentarioCotizacion = cotizacionSeleccion.Comentario;
+
+        pageSize = cotizacionDetalleSeleccion.Count;
+        totalCotizacion = TotalCotizacion();
+    }
+
+    private async Task GetSiguienteEstatus()
+    {
+        var responseHttpSigEstatus = await repository.Get<EstatusOTDTO>("api/EstatusOT/GetSiguienteEstatusOTByEstatusOTId/" + estatusOTFlujoSeleccion.EstatusOTId);
+
+        if (responseHttpSigEstatus.Error)
+            siguienteEstatus = new EstatusOTDTO();
+        else
+            siguienteEstatus = responseHttpSigEstatus.Response;
+    }
+
+
+    private async Task ValidaEmpleadoSave()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            if (estatusOTFlujoSeleccion.EstatusOTFlujoId != 0)
+            {
+                //se manda guardar toda la lista
+                List<Object> enviar = new List<Object>();
+                enviar.Add(estatusOTFlujoSeleccion);
+                enviar.Add(empleado);
+                enviar.Add(cancelaOt);
+
+                var httpResponse = await repository.Post("api/FlujoEstatusOT/GuardaSiguienteEstatus", enviar);
+
+                if (httpResponse.Error)
+                    toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                else
+                {
+                    await BuscarOTs();
+                    Clear();
+                    CancelaDialogValidaEmpleado();
+                    toastService.ShowSuccess("Cambio de estatus completado", "Guardado");
+
+                    this.StateHasChanged();
+                }
+            }
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+
+    private void CancelaDialogValidaEmpleado()
+    {
+        numeroEmpleado = String.Empty;
+        empleado = new EmpleadoDTO();
+        dialogValidaEmpleadoSave = false;
+    }
+
+
+    private String TotalCotizacion()
+    {
+        float? total = 0;
+        foreach (CotizacionDetalleDTO m in cotizacionDetalleSeleccion)
+            total += m.CostoUnitario * m.Cantidad;
+        return FormatoMoneda(total.ToString());
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
+    }
+
+    private String CalculaColumnaTotal(float? value, float? cantidad)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        return FormatoMoneda((value * cantidad).ToString());
+    }
+
+
+    private void Clear()
+    {
+        cancelaOt = false;
+        nombreCompletoCliente = String.Empty;
+        comentarioCotizacion = String.Empty;
+
+        pageSize = 0;
+        totalCotizacion = String.Empty;
+        siguienteEstatus = new EstatusOTDTO();
+
+        estatusOTFlujoSeleccion = new EstatusOTFlujoDTO();
+        estatusOTFlujoSeleccion.OrdenTrabajoDetalle = new OrdenTrabajoDetalle() { NumeroOrdenTrabajo = "", NombreHerramienta = "", Marca = "", Modelo = "", NumeroSerie = "" };
+        estatusOTFlujoSeleccion.EstatusOT = new EstatusOT();
+        ordenTrabajoSeleccion = new OrdenTrabajoDTO();
+        ordenTrabajoSeleccion.Cliente = new Cliente() { Telefono = "", Correo = "" };
+        cotizacionSeleccion = new CotizacionDTO();
+        cotizacionDetalleSeleccion = new List<CotizacionDetalleDTO>();
+    }
+
+
+
+    private string GenerarQueryStringsEstatusOt()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        if (queryStringsEstatusOt == null)
+            queryStringsEstatusOt = new Dictionary<string, string>();
+
+        queryStringsEstatusOt["EstatusOTId"] = EstatusBusqueda != null ? EstatusBusqueda.EstatusOTId.ToString() : "0";
+        queryStringsEstatusOt["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringsEstatusOt["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsEstatusOt
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+}

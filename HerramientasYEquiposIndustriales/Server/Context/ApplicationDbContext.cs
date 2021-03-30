@@ -36,6 +36,14 @@ namespace HerramientasYEquiposIndustriales.Server.Context
                 .HasIndex(e => e.OrdenTrabajoDetalleId)
                 .IsUnique();
 
+            builder.Entity<EstatusOT>()
+                .HasIndex(e => e.Descripcion)
+                .IsUnique();
+
+            builder.Entity<Marca>()
+                .HasIndex(e => e.Descripcion)
+                .IsUnique();
+
 
             //builder.Entity<OrdenTrabajoDetalle>(e =>
             //    {
