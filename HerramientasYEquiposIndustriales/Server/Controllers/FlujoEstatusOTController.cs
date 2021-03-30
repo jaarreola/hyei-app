@@ -1,0 +1,162 @@
+﻿using AutoMapper;
+using HerramientasYEquiposIndustriales.Server.Constants;
+using HerramientasYEquiposIndustriales.Server.Context;
+using HerramientasYEquiposIndustriales.Shared.DTOs;
+using HerramientasYEquiposIndustriales.Shared.Filters;
+using HerramientasYEquiposIndustriales.Shared.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Transactions;
+
+namespace HerramientasYEquiposIndustriales.Server.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class FlujoEstatusOTController : ControllerBase
+    {
+        private readonly ApplicationDbContext context;
+        private readonly IMapper mapper;
+
+        public FlujoEstatusOTController(ApplicationDbContext context, IMapper mapper)
+        {
+            this.context = context;
+            this.mapper = mapper;
+        }
+
+        [HttpGet("GetEstatusOTByFilter")]
+        public async Task<ActionResult<List<EstatusOTFlujoDTO>>> GetEstatusOTByFilter([FromQuery] EstatusFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var result = await context.EstatusOTFlujos.Include(x => x.OrdenTrabajoDetalle).Include(x => x.EstatusOT).Where(x =>
+                    (x.EstatusOTId == filtro.EstatusOTId || filtro.EstatusOTId == 0) &&
+                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null) &&
+                    x.Terminado != true
+                ).ToListAsync();
+                return mapper.Map<List<EstatusOTFlujoDTO>>(result);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de Marcas. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpPost("GuardaFlujoEstatusOTByOT")]
+        public async Task<ActionResult<EstatusOTFlujoDTO>> GuardaFlujoEstatusOTByOT(EstatusOTFlujoDTO estatusFlujoCreacionDTO)
+        {
+            try
+            {
+                var estatus = mapper.Map<EstatusOTFlujo>(estatusFlujoCreacionDTO);
+                estatus.FechaRegistro = DateTime.Now;
+
+                context.EstatusOTFlujos.Add(estatus);
+                await context.SaveChangesAsync();
+
+                var dto = mapper.Map<EstatusOTFlujoDTO>(estatus);
+
+                return new CreatedAtRouteResult("ObtenerEstatusFlujo", new { id = estatus.EstatusOTFlujoId }, dto);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al crear el Marca. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpPost("GuardaSiguienteEstatus")]
+        public ActionResult<bool> GuardaSiguienteEstatus(List<object> datos)
+        {
+            bool result = false;
+            try
+            {
+                EstatusOTFlujo estatusActual;
+                EstatusOTFlujo estatusSiguiente;
+                Empleado empleado;
+                bool cancelaOt;
+
+                if (datos.Count == 3)
+                {
+                    DateTime fecha = DateTime.Now;
+                    estatusActual = mapper.Map<EstatusOTFlujo>(JsonConvert.DeserializeObject<EstatusOTFlujoDTO>(datos[0].ToString()));
+                    empleado = mapper.Map<Empleado>(JsonConvert.DeserializeObject<EmpleadoDTO>(datos[1].ToString()));
+                    cancelaOt = !datos[2].ToString().Equals("False");
+
+                    estatusActual.Terminado = true;
+                    estatusSiguiente = new EstatusOTFlujo()
+                    {
+                        EmpleadoCreacion = empleado.EmpleadoId,
+                        EstatusOT = null,
+                        EstatusOTId = SiguienteEstatusOT(estatusActual.EstatusOTId, cancelaOt),
+                        FechaRegistro = fecha,
+                        OrdenTrabajoDetalleId = estatusActual.OrdenTrabajoDetalleId,
+                        OrdenTrabajoDetalle = null
+                    };
+
+                    if (estatusSiguiente.EstatusOTId != 0)
+                    {
+                        using var scope = new TransactionScope(TransactionScopeOption.Required,
+                        new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted });
+
+                        context.Entry(estatusActual).State = EntityState.Modified;
+                        context.Entry(estatusActual).Property(x => x.FechaRegistro).IsModified = false;
+                        context.SaveChanges();
+
+                        context.EstatusOTFlujos.Add(estatusSiguiente);
+                        context.SaveChanges();
+
+                        scope.Complete();
+
+                        result = true;
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al cambiar el estatus. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        private int SiguienteEstatusOT(int estatusIdActual, bool cancelarOt)
+        {
+            int posicionSig = 0;
+            int estatusIdSiguiente = 0;
+            try
+            {
+                var estatusActual = context.EstatusOTs.FirstOrDefault(x => x.EstatusOTId == estatusIdActual);
+                posicionSig = cancelarOt ? -1 : (estatusActual.Posicion == -1 ? 1 : estatusActual.Posicion + 1);
+                var estatusSiguiente = context.EstatusOTs.FirstOrDefault(x => x.Posicion == posicionSig);
+                if (estatusSiguiente == null) { return posicionSig; }
+
+                estatusIdSiguiente = mapper.Map<EstatusOTDTO>(estatusSiguiente).EstatusOTId;
+                return estatusIdSiguiente;
+            }
+            catch (Exception)
+            {
+                return estatusIdSiguiente;
+            }
+        }
+    }
+}

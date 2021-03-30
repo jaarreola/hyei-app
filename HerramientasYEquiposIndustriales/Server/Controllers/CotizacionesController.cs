@@ -14,6 +14,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 
+using HerramientasYEquiposIndustriales.Server.Controllers;
+
 namespace HerramientasYEquiposIndustriales.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -38,8 +40,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var cotizacion = await context.Cotizaciones.FirstOrDefaultAsync(x => x.OrdenTrabajoDetalleId == ordenTrabajoDetalleId);
                 if (cotizacion == null) { return NotFound(); }
 
-                var dto = mapper.Map<CotizacionDTO>(cotizacion);
-                return dto;
+                return mapper.Map<CotizacionDTO>(cotizacion);
             }
             catch (Exception ex)
             {
@@ -49,6 +50,26 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener la información de la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+        [HttpGet("GetCotizacionDetalleByOrdenTrabajoId/{cotizacionId}")]
+        public async Task<ActionResult<List<CotizacionDetalleDTO>>> GetCotizacionDetalleByOrdenTrabajoId(int cotizacionId)
+        {
+            try
+            {
+                var cotizacionD = await context.CotizacionDetalles.Include(x=> x.Producto).Where(x => x.CotizacionId == cotizacionId).ToListAsync();
+                if (cotizacionD == null) { return NotFound(); }
+
+                return mapper.Map<List<CotizacionDetalleDTO>>(cotizacionD);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
 
 
         [HttpGet("GetOTParaCotizar")]
@@ -154,8 +175,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
-        //public async Task<ActionResult<bool>> PostSaveCotizacion(List<object> datos)
-
+        
         [HttpPost("SaveCotizacion")]
         public bool PostSaveCotizacion(List<object> datos)
         {
@@ -164,7 +184,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 Cotizacion cotizacion = new Cotizacion();
                 List<CotizacionDetalle> detalles = new List<CotizacionDetalle>();
                 CotizacionDetalle detalle;
-
+                
                 if (datos.Count == 2)
                 {
                     DateTime fecha = DateTime.Now;
