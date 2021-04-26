@@ -15,12 +15,17 @@
                 </MatNavItem>
             </MatNavSubMenuHeader>
             <MatNavSubMenuList>
-                <MatNavItem Href="OrdenTrabajo/" Title="Orden de Trabajo">
+                <MatNavItem Href="OrdenTrabajo/" Title="Recepción de OTs">
                     <MatNavItem AllowSelection="false">
-                        <MatIcon Icon="folder_open" />&nbsp;Ordene de Trabajo
+                        <MatIcon Icon="folder_open" />&nbsp;Recepción de OTs
                     </MatNavItem>
                 </MatNavItem>
-                <MatNavItem Href="Cotizacion/" Title="Cotización">
+                <MatNavItem Href="ProcesoOT/" Title="Proceso de OTs">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Proceso de OTs
+                    </MatNavItem>
+                </MatNavItem>
+                @*<MatNavItem Href="Cotizacion/" Title="Cotización">
                     <MatNavItem AllowSelection="false">
                         <MatIcon Icon="folder_open" />&nbsp;Cotización
                     </MatNavItem>
@@ -29,7 +34,7 @@
                     <MatNavItem AllowSelection="false">
                         <MatIcon Icon="folder_open" />&nbsp;Seguimiento OT
                     </MatNavItem>
-                </MatNavItem>
+                </MatNavItem>*@
             </MatNavSubMenuList>
         </MatNavSubMenu>
 
@@ -71,8 +76,19 @@
             <MatIcon Icon="folder" />&nbsp;Clientes
         </MatNavItem>
 
-        @*<MatNavItem Title="Consulta">
-            <MatIcon Icon="folder" />&nbsp;Consulta
-        </MatNavItem>*@
+        <MatNavSubMenu>
+            <MatNavSubMenuHeader Title="Consultas">
+                <MatNavItem AllowSelection="false">
+                    <MatIcon Icon="folder" />&nbsp;Consultas
+                </MatNavItem>
+            </MatNavSubMenuHeader>
+            <MatNavSubMenuList>
+                <MatNavItem Href="Consultas/OrdenTrabajo/" Title="Ordenes Trabajo">
+                    <MatNavItem AllowSelection="false">
+                        <MatIcon Icon="folder_open" />&nbsp;Ordenes Trabajo
+                    </MatNavItem>
+                </MatNavItem>
+            </MatNavSubMenuList>
+        </MatNavSubMenu>
     </MatNavMenu>
 </div>

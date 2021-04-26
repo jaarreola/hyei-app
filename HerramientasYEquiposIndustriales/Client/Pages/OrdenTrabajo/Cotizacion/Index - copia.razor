@@ -1,4 +1,4 @@
-﻿@page "/Cotizacion"
+﻿@page "/Cotizacion2"
 @using System.Globalization
 @using System.Text.Json
 
@@ -6,51 +6,21 @@
 @inject IToastService toastService
 @inject IMatDialogService MatDialogService
 
+<h4>Cotización</h4>
 
-<h5>Cotización</h5>
-<div>
-    <MatAccordion>
-        <MatExpansionPanel @bind-Expanded="@Expandido">
-            <MatExpansionPanelSummary>
-                <MatExpansionPanelHeader><h6>OT Por Cotizar</h6></MatExpansionPanelHeader>
-            </MatExpansionPanelSummary>
-            <MatExpansionPanelDetails>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
-                    </div>
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
-                    </div>
-                    <div class="col-md-3">
-                        <MatButton Raised="true" Icon="search" OnClick="@BuscaOTParaCotizar" class="mdc-button-background">Buscar</MatButton>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <MatTable Items="@OrdenesTrabajo" AllowSelection="true" class="mat-elevation-z10">
-                            <MatTableHeader>
-                                <th style="width:300px;">Numero Orden</th>
-                                <th style="width:600px;">Herramienta</th>
-                                <th style="width:30%;">Fecha</th>
-                                <th style="width:10%;"></th>
-                            </MatTableHeader>
-                            <MatTableRow>
-                                <td style="width:300px; font-weight:bold">@context.NumeroOrdenTrabajo</td>
-                                <td style="width:600px;">@context.NombreHerramienta</td>
-                                <td style="width:30%;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
-                                <td style="width:10%;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
-                            </MatTableRow>
-                        </MatTable>
-                    </div>
-                </div>
-            </MatExpansionPanelDetails>
-        </MatExpansionPanel>
-    </MatAccordion>
-
-    <br />
-
-    <div class="col-md-12">
+<div class="row">
+    <div style="width:150px;">
+        <MatSubtitle2>OT Por Cotizar</MatSubtitle2>
+        <MatVirtualScroll style="height:500px; width:150px; overflow-y:auto; background:MintCream" Items="@OrdenesTrabajo">
+            <ItemTemplate>
+                <MatListItem OnClick="@(_=>MuestraDetalleOT(@context))">
+                    <div style="font-size:10px"><strong>@context.NumeroOrdenTrabajo</strong> - @context.FechaRegistro?.ToString("dd/MM/yyyy")</div>
+                </MatListItem>
+                <MatListDivider></MatListDivider>
+            </ItemTemplate>
+        </MatVirtualScroll>
+    </div>
+    <div class="col-md-10">
         <div class="row">
             <div class="col-md-3">
                 <MatTextField @bind-Value="@OrdenTrabajoDetalleCotizar.NumeroOrdenTrabajo" Label="Orde de Trabajo" Outlined="true" InputStyle="color: red" ReadOnly="true"></MatTextField>
@@ -81,12 +51,10 @@
                 <MatTextField FullWidth="true" @bind-Value="@OrdenTrabajoCotizar.Cliente.Correo" Label="Correo" ReadOnly="true"></MatTextField>
             </div>
             <div class="col-md-3">
-                <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
+                <MatDatePicker @bind-Value="@OrdenTrabajoDetalleCotizar.FechaRegistro" Label="Fecha Registro" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
             </div>
         </div>
-
         <br />
-
         <div>
             <div class="row">
                 <div class="col-md-4">
@@ -277,7 +245,6 @@
     private float? cantidadRegistro;
     private String numeroEmpleado = String.Empty;
     private String comentarioCotizacion = String.Empty;
-    private String fechaRegistro;
 
     private List<ProductoDTO> productos = new List<ProductoDTO>();
     private ProductoDTO producto = new ProductoDTO();
@@ -300,11 +267,6 @@
     private int pageSizeProductos = 0;
 
 
-    private bool Expandido = true;
-    private bool Expandido2 = true;
-    private DateTime? fechaInicio;
-    private DateTime? fechaFin;
-
 
     protected async override Task OnInitializedAsync()
     {
@@ -324,12 +286,10 @@
 
     private async Task MuestraDetalleOT(OrdenTrabajoDetalleDTO ot)
     {
-        CultureInfo.CurrentCulture = new CultureInfo("en-US");
         OrdenTrabajoDetalleCotizar = ot;
         var responseHttp = await repository.Get<OrdenTrabajoDTO>("api/OrdenTrabajo/GetOrdeTrabajoById/" + OrdenTrabajoDetalleCotizar.OrdenTrabajoId);
         OrdenTrabajoCotizar = responseHttp.Response;
         nombreCompletoCliente = OrdenTrabajoCotizar.Cliente.Nombre + " " + (OrdenTrabajoCotizar.Cliente.Apellido != null ? OrdenTrabajoCotizar.Cliente.Apellido : String.Empty);
-        fechaRegistro = OrdenTrabajoCotizar.FechaRegistro != null ? OrdenTrabajoCotizar.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : "";
         await Task.Delay(50);
     }
 
@@ -450,7 +410,6 @@
                 List<Object> enviar = new List<Object>();
                 enviar.Add(cotizacion);
                 enviar.Add(listaDetalleCotizacion);
-                enviar.Add(OrdenTrabajoDetalleCotizar);
 
                 var httpResponse = await repository.Post("api/Cotizaciones/SaveCotizacion", enviar);
 
@@ -718,7 +677,6 @@
         empleado = new EmpleadoDTO();
 
         nombreCompletoCliente = String.Empty;
-        fechaRegistro = String.Empty;
         opcionEdicion = 0; // 1 = Actualizar, 2 = Eliminar
 
         pageSize = 0;
@@ -726,6 +684,7 @@
 
         totalCotizacion = String.Empty;
     }
+
 
 
     private String TotalCotizacion()
@@ -755,8 +714,8 @@
     {
         if ((OrdenTrabajoDetalleCotizar.NumeroOrdenTrabajo != null ? OrdenTrabajoDetalleCotizar.NumeroOrdenTrabajo : String.Empty) != String.Empty)
         {
-            //if (await OpenConfirmacion("Desea limpiar la información de la cotización?") == 1)
-            await Clear();
+            if (await OpenConfirmacion("Desea limpiar la información de la cotización?") == 1)
+                await Clear();
         }
     }
 
@@ -825,8 +784,8 @@
         if (queryStringsProducto == null)
             queryStringsProducto = new Dictionary<string, string>();
 
-        queryStringsProducto["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
-        queryStringsProducto["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+        queryStringsProducto["FechaInicio"] = String.Empty;
+        queryStringsProducto["FechaFin"] = String.Empty;
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

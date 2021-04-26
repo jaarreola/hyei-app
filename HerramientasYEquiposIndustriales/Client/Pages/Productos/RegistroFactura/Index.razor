@@ -246,6 +246,76 @@
 </div>
 
 
+<div>
+    <EditForm Model="@Producto">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogNewProductIsOpen" CanBeClosed="false" class="mdc-dialog900">
+            <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
+                            <ItemTemplate Context="Marca">
+                                @Marca?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+                    </div>
+                    <div class="col-md-7">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@CancelaDialogNewProduct" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogValidaEmpleadoSaveProduct" CanBeClosed="false">
+        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
 
 @code{
     //VARIABLES
@@ -256,6 +326,13 @@
     private List<MovimientoDTO> movimientosRegistro = new List<MovimientoDTO>();
     private MovimientoDTO movimiento = new MovimientoDTO();
     private MovimientoDTO registroEditar = new MovimientoDTO();
+
+    private List<MarcaDTO> Marcas = new List<MarcaDTO>();
+    private ProductoDTO Producto = new ProductoDTO();
+    private MarcaDTO Marca = new MarcaDTO();
+    private bool dialogNewProductIsOpen = false;
+    private String precioMayorPorcentaje = "";
+    private bool dialogValidaEmpleadoSaveProduct = false;
 
     private MovimientoDTO movimientoEdicion = new MovimientoDTO();
 
@@ -300,6 +377,22 @@
     //disableElements
     private bool deshabilitaFactura = false;
 
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        await CargaComboMarcas();
+        await Task.Delay(50);
+    }
+
+    private async Task CargaComboMarcas()
+    {
+        var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
+        Marcas = responseHttp.Response;
+    }
 
 
     private async Task OpenDialogEditaRegistro(MovimientoDTO entidad)
@@ -498,6 +591,13 @@
         productoRegistro = responseHttp.Response;
         nombreProductoRegistro = productoRegistro.Nombre;
 
+        if (((nombreProductoRegistro == null ? String.Empty : nombreProductoRegistro) == String.Empty) && ((numeroParteRegistro == null ? String.Empty : numeroParteRegistro) != String.Empty))
+            if (await OpenConfirmacion("No existe este producto, desea crearlo?") == 1)
+            {
+                Producto = new ProductoDTO() { NoParte = numeroParteRegistro };
+                dialogNewProductIsOpen = true;
+            }
+
         await Task.Delay(50);
     }
 
@@ -550,6 +650,13 @@
     private void CancelaDialogSeleccionaProducto()
     {
         dialogBuscarProductoIsOpen = false;
+    }
+
+    private async Task CancelaDialogNewProduct()
+    {
+        dialogNewProductIsOpen = false;
+        ClearNewProduct();
+        await Task.Delay(50);
     }
 
 
@@ -735,12 +842,92 @@
     }
 
 
+    private async Task GuardarProducto()
+    {
+        if (Producto.NoParte == String.Empty)
+        {
+            await OpenMessage("Debe capturar un numero de parte");
+            return;
+        }
+
+        if (Producto.ProductoId == 0)
+        {
+            //validamos si ya existe un producto con ese numero de parte
+            var httpResponseExiste = await repository.Get<ProductoDTO>("api/Productos/GetProductoPorNoParte/" + Producto.NoParte);
+            if (!httpResponseExiste.Error)
+            {
+                await OpenMessage("Ya existe un producto con ese Número de parte");
+                return;
+            }
+        }
+
+        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0 && (Producto.CostoCompra != null ? Producto.CostoCompra : 0) == 0)
+        {
+            await OpenMessage("Primero debe ingresar el costo de compra.");
+            return;
+        }
+
+        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
+            if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
+            {
+                await OpenMessage("El Costo de Venta debe ser mayor al 20% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+                return;
+            }
+
+        dialogValidaEmpleadoSaveProduct = true;
+    }
+
+    private async Task ValidaEmpleadoSaveProduct()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            Producto.MarcaId = Marca.MarcaId;
+            if (Producto.ProductoId == 0)
+            {
+                Producto.EmpleadoCreacion = empleado.EmpleadoId;
+                await CrearProducto();
+            }
+            await BuscarNombreProducto();
+            CancelaDialogValidaEmpleado();
+        }
+        else
+            toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+    private async Task CrearProducto()
+    {
+        var httpResponse = await repository.Post("api/Productos", Producto);
+        if (httpResponse.Error)
+        {
+            if (Producto.MarcaId == 0)
+                toastService.ShowError("Debe seleccionar una marca", "Error");
+            else
+                toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        }
+        else
+        {
+            ClearNewProduct();
+            dialogNewProductIsOpen = false;
+            await Task.Delay(50);
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+
+
     private void CancelaDialogValidaEmpleado()
     {
         numeroEmpleado = String.Empty;
         empleado = new EmpleadoDTO();
         dialogValidaEmpleado = false;
         dialogValidaEmpleadoEdicion = false;
+        dialogValidaEmpleadoSaveProduct = false;
     }
 
 
@@ -760,13 +947,25 @@
         return r;
     }
 
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
+    }
 
     private async Task ValidaClear()
     {
         if (facturaRegistro != String.Empty || movimientosRegistro.Count > 0)
         {
-            if (await OpenConfirmacion("Desea limpiar la información de la ventana?") == 1)
-                Clear();
+            //if (await OpenConfirmacion("Desea limpiar la información de la ventana?") == 1)
+            Clear();
         }
     }
 
@@ -787,6 +986,28 @@
         comentarioRegistro = String.Empty;
 
         pageSize = 0;
+    }
+
+    private void ClearNewProduct()
+    {
+        Producto = new ProductoDTO();
+    }
+
+
+    private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        costoCompra = costoCompra != null ? costoCompra : 0;
+        costoVenta = costoVenta != null ? costoVenta : 0;
+        bool result = true;
+
+        float? procentaje = (float?)0.2; //20%
+        precioMayorPorcentaje = ((costoCompra * procentaje) + costoCompra)?.ToString("C2");
+        if (costoVenta < ((costoCompra * procentaje) + costoCompra))
+            result = false;
+
+        return result;
     }
 
 

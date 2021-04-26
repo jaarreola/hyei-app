@@ -69,11 +69,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var OrdenTrabajo = await context.OrdenTrabajo.Include(x => x.Cliente).FirstOrDefaultAsync(x => x.OrdenTrabajoId == id);
-
                 if (OrdenTrabajo == null) return NotFound();
 
                 var dto = mapper.Map<OrdenTrabajoDTO>(OrdenTrabajo);
-
                 return dto;
             }
             catch (Exception)
@@ -91,7 +89,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var OrdenTrabajo = await context.OrdenTrabajo.Include(x => x.Cliente).FirstOrDefaultAsync(x => x.OrdenTrabajoId == id);
-
                 if (OrdenTrabajo == null) return NotFound();
 
                 var dto = mapper.Map<OrdenTrabajoDTO>(OrdenTrabajo);
@@ -114,11 +111,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var OrdenTrabajoDetalle = await context.OrdenTrabajoDetalle.Include(x => x.OrdenTrabajo).FirstOrDefaultAsync(x => x.NumeroOrdenTrabajo == numeroOrdenTrabajo);
-
                 if (OrdenTrabajoDetalle == null) return NotFound();
 
                 var dto = mapper.Map<OrdenTrabajoDetalleDTO>(OrdenTrabajoDetalle);
-
                 return dto;
             }
             catch (Exception)
@@ -283,6 +278,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     _cliente = mapper.Map<Cliente>(JsonConvert.DeserializeObject<ClienteDTO>(datos[0].ToString()));
                     _cliente.FechaRegistro = DateTime.Now;
                     _cliente.EsFrecuente = false;
+                    _cliente = GetClienteExists(_cliente);
+
                     _ordenTrabajo = mapper.Map<OrdenTrabajo>(JsonConvert.DeserializeObject<OrdenTrabajoDTO>(datos[1].ToString()));
                     foreach (OrdenTrabajoDetalleDTO otd in (JsonConvert.DeserializeObject<List<OrdenTrabajoDetalleDTO>>(datos[2].ToString())))
                     {
@@ -312,12 +309,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         context.OrdenTrabajoDetalle.Add(otd);
                         context.SaveChanges();
                     }
-                    //context.OrdenTrabajoDetalle.AddRange(_ordenesTrabajoDetalle);
-                    //context.SaveChanges();
-
                     scope.Complete();
                 }
-
                 return true;
             }
             catch (Exception e)
@@ -378,6 +371,130 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al eliminar la Orden de Trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+        [HttpGet("GetOTs")]
+        public async Task<ActionResult<IEnumerable<OrdenTrabajoDetalleConsultaDTO>>> GetOTs([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                //garantia 1= Local, 2= Fabrica, 3= Sin garantia, 0= Todos
+
+                var consulta = from otd in context.OrdenTrabajoDetalle
+                               join ot in context.OrdenTrabajo on otd.OrdenTrabajoId equals ot.OrdenTrabajoId
+                               join c in context.Clientes on ot.ClienteId equals c.ClienteId
+                               join ef in context.EstatusOTFlujos on otd.OrdenTrabajoDetalleId equals ef.OrdenTrabajoDetalleId into ef1
+                               from ef2 in ef1.DefaultIfEmpty()
+                               join e in context.EstatusOTs on ef2.EstatusOTId equals e.EstatusOTId into e1
+                               from e2 in e1.DefaultIfEmpty()
+                               where ef2.Terminado == null &&
+                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
+                                   (c.Nombre.Contains(filtro.NombreCLiente) || c.Apellido.Contains(filtro.NombreCLiente) || filtro.NombreCLiente == null) &&
+                                   (c.Telefono.Contains(filtro.TelefonoCLiente) || filtro.TelefonoCLiente == null) &&
+                                   (c.RFC.Contains(filtro.RfcCLiente) || filtro.RfcCLiente == null) &&
+                                   ((otd.GarantiaLocal == true && filtro.Garantia == 1) || (otd.GarantiaFabrica == true && filtro.Garantia == 2) || (!otd.GarantiaLocal && !otd.GarantiaFabrica && filtro.Garantia == 3) || filtro.Garantia == 0) &&
+                                   (e2.Descripcion == filtro.EstatusBusqueda || (e2.Descripcion == null && (filtro.EstatusBusqueda == "Sin Cotizar" || filtro.EstatusBusqueda == null)) || filtro.EstatusBusqueda == "Todos")
+                               select new OrdenTrabajoDetalleConsultaDTO()
+                               {
+                                   OrdenTrabajoDetalleId = otd.OrdenTrabajoDetalleId,
+                                   OrdenTrabajoId = otd.OrdenTrabajoId,
+                                   NumeroOrdenTrabajo = otd.NumeroOrdenTrabajo,
+                                   NombreHerramienta = otd.NombreHerramienta,
+                                   Marca = otd.Marca,
+                                   Modelo = otd.Modelo,
+                                   NumeroSerie = otd.NumeroSerie,
+                                   GarantiaFabrica = otd.GarantiaFabrica,
+                                   GarantiaFabricaDetalle = otd.GarantiaFabricaDetalle,
+                                   GarantiaLocal = otd.GarantiaLocal,
+                                   GarantiaLocalDetalle = otd.GarantiaLocalDetalle,
+                                   TiempoGarantia = otd.TiempoGarantia,
+                                   FechaRegistro = otd.FechaRegistro,
+                                   EmpleadoCreacion = otd.EmpleadoCreacion,
+                                   FechaUltimaModificacion = otd.FechaUltimaModificacion,
+                                   EmpleadoModificacion = otd.EmpleadoModificacion,
+                                   FechaEntrega = otd.FechaEntrega,
+                                   FechaFinaliacion = otd.FechaFinaliacion,
+                                   TieneCotizacion = otd.TieneCotizacion,
+                                   Comentarios = otd.Comentarios,
+                                   //Ubicacion = otd.Ubicacion,
+                                   ClienteId = c.ClienteId,
+                                   Nombre = c.Nombre,
+                                   Apellido = c.Apellido,
+                                   Telefono = c.Telefono,
+                                   Correo = c.Correo,
+                                   Direccion = c.Direccion,
+                                   RFC = c.RFC,
+                                   EsFrecuente = c.EsFrecuente,
+                                   EstatusOTFlujoId = ef2.EstatusOTFlujoId,
+                                   EstatusOTId = ef2.EstatusOTId,
+                                   Terminado = ef2.Terminado,
+                                   Descripcion = e2.Descripcion,
+                                   Posicion = e2.Posicion
+                               };
+
+                var result = await consulta.ToListAsync();
+                var totalResultado = result.Count;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetHistorialOTs/{idOtd}")]
+        public async Task<ActionResult<IEnumerable<HistorialOrdenTrabajoDTO>>> GetHistorialOTs(int idOtd)
+        {
+            try
+            {
+                var consulta = from ef in context.EstatusOTFlujos
+                               join e in context.EstatusOTs on ef.EstatusOTId equals e.EstatusOTId
+                               join em in context.Empleados on ef.EmpleadoCreacion equals em.EmpleadoId
+                               where ef.OrdenTrabajoDetalleId == idOtd
+                               select new HistorialOrdenTrabajoDTO()
+                               {
+                                   Posicion = e.Posicion,
+                                   Descripcion = e.Descripcion,
+                                   FechaRegistro = ef.FechaRegistro,
+                                   NumeroEmpleado = em.NumeroEmpleado,
+                                   Nombre = em.Nombre,
+                                   Ubicacion = ef.Ubicacion,
+                                   Comentario = ef.Comentario
+                               };
+
+                var result = await consulta.OrderBy(x => x.FechaRegistro).ToListAsync();
+                var totalResultado = result.Count;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+
+        private Cliente GetClienteExists(Cliente cliente)
+        {
+            var clienteE = context.Clientes.FirstOrDefault(x => x.Nombre == cliente.Nombre && x.Apellido == cliente.Apellido && x.Telefono == cliente.Telefono && x.Correo == cliente.Correo && x.RFC == cliente.RFC && x.Direccion == cliente.Direccion);
+            if (clienteE == null)
+                clienteE = cliente;
+            return clienteE;
+        }
+
 
         private bool OrdenTrabajoExists(int id)
         {

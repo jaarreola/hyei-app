@@ -53,7 +53,7 @@
 <div>
     <div class="row">
         <div class="col-md-6">
-            <h6>Herramientas</h6>
+            <h5>Herramientas</h5>
         </div>
         <div class="col-md-4">
             <MatButton Raised="true" Icon="search" OnClick="@OpenDialogAgregaHerramienta" class="mdc-button-background">Agregar Herramienta</MatButton>
@@ -65,10 +65,10 @@
 
     <MatTable Items="@_ordenesTrabajoDetalle" class="mat-elevation-z10 mdc-table1" ShowPaging="@_mostrarPaginacionHerramientas">
         <MatTableHeader>
-            <th style="width:20%;">No</th>
+            <th style="width:10%;">No Orden</th>
             <th style="width:30%;">Nombre</th>
-            <th style="width:10%;">Marca</th>
-            <th style="width:10%;">Modelo</th>
+            <th style="width:15%;">Marca</th>
+            <th style="width:15%;">Modelo</th>
             <th style="width:20%;">No Serie</th>
             <th style="width:10%;"></th>
             <th></th>
@@ -133,31 +133,34 @@
 
 <div>
     <EditForm Model="@_ordenTrabajoDetalle">
-        <MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false">
+        <MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false" class="mdc-dialog900">
             <MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NombreHerramienta" Label="Nombre" HelperText="Nombre de la herramienta"></MatTextField>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Marca" Label="Marca" HelperText="Marca de la herramienta"></MatTextField>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Modelo" Label="Modelo" HelperText="Modelo de la herramienta"></MatTextField>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NumeroSerie" Label="No Serie" HelperText="No serie de la herramienta"></MatTextField>
                     </div>
                 </div>
                 <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Comentarios" Label="Comentarios / Observaciones" TextArea="true"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-md-6">
-                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaFabrica">Garantía Fabrica</MatCheckbox>
+                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaFabrica">Viene por garantía de fabrica</MatCheckbox>
                     </div>
                     <div class="col-md-6">
-                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaLocal">Garantía Local</MatCheckbox>
+                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaLocal">Viene por garantía local</MatCheckbox>
                     </div>
                 </div>
                 <div class="row">

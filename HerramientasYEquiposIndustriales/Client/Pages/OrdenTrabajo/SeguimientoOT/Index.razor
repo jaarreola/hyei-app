@@ -38,15 +38,17 @@
                                 <MatTable Items="@estatusOTFlujos" AllowSelection="true" OnRowDbClick="SelectionRowOT" class="mat-elevation-z10">
                                     <MatTableHeader>
                                         <th style="width:150px;">Numero Orden</th>
-                                        <th style="width:500px;">Herramienta</th>
+                                        <th style="width:350px;">Herramienta</th>
                                         <th style="width:150px;">Estatus</th>
-                                        <th style="width:30%;">Fecha Estatus</th>
+                                        <th style="width:20%;">Fecha OT</th>
+                                        <th style="width:20%;">Fecha Estatus</th>
                                     </MatTableHeader>
                                     <MatTableRow>
                                         <td style="width:150px; font-weight:bold">@context.OrdenTrabajoDetalle.NumeroOrdenTrabajo</td>
-                                        <td style="width:500px;">@context.OrdenTrabajoDetalle.NombreHerramienta</td>
+                                        <td style="width:350px;">@context.OrdenTrabajoDetalle.NombreHerramienta</td>
                                         <td style="width:150px;">@context.EstatusOT.Descripcion</td>
-                                        <td style="width:30%;">@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+                                        <td style="width:20%;">@context.OrdenTrabajoDetalle.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                                        <td style="width:20%;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
                                     </MatTableRow>
                                 </MatTable>
                             </div>
@@ -286,7 +288,7 @@
 
     private async Task GetCotizacionDetalle()
     {
-        var responseHttpCotizacionDetalle = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + cotizacionSeleccion.CotizacionId);
+        var responseHttpCotizacionDetalle = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByCotizacionId/" + cotizacionSeleccion.CotizacionId);
         cotizacionDetalleSeleccion = responseHttpCotizacionDetalle.Response;
         comentarioCotizacion = cotizacionSeleccion.Comentario;
 

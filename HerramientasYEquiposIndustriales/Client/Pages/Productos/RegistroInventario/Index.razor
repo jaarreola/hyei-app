@@ -56,7 +56,7 @@
 
 
 <div>
-    <MatTable Items="@movimientos" OnRowDbClick="@OnDbClickedMovimiento" AllowSelection="true" class="mat-elevation-z10">
+    <MatTable Items="@movimientos" AllowSelection="true" class="mat-elevation-z10">
         <MatTableHeader>
             <th style="width:10%;">No Parte</th>
             <th style="width:40%;">Nombre</th>
@@ -64,6 +64,7 @@
             <th style="width:10%;">Cantidad</th>
             <th style="width:10%;">Factura</th>
             <th style="width:10%;">Fecha Registro</th>
+            <th style="width:5%;"></th>
             <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
@@ -84,6 +85,7 @@
 
             <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
             <td><MatIconButton OnClick="@(_=>OpenDialogEditaRegistro(@context))" Icon="edit"></MatIconButton></td>
+            <td><MatIconButton OnClick="@(_=>MuestraMovimiento(@context))" Icon="visibility"></MatIconButton></td>
         </MatTableRow>
     </MatTable>
 </div>
@@ -312,11 +314,6 @@
     private int pageSizeProductos = 0;
 
 
-    //protected async override Task OnInitializedAsync()
-    //{
-    //    await BuscaMovimientos();
-    //}
-
 
     private async Task BuscaMovimientos()
     {
@@ -487,12 +484,11 @@
     }
 
 
-    private async Task OnDbClickedMovimiento(object item)
+    private async Task MuestraMovimiento(MovimientoDTO movimientoDetalle)
     {
         System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
-        movimientoDetalle = item as MovimientoDTO;
         if (movimientoDetalle != null)
         {
             tipoEntradaDetalle = movimientoDetalle.EsEntrada ? 1 : -1;

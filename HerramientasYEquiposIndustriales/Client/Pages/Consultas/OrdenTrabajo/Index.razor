@@ -1,0 +1,445 @@
+﻿@page "/Consultas/OrdenTrabajo"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+
+<h5>Consulta de Ordenes de Trabajo</h5>
+<div>
+    <MatAccordion>
+        <MatExpansionPanel @bind-Expanded="@expandido">
+            <MatExpansionPanelSummary>
+                <MatExpansionPanelHeader><h6>Filtros</h6></MatExpansionPanelHeader>
+            </MatExpansionPanelSummary>
+            <MatExpansionPanelDetails>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@numeroOt" Label="Numero OT"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatSelectItem @bind-Value="@estatusBusqueda" Items="@estatusOTCombo" Label="Estatus">
+                            <ItemTemplate Context="Estatus">
+                                @Estatus?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreCliente" Label="Nombre Cliente"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@telefonoCliente" Label="Telefono Clente"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@rfcCliente" Label="RFC Cliente"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
+                            <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
+                            <MatRadioButton Value="2" TValue="int">Garantpia Fábrica</MatRadioButton>
+                            <MatRadioButton Value="3" TValue="int">Sin Garantía</MatRadioButton>
+                            <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
+                        </MatRadioGroup>
+                    </div>
+                </div>
+                <div>
+                    <div class="col-md-9">
+                    </div>
+                    <div class="col-md-3">
+                        <MatButton Raised="true" Icon="search" OnClick="@BuscaOTs" class="mdc-button-background">Buscar</MatButton>
+                    </div>
+                </div>
+            </MatExpansionPanelDetails>
+        </MatExpansionPanel>
+    </MatAccordion>
+
+    <div class="col-md-3" style="padding:15px 0px 0px 0px">
+        Ordenes de trabajo: <strong>@otTotales</strong>
+    </div>
+
+    <div class="row">
+        <MatTable Items="@consultaOts" AllowSelection="true" class="mat-elevation-z10">
+            <MatTableHeader>
+                <th style="width:120px;">Numero Orden</th>
+                <th style="width:200px;">Herramienta</th>
+
+                <th style="width:100px;">Ubicación</th>
+                <th style="width:200px;">Cliente</th>
+                <th style="width:100px;">Teléfono</th>
+                <th style="width:100px;">RFC</th>
+                <th style="width:100px;">Estatus</th>
+
+                <th style="width:100px;">Fecha Registro</th>
+                <th style="width:100px;">LLega por Garantía</th>
+                <th style="width:50px;"></th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td style="width:120px; font-weight:bold">@context.NumeroOrdenTrabajo</td>
+                <td style="width:200px;">@context.NombreHerramienta</td>
+
+                <td style="width:100px;">@context.Ubicacion</td>
+                <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
+                <td style="width:100px;">@context.Telefono</td>
+                <td style="width:100px;">@context.RFC</td>
+                <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
+
+                <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
+                <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
+            </MatTableRow>
+        </MatTable>
+    </div>
+</div>
+
+
+<div>
+    <EditForm Model="@ordenTrabajoConsulta">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+            <MatDialogTitle><h5>Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NombreHerramienta" Label="Herramienta" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Marca" Label="Marca" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Modelo" Label="Modelo" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NumeroSerie" Label="Numero Serie" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@nombreCompletoCliente" Label="Cliente" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Telefono" Label="Teléfono" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.RFC" Label="RFC" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Correo" Label="Correo" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@garantiaLlega" Label="Llega por Garantia:" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-5">
+                            <MatTextField FullWidth="true" @bind-Value="@garantiaLlegaDescripcion" Label="Descripción Garantia" TextArea="true" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Comentarios" Label="Comentario / Observación Herramienta" TextArea="true" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatSubtitle2>Detalle Cotización:</MatSubtitle2>
+                            </div>
+                            <div class="col-md-5">
+                            </div>
+                            <div class="col-md-3">
+                                <MatSubtitle2>Estatus: @(ordenTrabajoConsulta.Descripcion != null ? ordenTrabajoConsulta.Descripcion : "Sin Cotizar") </MatSubtitle2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <MatTextField FullWidth="true" @bind-Value="@comentarioCotizacion" Label="Comentario / Observación" TextArea="true" ReadOnly="true"></MatTextField>
+                            </div>
+                        </div>
+                        <MatTable Items="@cotizacionDetalle" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10" Context="detalleCotizacion">
+                            <MatTableHeader>
+                                <th style="width:10%;">No Parte</th>
+                                <th style="width:50%;">Nombre</th>
+                                <th style="width:10%;">PU</th>
+                                <th style="width:10%;">Cantidad</th>
+                                <th style="width:10%;">Total</th>
+                            </MatTableHeader>
+                            <MatTableRow>
+                                <td>@detalleCotizacion.Producto.NoParte</td>
+                                <td>@detalleCotizacion.Producto.Nombre</td>
+                                <td>@FormatoMoneda(@detalleCotizacion.CostoUnitario.ToString())</td>
+                                <td>@detalleCotizacion.Cantidad</td>
+                                <td style="font-weight:bold">@CalculaColumnaTotal(@detalleCotizacion.CostoUnitario, @detalleCotizacion.Cantidad)</td>
+                            </MatTableRow>
+                        </MatTable>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatHeadline6>Total Cotización: @totalCotizacion</MatHeadline6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial OT</MatButton> &nbsp;
+                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+<MatDialog @bind-IsOpen="@dialogHistorialIsOpen" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>Historial de la Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@historialOt" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
+                    <MatTableHeader>
+                        <th style="width:20%;">Fecha Registro</th>
+                        <th style="width:10%">Descripcion</th>
+                        <th style="width:35%">Empleado</th>
+                        <th style="width:10%;">Ubicación</th>
+                        <th style="width:25%;">Comentario</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                        <td>@context.Descripcion</td>
+                        <td>@context.NumeroEmpleado - @context.Nombre</td>
+                        <td>@context.Ubicacion</td>
+                        <td>@context.Comentario</td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CierraHistorial" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code {
+    //ALERT
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    //FILTROS DE BUSQUEDA
+    private EstatusOTDTO estatusBusqueda = new EstatusOTDTO();
+    private List<EstatusOTDTO> estatusOT = new List<EstatusOTDTO>();
+    private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
+    private String numeroOt;
+    private String nombreCliente;
+    private String telefonoCliente;
+    private String rfcCliente;
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+    private int tipoGarantiaBusqueda = 0;
+
+    private List<OrdenTrabajoDetalleConsultaDTO> consultaOts = new List<OrdenTrabajoDetalleConsultaDTO>();
+    private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+
+    private CotizacionDTO cotizacion = new CotizacionDTO();
+    private List<CotizacionDetalleDTO> cotizacionDetalle = new List<CotizacionDetalleDTO>();
+
+    private List<HistorialOrdenTrabajoDTO> historialOt = new List<HistorialOrdenTrabajoDTO>();
+
+    private String nombreCompletoCliente;
+    private String fechaRegistro;
+
+    private String garantiaLlega;
+    private String garantiaLlegaDescripcion;
+
+    Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
+    private String comentarioCotizacion;
+    private bool dialogIsOpen = false;
+    private bool dialogHistorialIsOpen = false;
+    private bool expandido = true;
+    private int otTotales = 0;
+    private int pageSize = 0;
+    private int pageSizeHistorial = 0;
+    private string totalCotizacion;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        //OrdenTrabajoCotizar.Cliente = new Cliente();
+        //await BuscaOTParaCotizar();
+        await CargaComboEstatus();
+    }
+
+    private async Task CargaComboEstatus()
+    {
+        var responseHttp = await repository.Get<List<EstatusOTDTO>>("api/EstatusOT/GetEstatusOT");
+        estatusOT = responseHttp.Response;
+
+        estatusOTCombo = new List<EstatusOTDTO>();
+        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Todos", EstatusOTId = -1 });
+        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Sin Cotizar", EstatusOTId = 0 });
+        estatusOTCombo.AddRange(responseHttp.Response);
+    }
+
+
+    private async Task BuscaOTs()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOTs?" + queryStrings);
+        consultaOts = responseHttp.Response;
+        otTotales = consultaOts.Count > 0 ? consultaOts.Count : 0;
+        expandido = false;
+    }
+
+
+    private async Task MuestraDetalleOT(OrdenTrabajoDetalleConsultaDTO ot)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        dialogIsOpen = true;
+        ordenTrabajoConsulta = ot;
+        nombreCompletoCliente = ordenTrabajoConsulta.Nombre + " " + (ordenTrabajoConsulta.Apellido != null ? ordenTrabajoConsulta.Apellido : String.Empty);
+        fechaRegistro = ordenTrabajoConsulta.FechaRegistro != null ? ordenTrabajoConsulta.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+
+        var responseHttpCot = await repository.Get<CotizacionDTO>("api/Cotizaciones/GetCotizacionByOrdenTrabajoId/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
+        cotizacion = responseHttpCot.Response != null ? responseHttpCot.Response : new CotizacionDTO();
+        comentarioCotizacion = cotizacion.Comentario;
+
+        var responseHttpCotDet = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
+        cotizacionDetalle = responseHttpCotDet.Response != null ? responseHttpCotDet.Response : new List<CotizacionDetalleDTO>();
+        pageSize = cotizacionDetalle.Count;
+        totalCotizacion = TotalCotizacion();
+
+        garantiaLlega = ot.GarantiaLocal ? "Local" : ot.GarantiaFabrica ? "Fábrica" : "";
+        garantiaLlegaDescripcion = ot.GarantiaLocal ? (ot.GarantiaLocalDetalle == null ? "" : ot.GarantiaLocalDetalle) : ot.GarantiaFabrica ? (ot.GarantiaFabricaDetalle == null ? "" : ot.GarantiaFabricaDetalle) : "";
+
+        await Task.Delay(50);
+    }
+
+    private async Task MuestraHistorial()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var responseHttp = await repository.Get<List<HistorialOrdenTrabajoDTO>>("api/OrdenTrabajo/GetHistorialOTs/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
+        historialOt = responseHttp.Response;
+        pageSizeHistorial = historialOt.Count;
+
+        dialogHistorialIsOpen = true;
+    }
+
+    private void CancelaDialog()
+    {
+        dialogIsOpen = false;
+    }
+
+    private async Task CierraHistorial()
+    {
+        dialogHistorialIsOpen = false;
+        await Task.Delay(50);
+    }
+
+
+    private String TotalCotizacion()
+    {
+        float? total = 0;
+        foreach (CotizacionDetalleDTO m in cotizacionDetalle)
+            total += m.CostoUnitario * m.Cantidad;
+        return FormatoMoneda(total.ToString());
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
+    }
+
+    private String CalculaColumnaTotal(float? value, float? cantidad)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        return FormatoMoneda((value * cantidad).ToString());
+    }
+
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
+    }
+
+
+    private string GenerarQueryStringsOT()
+    {
+        if (queryStringOt == null)
+            queryStringOt = new Dictionary<string, string>();
+
+        queryStringOt["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringOt["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        queryStringOt["NombreCLiente"] = nombreCliente != null ? nombreCliente : String.Empty;
+        queryStringOt["TelefonoCLiente"] = telefonoCliente != null ? telefonoCliente : String.Empty;
+        queryStringOt["RfcCLiente"] = rfcCliente != null ? rfcCliente : String.Empty;
+        queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
+        queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringOt
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    //*************************************************************************************************************************************
+
+
+    public IEnumerable<string> items = Enumerable.Range(0, 1000).Select(i => i.ToString()).ToArray();
+
+    async Task ClickMe()
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (!confirmed)
+        {
+            // Delete!
+        }
+    }
+}

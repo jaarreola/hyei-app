@@ -42,10 +42,45 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 var result = await context.EstatusOTFlujos.Include(x => x.OrdenTrabajoDetalle).Include(x => x.EstatusOT).Where(x =>
                     (x.EstatusOTId == filtro.EstatusOTId || filtro.EstatusOTId == 0) &&
-                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null) &&
+                    ((x.OrdenTrabajoDetalle.FechaRegistro.Value.Date >= filtro.FechaInicio && x.OrdenTrabajoDetalle.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null) &&
                     x.Terminado != true
                 ).ToListAsync();
                 return mapper.Map<List<EstatusOTFlujoDTO>>(result);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de Marcas. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        [HttpGet("GetEstatusOTById/{id}")]
+        public async Task<ActionResult<EstatusOTFlujoDTO>> GetEstatusOTById(int id)
+        {
+            try
+            {
+                var result = await context.EstatusOTFlujos.Include(x => x.OrdenTrabajoDetalle).Where(x => x.EstatusOTFlujoId == id).FirstOrDefaultAsync();
+                return mapper.Map<EstatusOTFlujoDTO>(result);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de Marcas. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetLastEstatusOTByOtdId/{otdId}")]
+        public async Task<ActionResult<EstatusOTFlujoDTO>> GetLastEstatusOTByOtdId(int otdId)
+        {
+            try
+            {
+                var result = await context.EstatusOTFlujos.Include(x => x.OrdenTrabajoDetalle).Include(x => x.EstatusOT).Where(x => x.OrdenTrabajoDetalleId == otdId && x.Terminado == null).FirstOrDefaultAsync();
+                return mapper.Map<EstatusOTFlujoDTO>(result);
             }
             catch (Exception ex)
             {
@@ -70,7 +105,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 var dto = mapper.Map<EstatusOTFlujoDTO>(estatus);
 
-                return new CreatedAtRouteResult("ObtenerEstatusFlujo", new { id = estatus.EstatusOTFlujoId }, dto);
+                return dto;
             }
             catch (Exception ex)
             {
@@ -108,7 +143,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         EstatusOTId = SiguienteEstatusOT(estatusActual.EstatusOTId, cancelaOt),
                         FechaRegistro = fecha,
                         OrdenTrabajoDetalleId = estatusActual.OrdenTrabajoDetalleId,
-                        OrdenTrabajoDetalle = null
+                        OrdenTrabajoDetalle = null,
+                        Ubicacion = estatusActual.Ubicacion,
+                        Comentario = estatusActual.Comentario
                     };
 
                     if (estatusSiguiente.EstatusOTId != 0)
@@ -118,6 +155,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                         context.Entry(estatusActual).State = EntityState.Modified;
                         context.Entry(estatusActual).Property(x => x.FechaRegistro).IsModified = false;
+                        context.Entry(estatusActual).Property(x => x.Ubicacion).IsModified = false;
+                        context.Entry(estatusActual).Property(x => x.Comentario).IsModified = false;
                         context.SaveChanges();
 
                         context.EstatusOTFlujos.Add(estatusSiguiente);

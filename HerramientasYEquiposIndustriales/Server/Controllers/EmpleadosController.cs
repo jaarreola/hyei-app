@@ -67,6 +67,26 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpGet("ExisteEmpleadoByEmpleado")]
+        public async Task<ActionResult<EmpleadoDTO>> ExisteEmpleadoByEmpleado([FromQuery] EmpleadoDTO empleado)
+        {
+            try
+            {
+                var empleadoContext = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.Nombre == empleado.Nombre && x.Direccion == empleado.Direccion && x.Nss == empleado.Nss && x.Curp == empleado.Curp);
+
+                if (empleadoContext == null) return new EmpleadoDTO();
+                return mapper.Map<EmpleadoDTO>(empleadoContext); ;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del empleado. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
         [HttpGet("ObtenerEmpleadosFilter")]
         public async Task<ActionResult<IEnumerable<EmpleadoDTO>>> GetEmpleadoFilter([FromQuery] EmpleadoFilter filtrosEmpleado)
         {
@@ -115,6 +135,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                var empleadoContext = await context.Empleados.Include(x => x.Puesto).FirstOrDefaultAsync(x => x.Nombre == empleadoCreacionDTO.Nombre && x.Direccion == empleadoCreacionDTO.Direccion && x.Nss == empleadoCreacionDTO.Nss && x.Curp == empleadoCreacionDTO.Curp);
+                if (empleadoContext != null)
+                    return StatusCode(StatusCodes.Status200OK, $"Ya existe un empleado con esta información");
+
                 var empleado = mapper.Map<Empleado>(empleadoCreacionDTO);
                 empleado.FechaRegistro = DateTime.Now;
                 empleado.Activo = true;
