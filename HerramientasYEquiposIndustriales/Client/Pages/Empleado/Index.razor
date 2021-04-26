@@ -21,17 +21,19 @@
                                 @*<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
                                 <MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del empleado" Label="Nombre"></MatTextField>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 @*<MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón" OnKeyPress="@keyPress" OnFocusOut="@lostFocus"></MatTextField>*@
                                 <MatTextField FullWidth="true" @bind-Value="@DireccionBusqueda" HelperText="Dirección del empleado" Label="Direcíón"></MatTextField>
                             </div>
-                            <div class="col-md-2">
-                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueActivos(value))" Value="@ActivoBusqueda">Activos</MatCheckbox>
+                            <div class="col-md-3">
+
+                                <MatRadioGroup @bind-Value="@TipoEmpleadoBusqueda" TValue="int">
+                                    <MatRadioButton Value="1" TValue="int">Activos</MatRadioButton>
+                                    <MatRadioButton Value="2" TValue="int">Inactivos</MatRadioButton>
+                                    <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
+                                </MatRadioGroup>
                             </div>
                             <div class="col-md-2">
-                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueTodos(value))" Value="@TodosBusqueda">Todos</MatCheckbox>
-                            </div>
-                            <div class="col-md-2 col-sm-4">
                                 <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
                             </div>
                         </div>
@@ -45,9 +47,12 @@
     </div>
 </div>
 
+<div class="col-md-3" style="padding:15px 0px 0px 0px">
+    Empleados: <strong>@totalEmpleadosConsulta</strong>
+</div>
 
 <div>
-    <MatTable Items="@Empleados" class="mat-elevation-z5">
+    <MatTable Items="@Empleados" class="mat-elevation-z5" AllowSelection="true">
         <MatTableHeader>
             <th style="width:10%;">No Empleado</th>
             <th style="width:20%;">Nombre</th>
@@ -76,7 +81,6 @@
         </MatTableRow>
     </MatTable>
 </div>
-
 
 <div>
     <EditForm Model="@Empleado">
@@ -152,16 +156,16 @@
     //FILTROS BUSQUEDA
     private string NombreBusqueda = String.Empty;
     private string DireccionBusqueda = String.Empty;
+    private int TipoEmpleadoBusqueda = 0;
     private bool ActivoBusqueda = false;
     private bool TodosBusqueda = false;
 
-    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
-
-    bool dialogIsOpen = false;
+    private Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+    private int totalEmpleadosConsulta = 0;
+    private bool dialogIsOpen = false;
 
     protected async override Task OnInitializedAsync()
     {
-        //await CargaEmpleados();
         await CargaComboPuestos();
     }
 
@@ -178,17 +182,17 @@
     }
 
 
-    private void OnChangeValueTodos(bool value)
-    {
-        if (TodosBusqueda = value)
-            ActivoBusqueda = false;
-    }
-
-    private void OnChangeValueActivos(bool value)
-    {
-        if (ActivoBusqueda = value)
-            TodosBusqueda = false;
-    }
+    //private void OnChangeValueTodos(bool value)
+    //{
+    //    if (TodosBusqueda = value)
+    //        ActivoBusqueda = false;
+    //}
+    //
+    //private void OnChangeValueActivos(bool value)
+    //{
+    //    if (ActivoBusqueda = value)
+    //        TodosBusqueda = false;
+    //}
 
 
     private async Task Buscar()
@@ -196,6 +200,8 @@
         var queryStrings = GenerarQueryStrings();
         var responseHttpEmpleados = await repository.Get<List<EmpleadoDTO>>("api/Empleados/ObtenerEmpleadosFilter?" + queryStrings);
         Empleados = responseHttpEmpleados.Response;
+
+        totalEmpleadosConsulta = Empleados.Count > 0 ? Empleados.Count : 0;
     }
 
 
@@ -228,14 +234,24 @@
         var httpResponceNoEmpleado = await repository.GetOnly("api/Empleados/ObtenerNumeroEmpleado");
         Empleado.NumeroEmpleado = httpResponceNoEmpleado.Content.ReadAsStringAsync().Result;
 
-        var httpResponse = await repository.Post("api/Empleados", Empleado);
+        var httpResponse = await repository.Post<EmpleadoDTO>("api/Empleados", Empleado);
 
         if (httpResponse.Error)
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            toastService.ShowSuccess("Registro completo", "Guardado");
-            await CancelaDialog();
+            var message = await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync();
+
+            if (message.Contains("Ya existe un empleado"))
+            {
+                await OpenMessageOk(message);
+                return;
+            }
+            else
+            {
+                toastService.ShowSuccess("Registro completo", "Guardado");
+                await CancelaDialog();
+            }
         }
     }
 
@@ -276,7 +292,6 @@
     private async Task CancelaDialog()
     {
         dialogIsOpen = false;
-        //await CargaEmpleados();
         await Buscar();
         Clear();
         await Task.Delay(100);
@@ -315,6 +330,20 @@
         if (queryStringsDict == null)
             queryStringsDict = new Dictionary<string, string>();
 
+        //1 = Activo, 2 = Inactivos, 0 = Todos
+        if (TipoEmpleadoBusqueda == 1)
+        {
+            ActivoBusqueda = true;
+            TodosBusqueda = false;
+        }
+        else if (TipoEmpleadoBusqueda == 2)
+        {
+            ActivoBusqueda = false;
+            TodosBusqueda = false;
+        }
+        else
+            TodosBusqueda = true;
+
         queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
         queryStringsDict["Direccion"] = DireccionBusqueda != null ? DireccionBusqueda : String.Empty;
         queryStringsDict["Activo"] = ActivoBusqueda.ToString();
@@ -329,6 +358,19 @@
 
 
     private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
+    }
+
+    private async Task<int> OpenMessageOk(string pregunta)
     {
         var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
         int r = 0;

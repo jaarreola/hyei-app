@@ -19,5 +19,6 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int? EmpleadoModificacion { get; set; }
 
         public virtual Producto Producto { get; set; }
+        public virtual Cotizacion Cotizacion { get; set; }
     }
 }

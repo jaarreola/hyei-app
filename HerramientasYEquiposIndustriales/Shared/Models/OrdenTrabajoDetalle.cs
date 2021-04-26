@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HerramientasYEquiposIndustriales.Shared.Models
 {
-    
+
     public class OrdenTrabajoDetalle
     {
         public int OrdenTrabajoDetalleId { get; set; }
@@ -33,6 +33,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public DateTime? FechaEntrega { get; set; }
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
+        public String Comentarios { get; set; }
 
         public virtual OrdenTrabajo OrdenTrabajo { get; set; }
     }

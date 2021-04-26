@@ -4,14 +4,16 @@ using HerramientasYEquiposIndustriales.Server.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HerramientasYEquiposIndustriales.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210412222003_Initial13")]
+    partial class Initial13
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,10 +235,6 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Comentario")
-                        .HasColumnType("nvarchar(max)")
-                        .HasMaxLength(5000);
-
                     b.Property<int?>("EmpleadoCreacion")
                         .HasColumnType("int");
 
@@ -254,8 +252,7 @@ namespace HerramientasYEquiposIndustriales.Server.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Ubicacion")
-                        .HasColumnType("nvarchar(1000)")
-                        .HasMaxLength(1000);
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("EstatusOTFlujoId");
 

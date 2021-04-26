@@ -186,12 +186,13 @@ app {
 .mdc-table th {
     font-size: 0.8rem !important;
     background-color: gainsboro !important;
-    padding: 12px 12px 12px 24px !important;
+    padding: 10px 10px 10px 20px !important;
     font-weight: 500 !important;
 }
 
 .mdc-table td {
-    font-size: 0.8rem;
+    font-size: 12px !important;
+    padding: 0px 10px 0px 10px !important;
 }
 
 /* MatDialog*/

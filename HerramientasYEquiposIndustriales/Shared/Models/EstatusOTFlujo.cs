@@ -12,6 +12,10 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public DateTime? FechaRegistro { get; set; }
         public int? EmpleadoCreacion { get; set; }
         public bool? Terminado { get; set; }
+        [StringLength(1000)] 
+        public string Ubicacion { get; set; }
+        [StringLength(5000)]
+        public string Comentario { get; set; }
 
         public virtual EstatusOT EstatusOT { get; set; }
         public virtual OrdenTrabajoDetalle OrdenTrabajoDetalle { get; set; }

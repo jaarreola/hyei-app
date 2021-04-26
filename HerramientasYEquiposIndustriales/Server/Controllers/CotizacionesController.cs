@@ -37,7 +37,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var cotizacion = await context.Cotizaciones.FirstOrDefaultAsync(x => x.OrdenTrabajoDetalleId == ordenTrabajoDetalleId);
+                var cotizacion = await context.Cotizaciones.Include(x => x.OrdenTrabajoDetalle).FirstOrDefaultAsync(x => x.OrdenTrabajoDetalleId == ordenTrabajoDetalleId);
                 if (cotizacion == null) { return NotFound(); }
 
                 return mapper.Map<CotizacionDTO>(cotizacion);
@@ -51,12 +51,12 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
-        [HttpGet("GetCotizacionDetalleByOrdenTrabajoId/{cotizacionId}")]
-        public async Task<ActionResult<List<CotizacionDetalleDTO>>> GetCotizacionDetalleByOrdenTrabajoId(int cotizacionId)
+        [HttpGet("GetCotizacionDetalleByCotizacionId/{cotizacionId}")]
+        public async Task<ActionResult<List<CotizacionDetalleDTO>>> GetCotizacionDetalleByCotizacionId(int cotizacionId)
         {
             try
             {
-                var cotizacionD = await context.CotizacionDetalles.Include(x=> x.Producto).Where(x => x.CotizacionId == cotizacionId).ToListAsync();
+                var cotizacionD = await context.CotizacionDetalles.Include(x => x.Producto).Where(x => x.CotizacionId == cotizacionId).ToListAsync();
                 if (cotizacionD == null) { return NotFound(); }
 
                 return mapper.Map<List<CotizacionDetalleDTO>>(cotizacionD);
@@ -70,6 +70,25 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+
+        [HttpGet("GetCotizacionDetalleByOrdenTrabajoId/{ordenTrabajoDetalleId}")]
+        public async Task<ActionResult<List<CotizacionDetalleDTO>>> GetCotizacionDetalleByOrdenTrabajoId(int ordenTrabajoDetalleId)
+        {
+            try
+            {
+                var cotizacionD = await context.CotizacionDetalles.Include(x => x.Producto).Include(x => x.Cotizacion).Where(x => x.Cotizacion.OrdenTrabajoDetalleId == ordenTrabajoDetalleId).ToListAsync();
+                if (cotizacionD == null) { return NotFound(); }
+
+                return mapper.Map<List<CotizacionDetalleDTO>>(cotizacionD);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
 
 
         [HttpGet("GetOTParaCotizar")]
@@ -175,7 +194,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
-        
+
         [HttpPost("SaveCotizacion")]
         public bool PostSaveCotizacion(List<object> datos)
         {
@@ -184,7 +203,87 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 Cotizacion cotizacion = new Cotizacion();
                 List<CotizacionDetalle> detalles = new List<CotizacionDetalle>();
                 CotizacionDetalle detalle;
-                
+                OrdenTrabajoDetalle ordentrabajoDetalle;
+
+                if (datos.Count == 3)
+                {
+                    DateTime fecha = DateTime.Now;
+                    cotizacion = mapper.Map<Cotizacion>(JsonConvert.DeserializeObject<CotizacionDTO>(datos[0].ToString()));
+                    if (cotizacion.CotizacionId == 0)
+                        cotizacion.FechaRegistro = fecha;
+                    else
+                        cotizacion.FechaUltimaModificacion = fecha;
+
+                    foreach (CotizacionDetalle m in (JsonConvert.DeserializeObject<List<CotizacionDetalle>>(datos[1].ToString())))
+                    {
+                        detalle = mapper.Map<CotizacionDetalle>(m);
+                        detalle.FechaRegistro = fecha;
+                        detalles.Add(detalle);
+                    }
+
+                    ordentrabajoDetalle = mapper.Map<OrdenTrabajoDetalle>(JsonConvert.DeserializeObject<OrdenTrabajoDetalleDTO>(datos[2].ToString()));
+
+                    using var scope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted });
+                    if (cotizacion.CotizacionId == 0)
+                    {
+                        context.Cotizaciones.Add(cotizacion);
+                        context.SaveChanges();
+
+                        //actualizamos la OT indicando que ya tiene cotizacion
+                        var ot = context.OrdenTrabajoDetalle.FirstOrDefault(x => x.OrdenTrabajoDetalleId == cotizacion.OrdenTrabajoDetalleId);
+                        ot.TieneCotizacion = true;
+                        //ot.Ubicacion = ordentrabajoDetalle.Ubicacion;
+                        context.Entry(ot).State = EntityState.Modified;
+                        context.Entry(ot).Property(x => x.FechaRegistro).IsModified = false;
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        context.Entry(cotizacion).State = EntityState.Modified;
+                        context.Entry(cotizacion).Property(x => x.FechaRegistro).IsModified = false;
+                        context.SaveChanges();
+                    }
+
+                    var idCotizacionCreacion = context.Cotizaciones.FirstOrDefaultAsync(x => x.OrdenTrabajoDetalleId == cotizacion.OrdenTrabajoDetalleId).Result.CotizacionId;
+                    foreach (var m in detalles)
+                    {
+                        if (m.CotizacionDetalleId == 0)
+                        {
+                            m.CotizacionId = idCotizacionCreacion;
+                            m.Producto = null;
+
+                            context.CotizacionDetalles.Add(m);
+                            context.SaveChanges();
+                        }
+                    }
+                    scope.Complete();
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+
+                //return StatusCode(StatusCodes.Status500InternalServerError,
+                //    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                //    $"al crear la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
+                return false;
+            }
+        }
+
+
+        [HttpPost("SaveDetalleCotizacion")]
+        public bool PostSaveDetalleCotizacion(List<object> datos)
+        {
+            try
+            {
+                Cotizacion cotizacion = new Cotizacion();
+                List<CotizacionDetalle> detalles = new List<CotizacionDetalle>();
+                CotizacionDetalle detalle;
+                //OrdenTrabajoDetalle ordentrabajoDetalle;
+
                 if (datos.Count == 2)
                 {
                     DateTime fecha = DateTime.Now;
@@ -236,16 +335,56 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     }
                     scope.Complete();
                 }
+                return true;
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+                return false;
+            }
+        }
+
+
+        [HttpPost("SaveOnlyCotizacion")]
+        public bool PostSaveOnlyCotizacion(CotizacionDTO cotizacionDto)
+        {
+            try
+            {
+                var cotizacion = mapper.Map<Cotizacion>(cotizacionDto);
+
+                DateTime fecha = DateTime.Now;
+                if (cotizacion.CotizacionId == 0)
+                    cotizacion.FechaRegistro = fecha;
+                else
+                    cotizacion.FechaUltimaModificacion = fecha;
+
+                using var scope = new TransactionScope(TransactionScopeOption.Required,
+                new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted });
+                if (cotizacion.CotizacionId == 0)
+                {
+                    context.Cotizaciones.Add(cotizacion);
+                    context.SaveChanges();
+
+                    //actualizamos la OT indicando que ya tiene cotizacion
+                    var ot = context.OrdenTrabajoDetalle.FirstOrDefault(x => x.OrdenTrabajoDetalleId == cotizacion.OrdenTrabajoDetalleId);
+                    ot.TieneCotizacion = true;
+                    context.Entry(ot).State = EntityState.Modified;
+                    context.Entry(ot).Property(x => x.FechaRegistro).IsModified = false;
+                    context.SaveChanges();
+                }
+                else
+                {
+                    context.Entry(cotizacion).State = EntityState.Modified;
+                    context.Entry(cotizacion).Property(x => x.FechaRegistro).IsModified = false;
+                    context.SaveChanges();
+                }
+                scope.Complete();
 
                 return true;
             }
             catch (Exception e)
             {
                 System.Console.WriteLine(e.Message);
-
-                //return StatusCode(StatusCodes.Status500InternalServerError,
-                //    $"{CommonConstant.MSG_ERROR_INICIO} " +
-                //    $"al crear la Cotización. \n{CommonConstant.MSG_ERROR_FIN}");
                 return false;
             }
         }

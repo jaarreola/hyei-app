@@ -49,10 +49,12 @@
     </div>
 </div>
 
-
+<div class="col-md-3" style="padding:15px 0px 0px 0px">
+    Productos totales: <strong>@totalProductos</strong>
+</div>
 
 <div>
-    <MatTable Items="@Productos" class="mat-elevation-z5">
+    <MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
         <MatTableHeader>
             <th style="width:13%;">NoParte</th>
             <th style="width:28%;">Nombre</th>
@@ -77,9 +79,9 @@
 
             @if (context.Ubicacion != null)
                 {<td>@context.Ubicacion</td>}
-            else
+                else
                 {<td></td>}
-        
+
             @*<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>*@
             <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
             <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
@@ -98,7 +100,7 @@
 <div>
     <EditForm Model="@Producto">
         <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialog @bind-IsOpen="@dialogEditIsOpen" CanBeClosed="false" class="mdc-dialog900">
             <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
@@ -181,6 +183,64 @@
 
 
 <div>
+    <EditForm Model="@Producto">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+            <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
+                            <ItemTemplate Context="Marca">
+                                @Marca?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+                    </div>
+                    <div class="col-md-7">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
+                    </div>
+                    <div class="col-md-1">
+                        <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete" hidden="true"></MatIconButton>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+
+
+<div>
     <EditForm Model="@NuevaMarca">
         <DataAnnotationsValidator />
         <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
@@ -259,6 +319,7 @@
     private MarcaDTO NuevaMarca = new MarcaDTO();
     private bool Expandido = true;
     private bool dialogIsOpen = false;
+    private bool dialogEditIsOpen = false;
     private bool dialogMarcaIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
@@ -273,8 +334,10 @@
     private String nombreEmpleadoBaja = String.Empty;
     private String nombreEmpleadoActivo = String.Empty;
 
-    private int idProductoEliminar = 0;
+    private String precioMayorPorcentaje = "";
 
+    private int idProductoEliminar = 0;
+    private int totalProductos = 0;
 
 
     protected async override Task OnInitializedAsync()
@@ -288,18 +351,36 @@
     }
 
 
+    //private async Task OpenDialog()
+    //{
+    //    System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+    //    CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+    //
+    //    if (!Expandido) { Expandido = false; }
+    //    dialogIsOpen = true;
+    //    await Task.Delay(50);
+    //}
+
     private void OpenDialog()
+    {
+        if (!Expandido) { Expandido = false; }
+        dialogIsOpen = true;
+    }
+
+
+    private void OpenDialogEdit()
     {
         System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
         if (!Expandido) { Expandido = false; }
-        dialogIsOpen = true;
+        dialogEditIsOpen = true;
     }
 
     private async Task CancelaDialog()
     {
         dialogIsOpen = false;
+        dialogEditIsOpen = false;
         await CargaProductos();
         Clear();
         await Task.Delay(50);
@@ -362,7 +443,7 @@
         else
             nombreEmpleadoActivo = String.Empty;
 
-        dialogIsOpen = true;
+        dialogEditIsOpen = true;
     }
 
 
@@ -381,6 +462,8 @@
     {
         var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos");
         Productos = responseHttp.Response;
+
+        totalProductos = Productos.Count > 0 ? Productos.Count : 0;
     }
 
 
@@ -480,6 +563,20 @@
                 return;
             }
         }
+
+        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0 && (Producto.CostoCompra != null ? Producto.CostoCompra : 0) == 0)
+        {
+            await OpenMessage("Primero debe ingresar el costo de compra.");
+            return;
+        }
+
+        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
+            if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
+            {
+                await OpenMessage("El Costo de Venta debe ser mayor al 20% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+                return;
+            }
+
         dialogValidaEmpleadoSave = true;
     }
 
@@ -513,6 +610,7 @@
         {
             Clear();
             dialogIsOpen = false;
+            dialogEditIsOpen = false;
             await CargaProductos();
             await Task.Delay(50);
             toastService.ShowSuccess("Registro completo", "Guardado");
@@ -590,6 +688,8 @@
         var queryStrings = GenerarQueryStrings();
         var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/ObtenerProductosFilter?" + queryStrings);
         Productos = responseHttp.Response;
+
+        totalProductos = Productos.Count > 0 ? Productos.Count : 0;
     }
 
     private void Clear()
@@ -625,6 +725,23 @@
         return string.Join("&", queryStringsDict
             .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
             .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        costoCompra = costoCompra != null ? costoCompra : 0;
+        costoVenta = costoVenta != null ? costoVenta : 0;
+        bool result = true;
+
+        float? procentaje = (float?)0.2; //20%
+        precioMayorPorcentaje = ((costoCompra * procentaje) + costoCompra)?.ToString("C2");
+        if (costoVenta < ((costoCompra * procentaje) + costoCompra))
+            result = false;
+
+        return result;
     }
 
 

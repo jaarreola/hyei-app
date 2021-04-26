@@ -69,6 +69,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var estatusActual = await context.EstatusOTs.FirstOrDefaultAsync(x => x.EstatusOTId == estatusId);
+                estatusActual = estatusActual == null ? new EstatusOT() : estatusActual;
                 var estatusSig = await context.EstatusOTs.FirstOrDefaultAsync(x => x.Posicion == (estatusActual.Posicion + 1) && estatusActual.Posicion != -1);
                 if (estatusSig == null) { return NotFound(); }
                 return mapper.Map<EstatusOTDTO>(estatusSig);
