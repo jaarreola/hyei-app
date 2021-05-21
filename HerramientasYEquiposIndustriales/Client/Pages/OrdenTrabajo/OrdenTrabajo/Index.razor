@@ -20,13 +20,13 @@
                     <MatExpansionPanelDetails>
                         <div class="row">
                             <div class="col-md-3">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Nombre" HelperText="Nombre del cliente" Label="Nombre" class="mdc-textField"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Nombre" HelperText="Nombre del cliente" Label="Nombre" OnFocusOut="@lostFocus" class="mdc-textField"></MatTextField>
                             </div>
                             <div class="col-md-3">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Apellido" HelperText="Apellido del cliente" Label="Apellido"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Apellido" HelperText="Apellido del cliente" OnFocusOut="@lostFocus" Label="Apellido"></MatTextField>
                             </div>
                             <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Telefono" HelperText="Telefono del cliente" Label="Telefono"></MatTextField>
+                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Telefono" HelperText="Telefono del cliente" OnFocusOut="@lostFocus" Label="Telefono"></MatTextField>
                             </div>
                             <div class="col-md-2">
                                 <MatTextField FullWidth="true" @bind-Value="@_cliente.Correo" HelperText="Correo del cliente" Label="Correo"></MatTextField>
@@ -36,8 +36,11 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-10">
+                            <div class="col-md-7">
                                 <MatTextField FullWidth="true" @bind-Value="@_cliente.Direccion" HelperText="Direccion del cliente" Label="Dirección"></MatTextField>
+                            </div>
+                            <div class="col-md-3">
+                                <span style="color:red; font-weight:bold;">@esProblema</span>
                             </div>
                             <div class="col-md-2">
                                 <MatButton Raised="true" Icon="search" OnClick="@OpenDialogBuscarCliente" class="mdc-button-background">Buscar</MatButton>
@@ -111,6 +114,7 @@
                             <th style="width:10%;">Telefono</th>
                             <th style="width:10%;">RFC</th>
                             <th style="width:20%;">Correo</th>
+                            <th style="width:20%;">Problema</th>
                         </MatTableHeader>
                         <MatTableRow>
                             <td>@context.Nombre @context.Apellido</td>
@@ -118,6 +122,7 @@
                             <td>@context.Telefono</td>
                             <td>@context.RFC</td>
                             <td>@context.Correo</td>
+                            <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
                         </MatTableRow>
                     </MatTable>
                 </div>
@@ -228,6 +233,12 @@
     private bool _dialogValidaEmpleado = false;
     private String _numeroEmpleado;
 
+    private String esProblema = String.Empty;
+
+    private String nombre;
+    private String apellido;
+    private String telefono;
+
 
     //protected async override Task OnInitializedAsync()
     //{
@@ -243,6 +254,37 @@
         _clientes = responseHttp.Response;
     }
 
+    private async Task<bool> EsClienteProblema()
+    {
+        nombre = _cliente.Nombre == null ? String.Empty : _cliente.Nombre;
+        apellido = _cliente.Apellido == null ? String.Empty : _cliente.Apellido;
+        telefono = _cliente.Telefono == null ? String.Empty : _cliente.Telefono;
+
+        var queryStrings = GenerarQueryStringsClienteProblema();
+        var responseHttp = await repository.Get<ClienteDTO>("api/Clientes/EsClienteProblemaFilter?" + queryStrings);
+        var _clienteProblema = responseHttp.Response;
+
+        if (_clienteProblema != null)
+            return true;
+        else
+            return false;
+    }
+
+    private async Task lostFocus(FocusEventArgs e)
+    {
+        await ValidaClienteProblema();
+    }
+
+    private async Task ValidaClienteProblema()
+    {
+        if ((_cliente.Nombre != null || _cliente.Apellido != null) && _cliente.Telefono != null)
+            if (await EsClienteProblema())
+                esProblema = "Cliente Problema";
+            else
+                esProblema = String.Empty;
+    }
+
+
     private string GenerarQueryStringsCliente()
     {
         if (_queryStringsDict == null)
@@ -253,6 +295,22 @@
         _queryStringsDict["RFC"] = _rfcClienteBuscar != null ? _rfcClienteBuscar : String.Empty;
         _queryStringsDict["Telefono"] = _telefonoClienteBuscar != null ? _telefonoClienteBuscar : String.Empty;
         _queryStringsDict["Todos"] = "true";
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", _queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private string GenerarQueryStringsClienteProblema()
+    {
+        if (_queryStringsDict == null)
+            _queryStringsDict = new Dictionary<string, string>();
+
+        _queryStringsDict["Nombre"] = nombre;
+        _queryStringsDict["Apellido"] = apellido;
+        _queryStringsDict["Telefono"] = telefono;
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 
@@ -445,7 +503,7 @@
         return r;
     }
 
-    void OnDbClicked(object item)
+    async Task OnDbClicked(object item)
     {
         var _clienteSeleccionado = item as ClienteDTO;
         if (_clienteSeleccionado != null)
@@ -453,6 +511,7 @@
             _dialogBuscarClienteIsOpen = false;
             _cliente = _clienteSeleccionado;
 
+            await ValidaClienteProblema();
         }
     }
 

@@ -33,8 +33,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
         public String Comentarios { get; set; }
-        public String Ubicacion { get; set; }
-
+        
 
         public int ClienteId { get; set; }
         [Required]
@@ -57,10 +56,13 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int EstatusOTId { get; set; }
         [StringLength(100)]
         public bool? Terminado { get; set; }
+        public String Ubicacion { get; set; }
 
 
         [StringLength(100)]
         public string Descripcion { get; set; }
         public int Posicion { get; set; }
+
+        public decimal costoReparacion { get; set; }
     }
 }

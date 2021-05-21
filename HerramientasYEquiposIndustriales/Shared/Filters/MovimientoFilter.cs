@@ -10,6 +10,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
         public int TipoEntrada { get; set; }
         public string Factura { get; set; }
         public string NoParte { get; set; }
+        public string NombreParte { get; set; }
         public DateTime? FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
     }

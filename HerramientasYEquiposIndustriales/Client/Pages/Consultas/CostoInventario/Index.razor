@@ -1,0 +1,348 @@
+﻿@page "/Consultas/CostoInventario"
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandido">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h4>Costos de Inventario</h4></MatExpansionPanelHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroParteBusqueda" HelperText="Numero de parte" Label="No Parte"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreParteBusqueda" HelperText="Nombre" Label="Nombre"></MatTextField>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <MatRadioGroup @bind-Value="@tipoExistencia" TValue="int">
+                        <MatRadioButton Value="1" TValue="int">Con Existencia</MatRadioButton>
+                        <MatRadioButton Value="2" TValue="int">Sin Existencia</MatRadioButton>
+                        <MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+                    </MatRadioGroup>
+                </div>
+                <div class="col-md-2">
+                    &nbsp;
+                </div>
+                <div class="col-md-2">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaMovimientos">Buscar</MatButton>
+                </div>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<div class="row">
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        &nbsp;
+    </div>
+    <div class="col-md-4" style="padding:15px 0px 0px 0px">
+        Total Costo Compra: <strong>@FormatoMoneda(totalCostoCompra.ToString())</strong>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        Productos totales: <strong>@totalProductos</strong>
+    </div>
+    <div class="col-md-4" style="padding:15px 0px 0px 0px">
+        Total Costo Venta: <strong>@FormatoMoneda(totalCostoVenta.ToString())</strong>
+    </div>
+</div>
+
+<MatTable Items="@movimientos" AllowSelection="true" class="mat-elevation-z10">
+    <MatTableHeader>
+        <th style="width:10%;">No Parte</th>
+        <th style="width:25%;">Nombre</th>
+        <th style="width:10%;">Entradas</th>
+        <th style="width:10%;">Salidas</th>
+        <th style="width:10%;">Existencias</th>
+        <th style="width:10%;">Costo Compra</th>
+        <th style="width:10%;">Costo Venta</th>
+        <th style="width:10%;">Total Inventario</th>
+        <th style="width:10%;"></th>
+    </MatTableHeader>
+    <MatTableRow>
+        <td style="font-weight:bold">@context.NoParte</td>
+        <td>@context.Nombre</td>
+        <td style="color:green;">@FormatoDecimal(@context.Entradas.ToString())</td>
+        <td style="color:red;">@FormatoDecimal(@context.Salidas.ToString())</td>
+
+        @if (context.Entradas > context.Salidas)
+            { <td style="color:green; font-weight:bold">@FormatoDecimal(context.Existencias.ToString())</td> }
+        @if (context.Entradas < context.Salidas)
+            {<td style="color:red; font-weight:bold;">@FormatoDecimal(context.Existencias.ToString())</td>}
+        @if (context.Entradas == context.Salidas)
+            {<td style="font-weight:bold">0.00</td>}
+
+        <td>@FormatoMoneda(context.CostoCompra.ToString())</td>
+        <td>@FormatoMoneda(context.CostoVenta.ToString())</td>
+        <td style="font-weight:bold">@FormatoMoneda(context.TotalCostoCompra.ToString())</td>
+        <td><MatIconButton OnClick="@(_=>MuestraDetalleGrid(@context))" Icon="visibility"></MatIconButton></td>
+    </MatTableRow>
+</MatTable>
+
+
+<MatDialog @bind-IsOpen="@dialogDetalleProductoIsOpen" CanBeClosed="false" class="mdc-dialog800">
+    <MatDialogTitle><h5>Producto - <strong>@productoDetalle</strong></h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-3">
+                <MatTextField FullWidth="true" @bind-Value="@costoCompra" HelperText="Costo de compra" Label="Costo Compra" ReadOnly="true"></MatTextField>
+            </div>
+            <div class="col-md-3">
+                <MatTextField FullWidth="true" @bind-Value="@costoVenta" HelperText="Costo de venta" Label="Costo Venta" ReadOnly="true"></MatTextField>
+            </div>
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-3">
+                <MatTextField FullWidth="true" @bind-Value="@totalProducto" HelperText="Monto total del producto" Label="Total Producto" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+        <MatTable Items="@movimientosProducto" AllowSelection="true" class="mat-elevation-z10">
+            <MatTableHeader>
+                <th style="width:15%;">No Parte</th>
+                <th style="width:30%;">Nombre</th>
+                <th style="width:10%;">Tipo</th>
+                <th style="width:10%;">Cantidad</th>
+                <th style="width:10%;">Factura</th>
+                <th style="width:20%;">Fecha Registro</th>
+                <th style="width:5%;"></th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td style="font-weight:bold">@context.Producto.NoParte</td>
+                <td>@context.Producto.Nombre</td>
+
+                @if (context.EsEntrada)
+                            {<td style="color:green; font-weight:bold">Entrada</td>}
+                @if (context.EsSalida)
+                            {<td style="color:red; font-weight:bold">Salida</td>}
+
+                <td>@FormatoDecimal(@context.Cantidad.ToString())</td>
+                <td>@(context.FacturaMovimiento == null ? "" : context.FacturaMovimiento.Factura)</td>
+                <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                <td><MatIconButton OnClick="@(_=>MuestraDetalleMovimiento(@context))" Icon="visibility"></MatIconButton></td>
+            </MatTableRow>
+        </MatTable>
+
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogDetalleMovimiento" class="mdc-button-modal">Cancel</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+<MatDialog @bind-IsOpen="@dialogDetalleMovimientoIsOpen" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>Movimiento de <strong>@noParteDetalle / @nombreDetalle</strong></h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-3">
+                <MatRadioGroup @bind-Value="@tipoEntradaDetalle" TValue="int">
+                    <MatRadioButton Value="1" TValue="int" Disabled="true">Entrada</MatRadioButton>
+                    <MatRadioButton Value="-1" TValue="int" Disabled="true">Salida</MatRadioButton>
+                </MatRadioGroup>
+            </div>
+            <div class="col-md-3">
+                <MatTextField @bind-Value="@cantidadDetalle" Label="Cantidad" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@comentarioDetalle" Label="Detalle" TextArea="true" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoDetalle" Label="Empleado Creación" ReadOnly="true"></MatTextField>
+            </div>
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@fechaRegistroDetalle" Label="Fecha Registro" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModDetalle" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
+            </div>
+            <div class="col-md-6">
+                <MatTextField FullWidth="true" @bind-Value="@fechaModDetalle" Label="Fecha Modificación" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CierraDetalleMovimiento" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code{
+    //VARIABLES dDE BUSQUEDA
+    private string nombreParteBusqueda;
+    private string numeroParteBusqueda;
+    private DateTime? fechaInicio = null;
+    private DateTime? fechaFin = null;
+    private int tipoExistencia = 0;     // 1 = Con existencia, 2 = Sin Existencia, 0 = Ambos
+
+    //LISTA DE MOVIMIENTOS
+    private List<CostoInventarioDTO> movimientos;
+    private CostoInventarioDTO movimiento;
+
+    //LISTA DE MOVIMIENTOS POR PRODUCTO
+    private List<MovimientoDTO> movimientosProducto;
+    private MovimientoDTO movimientoProducto;
+    private bool dialogDetalleProductoIsOpen = false;
+    private String productoDetalle;
+    private String costoCompra;
+    private String costoVenta;
+    private String totalProducto;
+
+    //DETALLE MOVIMIENTO
+    private bool dialogDetalleMovimientoIsOpen = false;
+    private String noParteDetalle;
+    private String nombreDetalle;
+    private int tipoEntradaDetalle;
+    private String cantidadDetalle;
+    private String comentarioDetalle;
+    private String nombreEmpleadoDetalle;
+    private String fechaRegistroDetalle;
+    private string nombreEmpleadoModDetalle = String.Empty;
+    private String fechaModDetalle;
+
+    //VARIABLES TOTALES
+    public decimal totalCostoCompra = 0;
+    public decimal totalCostoVenta = 0;
+    public int totalProductos = 0;
+
+    //PANELES EXPANDIBLES
+    private bool expandido = true;
+
+    //VARIABLE QUERY STRING
+    Dictionary<string, string> queryStringsConsulta = new Dictionary<string, string>();
+
+
+
+    private async Task BuscaMovimientos()
+    {
+        var noParte = numeroParteBusqueda == null ? String.Empty : numeroParteBusqueda;
+        var queryStrings = GenerarQueryStringsConsulta(noParte);
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetCostoInventarioByFilter?" + queryStrings);
+        if (responseHttp.Response == null)
+            movimientos = new List<CostoInventarioDTO>();
+        else
+            movimientos = responseHttp.Response;
+        totalProductos = movimientos.Count;
+        CalculaCostosInventario();
+        await Task.Delay(100);
+    }
+
+    private void CalculaCostosInventario()
+    {
+        totalCostoCompra = 0;
+        totalCostoVenta = 0;
+        foreach (CostoInventarioDTO c in movimientos)
+        {
+            totalCostoCompra += (decimal)(c.Existencias * c.CostoCompra);
+            totalCostoVenta += (decimal)(c.Existencias * c.CostoVenta);
+        }
+    }
+
+    private async Task MuestraDetalleGrid(CostoInventarioDTO registro)
+    {
+        productoDetalle = registro.NoParte + " / " + registro.Nombre;
+        costoCompra = FormatoMoneda(registro.CostoCompra.ToString());
+        costoVenta = FormatoMoneda(registro.CostoVenta.ToString());
+        totalProducto = FormatoMoneda(registro.TotalCostoVenta.ToString());
+
+        var queryStrings = GenerarQueryStringsConsulta(registro.NoParte);
+        var responseHttp = await repository.Get<List<MovimientoDTO>>("api/Inventarios/GetProductoMovimientosByFilter?" + queryStrings);
+        if (responseHttp.Response == null)
+            movimientosProducto = new List<MovimientoDTO>();
+        else
+            movimientosProducto = responseHttp.Response;
+
+        dialogDetalleProductoIsOpen = true;
+    }
+
+    private async Task MuestraDetalleMovimiento(MovimientoDTO registro)
+    {
+        noParteDetalle = registro.Producto.NoParte;
+        nombreDetalle = registro.Producto.Nombre;
+        tipoEntradaDetalle = registro.EsEntrada ? 1 : -1;
+        cantidadDetalle = FormatoDecimal(registro.Cantidad.ToString());
+        comentarioDetalle = registro.Comentario;
+        fechaRegistroDetalle = registro.FechaRegistro != null ? registro.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+            fechaModDetalle = registro.FechaUltimaModificacion != null ? registro.FechaUltimaModificacion?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+
+        nombreEmpleadoDetalle = (await repository.Get<EmpleadoDTO>("api/Empleados/" + registro.EmpleadoCreacion)).Response.Nombre;
+        if (registro.EmpleadoModificacion != null)
+            nombreEmpleadoModDetalle = (await repository.Get<EmpleadoDTO>("api/Empleados/" + registro.EmpleadoModificacion)).Response.Nombre;
+        else
+            nombreEmpleadoModDetalle = String.Empty;
+
+        dialogDetalleMovimientoIsOpen = true;
+    }
+
+    private async Task CancelaDialogDetalleMovimiento()
+    {
+        dialogDetalleProductoIsOpen = false;
+        await Task.Delay(100);
+    }
+
+    private async Task CierraDetalleMovimiento()
+    {
+        dialogDetalleMovimientoIsOpen = false;
+        await Task.Delay(100);
+    }
+
+
+
+    private string GenerarQueryStringsConsulta(String noParte)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (queryStringsConsulta == null)
+            queryStringsConsulta = new Dictionary<string, string>();
+
+        queryStringsConsulta["NoParte"] = noParte;
+        queryStringsConsulta["NombreParte"] = nombreParteBusqueda == null ? String.Empty : nombreParteBusqueda;
+        queryStringsConsulta["EnExistencia"] = tipoExistencia == 1 ? "true" : "false";
+        queryStringsConsulta["SinExistencia"] = tipoExistencia == 2 ? "true" : "false";
+        queryStringsConsulta["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringsConsulta["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsConsulta
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private String FormatoDecimal(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        String result = "";
+
+        if (value != string.Empty)
+            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",", ".")));
+
+        return result;
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value.Replace(",", ".")));
+        else
+            return "";
+    }
+}

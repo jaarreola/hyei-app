@@ -16,11 +16,14 @@
                     </MatExpansionPanelSummary>
                     <MatExpansionPanelDetails>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <MatTextField FullWidth="true" @bind-Value="@facturaBusqueda" HelperText="Número de Factura" Label="Factura"></MatTextField>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <MatTextField FullWidth="true" @bind-Value="@numeroParteBusqueda" HelperText="Numero de parte" Label="No Parte"></MatTextField>
+                            </div>
+                            <div class="col-md-2">
+                                <MatTextField FullWidth="true" @bind-Value="@nombreParteBusqueda" HelperText="Nombre" Label="Nombre"></MatTextField>
                             </div>
                             <div class="col-md-3">
                                 <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
@@ -54,15 +57,23 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        Registros totales: <strong>@totalRegistros</strong>
+    </div>
+    <div class="col-md-4" style="padding:15px 0px 0px 0px">
+        Existencias Totales: <strong>@totalExistencias</strong>
+    </div>
+</div>
 
 <div>
     <MatTable Items="@movimientos" AllowSelection="true" class="mat-elevation-z10">
         <MatTableHeader>
             <th style="width:10%;">No Parte</th>
-            <th style="width:40%;">Nombre</th>
+            <th style="width:35%;">Nombre</th>
             <th style="width:10%;">Tipo</th>
             <th style="width:10%;">Cantidad</th>
-            <th style="width:10%;">Factura</th>
+            <th style="width:15%;">Factura</th>
             <th style="width:10%;">Fecha Registro</th>
             <th style="width:5%;"></th>
             <th style="width:5%;"></th>
@@ -81,7 +92,7 @@
             @if (context.FacturaMovimiento == null)
                 {<td></td>}
                 else
-                {<td>@context.FacturaMovimiento.Factura</td>}
+                {<td><MatIconButton OnClick="@(_=>MuestraFacturaBy(@context))" Icon="receipt"></MatIconButton> @context.FacturaMovimiento.Factura</td>}
 
             <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
             <td><MatIconButton OnClick="@(_=>OpenDialogEditaRegistro(@context))" Icon="edit"></MatIconButton></td>
@@ -220,7 +231,7 @@
                     <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoDetalle" Label="Empleado Creación" ReadOnly="true"></MatTextField>
                 </div>
                 <div class="col-md-6">
-                    <MatDatePicker @bind-Value="@fechaRegistroDetalle" Label="Fecha Creación" ReadOnly="true"></MatDatePicker>
+                    <MatTextField FullWidth="true" @bind-Value="@fechaRegistroDetalle" Label="Fecha Registro" ReadOnly="true"></MatTextField>
                 </div>
             </div>
             <div class="row">
@@ -228,7 +239,7 @@
                     <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModDetalle" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
                 </div>
                 <div class="col-md-6">
-                    <MatDatePicker @bind-Value="@fechaModDetalle" Label="Fecha Modificación" ReadOnly="true"></MatDatePicker>
+                    <MatTextField FullWidth="true" @bind-Value="@fechaModDetalle" Label="Fecha Modificación" ReadOnly="true"></MatTextField>
                 </div>
             </div>
         </MatDialogContent>
@@ -258,11 +269,54 @@
 
 
 
+<MatDialog @bind-IsOpen="@dialogFacturaIsOpen" CanBeClosed="false" class="mdc-dialog800">
+    <MatDialogTitle><h5>Detalle Factura @facturaRegistro</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <MatTextField FullWidth="true" @bind-Value="@descripcionFacturaRegistro" Label="Descripción" TextArea="true"></MatTextField>
+        </div>
+        <div class="row" style="padding:15px 0px 0px 0px">
+            Registros totales: <strong>@pageSizeFactura</strong>
+        </div>
+        <MatTable Items="@movimientosFactura" ShowPaging="false" PageSize="@pageSizeFactura" AllowSelection="true" class="mat-elevation-z10">
+            <MatTableHeader>
+                <th style="width:10%;">No Parte</th>
+                <th style="width:60%;">Nombre</th>
+                <th style="width:10%;">Tipo</th>
+
+                <th style="width:10%;">Cantidad</th>
+            </MatTableHeader>
+            <MatTableRow>
+
+                @if (context.MovimientoId != 0)
+                            {<td style="font-weight:bold">@context.Producto.NoParte</td>}
+                @if (context.MovimientoId == 0)
+                            {<td style="color:Grey">@context.Producto.NoParte</td>}
+
+                <td>@context.Producto.Nombre</td>
+
+                @if (context.EsEntrada)
+                            {<td style="color:green; font-weight:bold">Entrada</td>}
+                @if (context.EsSalida)
+                            {<td style="color:red; font-weight:bold">Salida</td>}
+
+                <td>@FormatoDecimal(@context.Cantidad.ToString())</td>
+            </MatTableRow>
+        </MatTable>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogRegistro" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+
 @code{
     //VARIABLES
     private int tipoEntradaBusqueda = 0;
     private string facturaBusqueda = "";
     private string numeroParteBusqueda;
+    private string nombreParteBusqueda;
     private DateTime? fechaInicio = null;
     private DateTime? fechaFin = null;
 
@@ -287,9 +341,9 @@
     private string cantidadDetalle = String.Empty;
     private string comentarioDetalle = String.Empty;
     private string nombreEmpleadoDetalle = String.Empty;
-    private DateTime? fechaRegistroDetalle = null;
+    private String fechaRegistroDetalle = null;
     private string nombreEmpleadoModDetalle = String.Empty;
-    private DateTime? fechaModDetalle = null;
+    private String fechaModDetalle = null;
 
 
     private List<ProductoDTO> productos = new List<ProductoDTO>();
@@ -312,7 +366,14 @@
     Dictionary<string, string> queryStringsProducto = new Dictionary<string, string>();
 
     private int pageSizeProductos = 0;
+    private int totalRegistros = 0;
+    private String totalExistencias = "0";
 
+    private bool dialogFacturaIsOpen = false;
+    private List<MovimientoDTO> movimientosFactura = new List<MovimientoDTO>();
+    private String facturaRegistro;
+    private String descripcionFacturaRegistro;
+    private int pageSizeFactura;
 
 
     private async Task BuscaMovimientos()
@@ -321,6 +382,20 @@
         var queryStrings = GenerarQueryStringsMovimiento();
         var responseHttp = await repository.Get<List<MovimientoDTO>>("api/Inventarios/ObtenerMovimientosFilter?" + queryStrings);
         movimientos = responseHttp.Response;
+        if (movimientos.Count > 0)
+        {
+            totalRegistros = movimientos.Count;
+            decimal? totalExi = 0;
+            foreach (MovimientoDTO m in movimientos)
+                totalExi += (m.EsEntrada ? m.Cantidad : -m.Cantidad);
+
+            totalExistencias = FormatoDecimal(totalExi.ToString());
+        }
+        else
+        {
+            totalRegistros = 0;
+            totalExistencias = "0";
+        }
     }
 
 
@@ -381,6 +456,8 @@
         }
 
         numeroParteRegistro = movimiento.Producto.NoParte;
+        nombreProductoRegistro = movimiento.Producto.Nombre;
+
         if (movimiento.EsEntrada)
             tipoEntradaRegistro = 1;
         if (movimiento.EsSalida)
@@ -401,6 +478,7 @@
         comentarioRegistro = String.Empty;
 
         dialogRegistroIsOpen = false;
+        dialogFacturaIsOpen = false;
     }
 
 
@@ -496,8 +574,8 @@
             nombreDetalle = movimientoDetalle.Producto.Nombre != null ? movimientoDetalle.Producto.Nombre : String.Empty;
             cantidadDetalle = movimientoDetalle.Cantidad.ToString();
             comentarioDetalle = movimientoDetalle.Comentario != null ? movimientoDetalle.Comentario : String.Empty;
-            fechaRegistroDetalle = movimientoDetalle.FechaRegistro;
-            fechaModDetalle = movimientoDetalle.FechaUltimaModificacion;
+            fechaRegistroDetalle = movimientoDetalle.FechaRegistro != null ? movimientoDetalle.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+            fechaModDetalle = movimientoDetalle.FechaUltimaModificacion != null ? movimientoDetalle.FechaUltimaModificacion?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
 
             nombreEmpleadoDetalle = (await repository.Get<EmpleadoDTO>("api/Empleados/" + movimientoDetalle.EmpleadoCreacion)).Response.Nombre;
 
@@ -574,6 +652,7 @@
         queryStringsMovimiento["TipoEntrada"] = tipoEntradaBusqueda.ToString();
         queryStringsMovimiento["Factura"] = facturaBusqueda == null ? "" : facturaBusqueda;
         queryStringsMovimiento["NoParte"] = numeroParteBusqueda == null ? "" : numeroParteBusqueda;
+        queryStringsMovimiento["NombreParte"] = nombreParteBusqueda == null ? String.Empty : nombreParteBusqueda;
         queryStringsMovimiento["FechaInicio"] = fechaInicio == null ? "" : fechaInicio.ToString();
         queryStringsMovimiento["FechaFin"] = fechaFin == null ? "" : fechaFin.ToString();
 
@@ -651,6 +730,28 @@
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
     }
+
+
+    private async Task MuestraFacturaBy(MovimientoDTO movimientoDetalle)
+    {
+        if (movimientoDetalle.FacturaMovimiento.Factura != null)
+        {
+            //buscamos el detalle de la factura (elelemtos)
+            var responseHttp = await repository.Post("api/Inventarios/ObtenerRegistrosPorNumeroFactura/", movimientoDetalle.FacturaMovimiento.Factura);
+            JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+            var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+            movimientosFactura = JsonSerializer.Deserialize<List<MovimientoDTO>>(responseString, JsonSerializerOptions);
+            facturaRegistro = movimientoDetalle.FacturaMovimiento.Factura;
+            descripcionFacturaRegistro = movimientoDetalle.FacturaMovimiento.Descripcion;
+
+            if (movimientosFactura.Count > 0)
+                pageSizeFactura = movimientosFactura.Count;
+
+            dialogFacturaIsOpen = true;
+            await Task.Delay(50);
+        }
+    }
+
 
     private void CancelaDialogValidaEmpleado()
     {

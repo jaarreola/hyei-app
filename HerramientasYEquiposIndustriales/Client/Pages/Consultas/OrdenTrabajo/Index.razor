@@ -47,7 +47,7 @@
                     <div class="col-md-3">
                         <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                             <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
-                            <MatRadioButton Value="2" TValue="int">Garantpia Fábrica</MatRadioButton>
+                            <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
                             <MatRadioButton Value="3" TValue="int">Sin Garantía</MatRadioButton>
                             <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
                         </MatRadioGroup>
@@ -175,11 +175,11 @@
                         </div>
                         <MatTable Items="@cotizacionDetalle" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10" Context="detalleCotizacion">
                             <MatTableHeader>
-                                <th style="width:10%;">No Parte</th>
-                                <th style="width:50%;">Nombre</th>
+                                <th style="width:20%;">No Parte</th>
+                                <th style="width:40%;">Nombre</th>
                                 <th style="width:10%;">PU</th>
                                 <th style="width:10%;">Cantidad</th>
-                                <th style="width:10%;">Total</th>
+                                <th style="width:5%;">Total</th>
                             </MatTableHeader>
                             <MatTableRow>
                                 <td>@detalleCotizacion.Producto.NoParte</td>
@@ -420,7 +420,8 @@
         queryStringOt["RfcCLiente"] = rfcCliente != null ? rfcCliente : String.Empty;
         queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
-
+        queryStringOt["NumeroOrdenTrabajo"] = numeroOt != null ? numeroOt : "";
+        
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 
         return string.Join("&", queryStringOt

@@ -113,6 +113,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpPost("ObtenerRegistrosPorNumeroFactura")]
+        public async Task<ActionResult<List<MovimientoDTO>>> ObtenerRegistrosPorNumeroFactura([FromBody] String numeroFactura)
+        {
+            try
+            {
+                var registros = await context.Movimientos.Include(x => x.FacturaMovimiento).Include(x => x.Producto).Where(x => x.FacturaMovimiento.Factura == numeroFactura).ToListAsync();
+
+                if (registros == null) { return NotFound(); }
+
+                return mapper.Map<List<MovimientoDTO>>(registros);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del Movimiento. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
         [HttpPost]
         public async Task<ActionResult<MovimientoDTO>> PostMovimiento([FromBody] MovimientoDTO MovimientoCreacionDTO)
         {
@@ -220,6 +242,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     ((x.EsEntrada == true && filtro.TipoEntrada == 1) || (x.EsSalida == true && filtro.TipoEntrada == -1) || filtro.TipoEntrada == 0) &&
                     (x.FacturaMovimiento.Factura.Contains(filtro.Factura) || filtro.Factura == null || filtro.Factura == String.Empty) &&
                     (x.Producto.NoParte.Contains(filtro.NoParte) || filtro.NoParte == null || filtro.NoParte == String.Empty) &&
+                    (x.Producto.Nombre.Contains(filtro.NombreParte) || filtro.NombreParte == null || filtro.NombreParte == String.Empty) &&
                     ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null)
                 ).ToListAsync();
                 return mapper.Map<List<MovimientoDTO>>(Productos);
@@ -327,6 +350,189 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al crear la Factura. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetCostoInventarioByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetCostoInventarioByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId into m1
+                               from m2 in m1.DefaultIfEmpty()
+                               where
+                                   ((m2.FechaRegistro.Value.Date >= filtro.FechaInicio && m2.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte.Contains(filtro.NoParte) || (filtro.NoParte == null)) &&
+                                   (p.Nombre.Contains(filtro.NombreParte) || (filtro.NombreParte == null))
+                               group new { m2, p } by new { p.ProductoId, p.NoParte, p.Nombre, p.CostoCompra, p.CostoVenta } into r
+                               orderby r.Key.NoParte ascending
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   NoParte = r.Key.NoParte,
+                                   Nombre = r.Key.Nombre,
+                                   Entradas = r.Sum(x => (x.m2.EsEntrada ? x.m2.Cantidad : 0)),
+                                   Salidas = r.Sum(x => (x.m2.EsSalida ? x.m2.Cantidad : 0)),
+                                   CostoCompra = r.Key.CostoCompra != null ? (decimal)r.Key.CostoCompra : 0,
+                                   CostoVenta = r.Key.CostoVenta != null ? (decimal)r.Key.CostoVenta : 0
+                               };
+
+                var consultaR = from c in consulta
+                                select new CostoInventarioDTO()
+                                {
+                                    ProductoId = c.ProductoId,
+                                    NoParte = c.NoParte,
+                                    Nombre = c.Nombre,
+                                    Entradas = c.Entradas,
+                                    Salidas = c.Salidas,
+                                    Existencias = (decimal)(c.Entradas - c.Salidas),
+                                    CostoCompra = c.CostoCompra,
+                                    CostoVenta = c.CostoVenta,
+                                    TotalCostoCompra = (decimal)(c.Entradas - c.Salidas) * c.CostoCompra,
+                                    TotalCostoVenta = (decimal)(c.Entradas - c.Salidas) * c.CostoVenta
+                                };
+
+
+                if (filtro.EnExistencia)
+                    return await consultaR.Where(x => (x.Entradas > x.Salidas)).ToListAsync();
+                else if (filtro.SinExistencia)
+                    return await consultaR.Where(x => (x.Entradas <= x.Salidas)).ToListAsync();
+                else
+                    return await consultaR.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetProductoMovimientosByFilter")]
+        public async Task<ActionResult<IEnumerable<MovimientoDTO>>> GetProductoMovimientosByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var movimientos = await context.Movimientos.Include(x => x.FacturaMovimiento).Include(x => x.Producto).Where(x =>
+                    (x.Producto.NoParte == filtro.NoParte || filtro.NoParte == null || filtro.NoParte == String.Empty) &&
+                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null)
+                ).ToListAsync();
+                return mapper.Map<List<MovimientoDTO>>(movimientos);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetCantidadByProductoId/{productoId}")]
+        public async Task<ActionResult<decimal>> GetCantidadByProductoId( int productoId)
+        {
+            try
+            {
+                var consulta = from m in context.Movimientos
+                               where (m.ProductoId == productoId)
+                               group m by new { m.ProductoId } into r
+                               select new MovimientoDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   Cantidad = r.Sum(x => (x.EsEntrada ? x.Cantidad : (-1 * x.Cantidad)))
+                               };
+
+                var registro = await consulta.FirstOrDefaultAsync(); //.Where(x => (x.Entradas > x.Salidas)).ToListAsync();
+                if (registro == null) { return 0; }
+                return registro.Cantidad;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetFaltantesByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetFaltantesByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId into m1
+                               from m2 in m1.DefaultIfEmpty()
+                               where
+                                   ((m2.FechaRegistro.Value.Date >= filtro.FechaInicio && m2.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte.Contains(filtro.NoParte) || (filtro.NoParte == null)) &&
+                                   (p.Nombre.Contains(filtro.NombreParte) || (filtro.NombreParte == null))
+                               group new { m2, p } by new { p.ProductoId, p.NoParte, p.Nombre, p.CantidadMinimaInventario, p.Ubicacion } into r
+                               orderby r.Key.NoParte ascending
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   NoParte = r.Key.NoParte,
+                                   Nombre = r.Key.Nombre,
+                                   Entradas = r.Sum(x => (x.m2.EsEntrada ? x.m2.Cantidad : 0)),
+                                   Salidas = r.Sum(x => (x.m2.EsSalida ? x.m2.Cantidad : 0)),
+                                   CantidadMinimaInventario = r.Key.CantidadMinimaInventario != null ? (decimal)r.Key.CantidadMinimaInventario : 0,
+                                   Ubicacion = r.Key.Ubicacion != null ? r.Key.Ubicacion : String.Empty
+                               };
+
+                var consultaR = from c in consulta
+                                where (c.CantidadMinimaInventario >= (c.Entradas - c.Salidas))
+                                select new CostoInventarioDTO()
+                                {
+                                    ProductoId = c.ProductoId,
+                                    NoParte = c.NoParte,
+                                    Nombre = c.Nombre,
+                                    Entradas = c.Entradas,
+                                    Salidas = c.Salidas,
+                                    Existencias = (decimal)(c.Entradas - c.Salidas),
+                                    CantidadMinimaInventario= c.CantidadMinimaInventario,
+                                    Ubicacion = c.Ubicacion
+                                };
+
+
+                //if (filtro.EnExistencia)
+                //    return await consultaR.Where(x => (x.Entradas > x.Salidas)).ToListAsync();
+                //else if (filtro.SinExistencia)
+                //    return await consultaR.Where(x => (x.Entradas <= x.Salidas)).ToListAsync();
+                //else
+                //    return await consultaR.ToListAsync();
+                return await consultaR.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
     }

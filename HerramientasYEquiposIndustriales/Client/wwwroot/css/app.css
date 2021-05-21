@@ -184,9 +184,9 @@ app {
 
 /* MatTable */
 .mdc-table th {
-    font-size: 0.8rem !important;
+    font-size: 13px !important;
     background-color: gainsboro !important;
-    padding: 10px 10px 10px 20px !important;
+    padding: 2px 10px 2px 20px !important;
     font-weight: 500 !important;
 }
 

@@ -13,6 +13,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
         public string Correo { get; set; }
         public string RFC { get; set; }
         public bool EsFrecuente { get; set; }
+        public bool EsProblema { get; set; }
         public bool Todos { get; set; }
     }
 }

@@ -423,7 +423,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    FechaFinaliacion = otd.FechaFinaliacion,
                                    TieneCotizacion = otd.TieneCotizacion,
                                    Comentarios = otd.Comentarios,
-                                   //Ubicacion = otd.Ubicacion,
+                                   Ubicacion = ef2.Ubicacion,
                                    ClienteId = c.ClienteId,
                                    Nombre = c.Nombre,
                                    Apellido = c.Apellido,
@@ -439,7 +439,58 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    Posicion = e2.Posicion
                                };
 
-                var result = await consulta.ToListAsync();
+                var consultaResultado = from con in consulta
+                                join cot in (
+                                    from cot in context.Cotizaciones
+                                    join cd in context.CotizacionDetalles on cot.CotizacionId equals cd.CotizacionId
+                                    group new { cot, cd } by new { cot.OrdenTrabajoDetalleId } into r
+                                    select new {
+                                        r.Key.OrdenTrabajoDetalleId,
+                                        costoReparacion = r.Sum(x => x.cd.Cantidad * x.cd.CostoUnitario)
+                                    }
+                                ) on con.OrdenTrabajoDetalleId equals cot.OrdenTrabajoDetalleId into m1
+                                from m2 in m1.DefaultIfEmpty()
+                                orderby con.FechaRegistro ascending
+                                select new OrdenTrabajoDetalleConsultaDTO()
+                                {
+                                    OrdenTrabajoDetalleId = con.OrdenTrabajoDetalleId,
+                                    OrdenTrabajoId = con.OrdenTrabajoId,
+                                    NumeroOrdenTrabajo = con.NumeroOrdenTrabajo,
+                                    NombreHerramienta = con.NombreHerramienta,
+                                    Marca = con.Marca,
+                                    Modelo = con.Modelo,
+                                    NumeroSerie = con.NumeroSerie,
+                                    GarantiaFabrica = con.GarantiaFabrica,
+                                    GarantiaFabricaDetalle = con.GarantiaFabricaDetalle,
+                                    GarantiaLocal = con.GarantiaLocal,
+                                    GarantiaLocalDetalle = con.GarantiaLocalDetalle,
+                                    TiempoGarantia = con.TiempoGarantia,
+                                    FechaRegistro = con.FechaRegistro,
+                                    EmpleadoCreacion = con.EmpleadoCreacion,
+                                    FechaUltimaModificacion = con.FechaUltimaModificacion,
+                                    EmpleadoModificacion = con.EmpleadoModificacion,
+                                    FechaEntrega = con.FechaEntrega,
+                                    FechaFinaliacion = con.FechaFinaliacion,
+                                    TieneCotizacion = con.TieneCotizacion,
+                                    Comentarios = con.Comentarios,
+                                    Ubicacion = con.Ubicacion,
+                                    ClienteId = con.ClienteId,
+                                    Nombre = con.Nombre,
+                                    Apellido = con.Apellido,
+                                    Telefono = con.Telefono,
+                                    Correo = con.Correo,
+                                    Direccion = con.Direccion,
+                                    RFC = con.RFC,
+                                    EsFrecuente = con.EsFrecuente,
+                                    EstatusOTFlujoId = con.EstatusOTFlujoId,
+                                    EstatusOTId = con.EstatusOTId,
+                                    Terminado = con.Terminado,
+                                    Descripcion = con.Descripcion,
+                                    Posicion = con.Posicion,
+                                    costoReparacion = (decimal)m2.costoReparacion
+                                };
+
+                var result = await consultaResultado.ToListAsync();
                 var totalResultado = result.Count;
                 return result;
             }
