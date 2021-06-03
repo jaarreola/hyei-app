@@ -396,6 +396,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                where ef2.Terminado == null &&
                                    ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
                                    (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
+                                   (otd.Modelo.Contains(filtro.Modelo) || filtro.Modelo == null) &&
                                    (c.Nombre.Contains(filtro.NombreCLiente) || c.Apellido.Contains(filtro.NombreCLiente) || filtro.NombreCLiente == null) &&
                                    (c.Telefono.Contains(filtro.TelefonoCLiente) || filtro.TelefonoCLiente == null) &&
                                    (c.RFC.Contains(filtro.RfcCLiente) || filtro.RfcCLiente == null) &&
@@ -440,55 +441,56 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                };
 
                 var consultaResultado = from con in consulta
-                                join cot in (
-                                    from cot in context.Cotizaciones
-                                    join cd in context.CotizacionDetalles on cot.CotizacionId equals cd.CotizacionId
-                                    group new { cot, cd } by new { cot.OrdenTrabajoDetalleId } into r
-                                    select new {
-                                        r.Key.OrdenTrabajoDetalleId,
-                                        costoReparacion = r.Sum(x => x.cd.Cantidad * x.cd.CostoUnitario)
-                                    }
-                                ) on con.OrdenTrabajoDetalleId equals cot.OrdenTrabajoDetalleId into m1
-                                from m2 in m1.DefaultIfEmpty()
-                                orderby con.FechaRegistro ascending
-                                select new OrdenTrabajoDetalleConsultaDTO()
-                                {
-                                    OrdenTrabajoDetalleId = con.OrdenTrabajoDetalleId,
-                                    OrdenTrabajoId = con.OrdenTrabajoId,
-                                    NumeroOrdenTrabajo = con.NumeroOrdenTrabajo,
-                                    NombreHerramienta = con.NombreHerramienta,
-                                    Marca = con.Marca,
-                                    Modelo = con.Modelo,
-                                    NumeroSerie = con.NumeroSerie,
-                                    GarantiaFabrica = con.GarantiaFabrica,
-                                    GarantiaFabricaDetalle = con.GarantiaFabricaDetalle,
-                                    GarantiaLocal = con.GarantiaLocal,
-                                    GarantiaLocalDetalle = con.GarantiaLocalDetalle,
-                                    TiempoGarantia = con.TiempoGarantia,
-                                    FechaRegistro = con.FechaRegistro,
-                                    EmpleadoCreacion = con.EmpleadoCreacion,
-                                    FechaUltimaModificacion = con.FechaUltimaModificacion,
-                                    EmpleadoModificacion = con.EmpleadoModificacion,
-                                    FechaEntrega = con.FechaEntrega,
-                                    FechaFinaliacion = con.FechaFinaliacion,
-                                    TieneCotizacion = con.TieneCotizacion,
-                                    Comentarios = con.Comentarios,
-                                    Ubicacion = con.Ubicacion,
-                                    ClienteId = con.ClienteId,
-                                    Nombre = con.Nombre,
-                                    Apellido = con.Apellido,
-                                    Telefono = con.Telefono,
-                                    Correo = con.Correo,
-                                    Direccion = con.Direccion,
-                                    RFC = con.RFC,
-                                    EsFrecuente = con.EsFrecuente,
-                                    EstatusOTFlujoId = con.EstatusOTFlujoId,
-                                    EstatusOTId = con.EstatusOTId,
-                                    Terminado = con.Terminado,
-                                    Descripcion = con.Descripcion,
-                                    Posicion = con.Posicion,
-                                    costoReparacion = (decimal)m2.costoReparacion
-                                };
+                                        join cot in (
+                                            from cot in context.Cotizaciones
+                                            join cd in context.CotizacionDetalles on cot.CotizacionId equals cd.CotizacionId
+                                            group new { cot, cd } by new { cot.OrdenTrabajoDetalleId } into r
+                                            select new
+                                            {
+                                                r.Key.OrdenTrabajoDetalleId,
+                                                costoReparacion = r.Sum(x => x.cd.Cantidad * x.cd.CostoUnitario)
+                                            }
+                                        ) on con.OrdenTrabajoDetalleId equals cot.OrdenTrabajoDetalleId into m1
+                                        from m2 in m1.DefaultIfEmpty()
+                                        orderby con.FechaRegistro ascending
+                                        select new OrdenTrabajoDetalleConsultaDTO()
+                                        {
+                                            OrdenTrabajoDetalleId = con.OrdenTrabajoDetalleId,
+                                            OrdenTrabajoId = con.OrdenTrabajoId,
+                                            NumeroOrdenTrabajo = con.NumeroOrdenTrabajo,
+                                            NombreHerramienta = con.NombreHerramienta,
+                                            Marca = con.Marca,
+                                            Modelo = con.Modelo,
+                                            NumeroSerie = con.NumeroSerie,
+                                            GarantiaFabrica = con.GarantiaFabrica,
+                                            GarantiaFabricaDetalle = con.GarantiaFabricaDetalle,
+                                            GarantiaLocal = con.GarantiaLocal,
+                                            GarantiaLocalDetalle = con.GarantiaLocalDetalle,
+                                            TiempoGarantia = con.TiempoGarantia,
+                                            FechaRegistro = con.FechaRegistro,
+                                            EmpleadoCreacion = con.EmpleadoCreacion,
+                                            FechaUltimaModificacion = con.FechaUltimaModificacion,
+                                            EmpleadoModificacion = con.EmpleadoModificacion,
+                                            FechaEntrega = con.FechaEntrega,
+                                            FechaFinaliacion = con.FechaFinaliacion,
+                                            TieneCotizacion = con.TieneCotizacion,
+                                            Comentarios = con.Comentarios,
+                                            Ubicacion = con.Ubicacion,
+                                            ClienteId = con.ClienteId,
+                                            Nombre = con.Nombre,
+                                            Apellido = con.Apellido,
+                                            Telefono = con.Telefono,
+                                            Correo = con.Correo,
+                                            Direccion = con.Direccion,
+                                            RFC = con.RFC,
+                                            EsFrecuente = con.EsFrecuente,
+                                            EstatusOTFlujoId = con.EstatusOTFlujoId,
+                                            EstatusOTId = con.EstatusOTId,
+                                            Terminado = con.Terminado,
+                                            Descripcion = con.Descripcion,
+                                            Posicion = con.Posicion,
+                                            costoReparacion = (decimal)m2.costoReparacion
+                                        };
 
                 var result = await consultaResultado.ToListAsync();
                 var totalResultado = result.Count;
@@ -536,6 +538,224 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
             }
         }
+
+
+
+        [HttpGet("GetHistorialTrabajo")]
+        public async Task<ActionResult<IEnumerable<HistorialTrabajoEmpleadoDTO>>> GetHistorialTrabajo([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                //garantia 1= Local, 2= Fabrica, 3= Sin garantia, 0= Todos
+
+                var consulta = from ef in context.EstatusOTFlujos
+                               join es in context.EstatusOTs on ef.EstatusOTId equals es.EstatusOTId
+                               join em in context.Empleados on ef.EmpleadoCreacion equals em.EmpleadoId
+                               join otd in context.OrdenTrabajoDetalle on ef.OrdenTrabajoDetalleId equals otd.OrdenTrabajoDetalleId
+                               where
+                                   ((ef.FechaRegistro.Value.Date >= filtro.FechaInicio && ef.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
+                                   (em.Nombre.Contains(filtro.NombreEmpleado) || filtro.NombreCLiente == null) &&
+                                   (em.NumeroEmpleado.Contains(filtro.NumeroEmpleado) || filtro.NumeroEmpleado == null) &&
+                                   //((otd.GarantiaLocal == true && filtro.Garantia == 1) || (otd.GarantiaFabrica == true && filtro.Garantia == 2) || (!otd.GarantiaLocal && !otd.GarantiaFabrica && filtro.Garantia == 3) || filtro.Garantia == 0) &&
+                                   (es.Descripcion == filtro.EstatusBusqueda || (es.Descripcion == null && (filtro.EstatusBusqueda == "Sin Cotizar" || filtro.EstatusBusqueda == null)) || filtro.EstatusBusqueda == "Todos")
+                               orderby em.EmpleadoId ascending, ef.FechaRegistro descending
+                               select new HistorialTrabajoEmpleadoDTO()
+                               {
+                                   OrdenTrabajoDetalleId = otd.OrdenTrabajoDetalleId,
+                                   OrdenTrabajoId = otd.OrdenTrabajoId,
+                                   NumeroOrdenTrabajo = otd.NumeroOrdenTrabajo,
+                                   NombreHerramienta = otd.NombreHerramienta,
+                                   Marca = otd.Marca,
+                                   Modelo = otd.Modelo,
+                                   NumeroSerie = otd.NumeroSerie,
+                                   GarantiaFabrica = otd.GarantiaFabrica,
+                                   GarantiaFabricaDetalle = otd.GarantiaFabricaDetalle,
+                                   GarantiaLocal = otd.GarantiaLocal,
+                                   GarantiaLocalDetalle = otd.GarantiaLocalDetalle,
+                                   TiempoGarantia = otd.TiempoGarantia,
+                                   FechaRegistroOtd = otd.FechaRegistro,
+                                   EmpleadoCreacion = otd.EmpleadoCreacion,
+                                   FechaUltimaModificacion = otd.FechaUltimaModificacion,
+                                   EmpleadoModificacion = otd.EmpleadoModificacion,
+                                   FechaEntrega = otd.FechaEntrega,
+                                   FechaFinaliacion = otd.FechaFinaliacion,
+                                   TieneCotizacion = otd.TieneCotizacion,
+                                   Comentarios = otd.Comentarios,
+
+                                   EstatusOTFlujoId = ef.EstatusOTFlujoId,
+                                   EstatusOTId = ef.EstatusOTId,
+                                   Terminado = ef.Terminado,
+                                   Ubicacion = ef.Ubicacion,
+                                   FechaRegistro = ef.FechaRegistro,
+
+                                   Descripcion = es.Descripcion,
+                                   Posicion = es.Posicion,
+
+                                   EmpleadoId = em.EmpleadoId,
+                                   NumeroEmpleado = em.NumeroEmpleado,
+                                   Nombre = em.Nombre,
+                                   Direccion = em.Direccion,
+                                   Telefono = em.Telefono,
+                                   Nss = em.Nss,
+                                   Curp = em.Curp,
+                                   PuestoId = em.PuestoId,
+                                   Activo = em.Activo,
+                                   PuedeEditar = em.PuedeEditar
+                               };
+
+                var result = await consulta.ToListAsync();
+                var totalResultado = result.Count;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetOrdenesTrabajoByModelo")]
+        public async Task<ActionResult<IEnumerable<OrdenTrabajoDetalleConsultaDTO>>> GetOrdenesTrabajoByModelo([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from otd in context.OrdenTrabajoDetalle
+                               where
+                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (otd.Modelo.Contains(filtro.Modelo) || filtro.Modelo == null)
+                               group new { otd } by new { Modelo = otd.Modelo ?? String.Empty } into otdr
+                               select new OrdenTrabajoDetalleConsultaDTO()
+                               {
+                                   Modelo = otdr.Key.Modelo,
+                                   esModelo = true,
+                                   cantidad = otdr.Count()
+                               };
+
+                return await consulta.OrderByDescending(x => x.cantidad).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+        [HttpGet("GetOrdenesTrabajoByMarca")]
+        public async Task<ActionResult<IEnumerable<OrdenTrabajoDetalleConsultaDTO>>> GetOrdenesTrabajoByMarca([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from otd in context.OrdenTrabajoDetalle
+                               where
+                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (otd.Marca.Contains(filtro.Marca) || filtro.Marca == null)
+                               group new { otd } by new { Marca = otd.Marca ?? String.Empty } into otdr
+                               select new OrdenTrabajoDetalleConsultaDTO()
+                               {
+                                   Marca = otdr.Key.Marca,
+                                   esMarca = true,
+                                   cantidad = otdr.Count()
+                               };
+
+                return await consulta.OrderByDescending(x => x.cantidad).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+        [HttpGet("GetOrdenesTrabajoByNombreHerramienta")]
+        public async Task<ActionResult<IEnumerable<OrdenTrabajoDetalleConsultaDTO>>> GetOrdenesTrabajoByNombreHerramienta([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from otd in context.OrdenTrabajoDetalle
+                               where
+                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (otd.NombreHerramienta.Contains(filtro.NombreHerramienta) || filtro.NombreHerramienta == null)
+                               group new { otd } by new { otd.NombreHerramienta } into otdr
+                               select new OrdenTrabajoDetalleConsultaDTO()
+                               {
+                                   NombreHerramienta = otdr.Key.NombreHerramienta,
+                                   esHerramienta = true,
+                                   cantidad = otdr.Count()
+                               };
+
+                return await consulta.OrderByDescending(x => x.cantidad).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de las ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}\n" + ex.Message);
+            }
+        }
+
+
+        [HttpGet("ObtenerOrdenesTrabajoDetalleByFilter")]
+        public async Task<ActionResult<IEnumerable<OrdenTrabajoDetalleDTO>>> ObtenerOrdenesTrabajoDetalleByFilter([FromQuery] OrdenTrabajoFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var OrdenTrabajoDetalle = await context.OrdenTrabajoDetalle.Where(x =>
+                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                    (
+                    ((x.Modelo == filtro.Modelo && filtro.tipoBusqueda == "Modelo") || (filtro.Modelo == null && (x.Modelo ?? String.Empty) == String.Empty && filtro.tipoBusqueda == "Modelo")) ||
+                    ((x.Marca == filtro.Marca && filtro.tipoBusqueda == "Marca") || (filtro.Marca == null && (x.Marca ?? String.Empty) == String.Empty && filtro.tipoBusqueda == "Marca")) ||
+                    ((x.NombreHerramienta == filtro.NombreHerramienta && filtro.tipoBusqueda == "NombreHerramienta") || (filtro.NombreHerramienta == null && x.NombreHerramienta == null && filtro.tipoBusqueda == "NombreHerramienta"))
+                    )
+                ).OrderByDescending(x => x.FechaRegistro).ToListAsync();
+                return mapper.Map<List<OrdenTrabajoDetalleDTO>>(OrdenTrabajoDetalle);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Orden de Trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
 
 
         private Cliente GetClienteExists(Cliente cliente)

@@ -446,7 +446,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpGet("GetCantidadByProductoId/{productoId}")]
-        public async Task<ActionResult<decimal>> GetCantidadByProductoId( int productoId)
+        public async Task<ActionResult<decimal>> GetCantidadByProductoId(int productoId)
         {
             try
             {
@@ -514,17 +514,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                     Entradas = c.Entradas,
                                     Salidas = c.Salidas,
                                     Existencias = (decimal)(c.Entradas - c.Salidas),
-                                    CantidadMinimaInventario= c.CantidadMinimaInventario,
+                                    CantidadMinimaInventario = c.CantidadMinimaInventario,
                                     Ubicacion = c.Ubicacion
                                 };
 
-
-                //if (filtro.EnExistencia)
-                //    return await consultaR.Where(x => (x.Entradas > x.Salidas)).ToListAsync();
-                //else if (filtro.SinExistencia)
-                //    return await consultaR.Where(x => (x.Entradas <= x.Salidas)).ToListAsync();
-                //else
-                //    return await consultaR.ToListAsync();
                 return await consultaR.ToListAsync();
             }
             catch (Exception ex)
@@ -535,5 +528,131 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+        [HttpGet("GetEntradasByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetEntradasByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId
+                               where
+                                   ((m.FechaRegistro.Value.Date >= filtro.FechaInicio && m.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte.Contains(filtro.NoParte) || (filtro.NoParte == null)) &&
+                                   (p.Nombre.Contains(filtro.NombreParte) || (filtro.NombreParte == null)) &&
+                                   m.EsEntrada
+                               group new { m, p } by new { p.ProductoId, p.NoParte, p.Nombre, m.EsEntrada } into r
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   NoParte = r.Key.NoParte,
+                                   Nombre = r.Key.Nombre,
+                                   EsEntrada = r.Key.EsEntrada,
+                                   Entradas = r.Sum(x => (x.m.EsEntrada ? x.m.Cantidad : 0))
+                               };
+
+                return await consulta.OrderByDescending(x => x.Entradas).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetSalidasByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetSalidasByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId
+                               where
+                                   ((m.FechaRegistro.Value.Date >= filtro.FechaInicio && m.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte.Contains(filtro.NoParte) || (filtro.NoParte == null)) &&
+                                   (p.Nombre.Contains(filtro.NombreParte) || (filtro.NombreParte == null)) &&
+                                   m.EsSalida
+                               group new { m, p } by new { p.ProductoId, p.NoParte, p.Nombre, m.EsSalida } into r
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   NoParte = r.Key.NoParte,
+                                   Nombre = r.Key.Nombre,
+                                   EsSalida = r.Key.EsSalida,
+                                   Salidas = r.Sum(x => (x.m.EsSalida ? x.m.Cantidad : 0))
+                               };
+
+                return await consulta.OrderByDescending(x => x.Salidas).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetDetalleMovimientosByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetDetalleMovimientosByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId
+                               join e in context.Empleados on (m.EmpleadoModificacion ?? m.EmpleadoCreacion) equals e.EmpleadoId
+                               join f in context.FacturaMovimientos on m.FacturaMovimientoId equals f.FacturaMovimientoId into fa
+                               from f1 in fa.DefaultIfEmpty()
+                               where
+                                   ((m.FechaRegistro.Value.Date >= filtro.FechaInicio && m.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte == filtro.NoParte || filtro.NoParte == null) &&
+                                   ((m.EsEntrada && filtro.EsEntrada) || (m.EsSalida && filtro.EsSalida))
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = m.ProductoId,
+                                   NoParte = p.NoParte,
+                                   Nombre = p.Nombre,
+                                   EsEntrada = m.EsEntrada,
+                                   EsSalida = m.EsSalida,
+                                   Cantidad = (decimal)m.Cantidad,
+                                   FechaRegistro = m.FechaRegistro,
+                                   NoEmpleado = e.NumeroEmpleado,
+                                   Empleado = e.Nombre
+                               };
+
+                return await consulta.OrderByDescending(x => x.FechaRegistro).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
     }
 }

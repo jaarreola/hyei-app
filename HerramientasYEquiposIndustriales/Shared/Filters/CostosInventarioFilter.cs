@@ -14,5 +14,8 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
 
         public bool EnExistencia { get; set; }
         public bool SinExistencia { get; set; }
+
+        public bool EsEntrada { get; set; }
+        public bool EsSalida { get; set; }
     }
 }

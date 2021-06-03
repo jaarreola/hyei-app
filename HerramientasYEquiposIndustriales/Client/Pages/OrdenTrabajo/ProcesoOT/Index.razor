@@ -36,7 +36,10 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-11">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-9">
                     <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                         <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
                         <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
@@ -60,6 +63,7 @@
                         <th style="width:100px;">Reparación</th>
                         <th style="width:100px;">Estatus</th>
                         <th style="width:100px;">Garantía</th>
+                        <th style="width:100px;">Modelo</th>
                         <th style="width:100px;">Fecha Registro</th>
                         <th style="width:50px;"></th>
                     </MatTableHeader>
@@ -73,6 +77,7 @@
                         <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
                         <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
                         <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
+                        <td style="width:100px;">@context.Modelo</td>
                         <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
                         <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
                     </MatTableRow>
@@ -528,6 +533,7 @@
     private List<EstatusOTDTO> estatusOT = new List<EstatusOTDTO>();
     private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
     private String otBusqueda;
+    private String modelo;
     private DateTime? fechaInicioBusqueda;
     private DateTime? fechaFinBusqueda;
     private int tipoGarantiaBusqueda = 0;
@@ -540,6 +546,7 @@
     private CotizacionDetalleDTO detalleCotizacion = new CotizacionDetalleDTO();
     private CotizacionDetalleDTO detalleCotizacionEdicion = new CotizacionDetalleDTO();
     private CotizacionDetalleDTO registroEditar = new CotizacionDetalleDTO();
+    private int cotizacionDetalleEliminarId;
 
     private List<ProductoDTO> productos = new List<ProductoDTO>();
     private ProductoDTO producto = new ProductoDTO();
@@ -752,6 +759,7 @@
             if (await OpenConfirmacion("Desea eliminar este registro de la cotización guardada?") == 1)
             {
                 opcionEdicion = 2;
+                cotizacionDetalleEliminarId = registro.CotizacionDetalleId;
                 detalleCotizacionEdicion = registro;
                 dialogValidaEmpleadoEdicionCotizacion = true;
             }
@@ -1039,7 +1047,7 @@
                     break;
                 case 2: //Eliminar
                     registroEditar.EmpleadoModificacion = empleado.EmpleadoId;
-                    var httpResponse2 = await repository.Delete("api/Cotizaciones/DeleteCotizacionDetalle/" + registroEditar.CotizacionDetalleId);
+                    var httpResponse2 = await repository.Delete("api/Cotizaciones/DeleteCotizacionDetalle/" + cotizacionDetalleEliminarId);
 
                     if (httpResponse2.Error)
                     {
@@ -1650,6 +1658,8 @@
         queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
 
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
+
+        queryStringOt["Modelo"] = modelo != null ? modelo : "";
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

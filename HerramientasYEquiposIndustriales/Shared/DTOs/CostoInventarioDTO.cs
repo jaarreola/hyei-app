@@ -19,5 +19,13 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
 
         public decimal CantidadMinimaInventario { get; set; }
         public String Ubicacion { get; set; }
+
+
+        public bool EsEntrada { get; set; }
+        public bool EsSalida { get; set; }
+        public decimal Cantidad { get; set; }
+        public DateTime? FechaRegistro { get; set; }
+        public String NoEmpleado{ get; set; }
+        public String Empleado { get; set; }
     }
 }

@@ -415,6 +415,24 @@
             return;
         }
 
+        if (_ordenTrabajoDetalle.GarantiaFabrica && _ordenTrabajoDetalle.GarantiaLocal)
+        {
+            await OpenMessage("Solo puede seleccionar un tipo de garantía.");
+            return;
+        }
+
+        if (_ordenTrabajoDetalle.GarantiaFabrica && (_ordenTrabajoDetalle.GarantiaFabricaDetalle ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el detalle de la garantía de Fabrica.");
+            return;
+        }
+
+        if (_ordenTrabajoDetalle.GarantiaLocal && (_ordenTrabajoDetalle.GarantiaLocalDetalle ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el detalle de la garantía de Local.");
+            return;
+        }
+
         if (_ordenTrabajoDetalle.NumeroOrdenTrabajo == null)
         {
             //validamos que todas tengan numero de orden de trabajo
@@ -580,5 +598,19 @@
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+    }
+
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
     }
 }

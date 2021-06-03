@@ -36,15 +36,9 @@
                 </div>
                 <div class="row">
                     <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreCliente" Label="Nombre Cliente"></MatTextField>
+                        <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
                     </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@telefonoCliente" Label="Telefono Clente"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@rfcCliente" Label="RFC Cliente"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-9">
                         <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                             <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
                             <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
@@ -53,8 +47,15 @@
                         </MatRadioGroup>
                     </div>
                 </div>
-                <div>
-                    <div class="col-md-9">
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreCliente" Label="Nombre Cliente"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@telefonoCliente" Label="Telefono Clente"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@rfcCliente" Label="RFC Cliente"></MatTextField>
                     </div>
                     <div class="col-md-3">
                         <MatButton Raised="true" Icon="search" OnClick="@BuscaOTs" class="mdc-button-background">Buscar</MatButton>
@@ -77,7 +78,8 @@
                 <th style="width:100px;">Ubicación</th>
                 <th style="width:200px;">Cliente</th>
                 <th style="width:100px;">Teléfono</th>
-                <th style="width:100px;">RFC</th>
+                <th style="width:100px;">Modelo</th>
+                <th style="width:100px;">Marca</th>
                 <th style="width:100px;">Estatus</th>
 
                 <th style="width:100px;">Fecha Registro</th>
@@ -91,7 +93,8 @@
                 <td style="width:100px;">@context.Ubicacion</td>
                 <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
                 <td style="width:100px;">@context.Telefono</td>
-                <td style="width:100px;">@context.RFC</td>
+                <td style="width:100px;">@context.Modelo</td>
+                <td style="width:100px;">@context.Marca</td>
                 <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
 
                 <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
@@ -248,6 +251,7 @@
     private String numeroOt;
     private String nombreCliente;
     private String telefonoCliente;
+    private String modelo;
     private String rfcCliente;
     private DateTime? fechaInicio;
     private DateTime? fechaFin;
@@ -421,6 +425,8 @@
         queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
         queryStringOt["NumeroOrdenTrabajo"] = numeroOt != null ? numeroOt : "";
+
+        queryStringOt["Modelo"] = modelo != null ? modelo : "";
         
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

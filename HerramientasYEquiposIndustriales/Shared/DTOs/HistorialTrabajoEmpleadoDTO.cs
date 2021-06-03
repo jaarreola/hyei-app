@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HerramientasYEquiposIndustriales.Shared.DTOs
 {
-    public class OrdenTrabajoDetalleConsultaDTO
+    public class HistorialTrabajoEmpleadoDTO
     {
         public int OrdenTrabajoDetalleId { get; set; }
         public int OrdenTrabajoId { get; set; }
@@ -25,7 +25,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public string? GarantiaLocalDetalle { get; set; }
         [StringLength(500)]
         public string? TiempoGarantia { get; set; }
-        public DateTime? FechaRegistro { get; set; }
+        public DateTime? FechaRegistroOtd { get; set; }
         public int? EmpleadoCreacion { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
         public int? EmpleadoModificacion { get; set; }
@@ -33,23 +33,6 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
         public String Comentarios { get; set; }
-        
-
-        public int ClienteId { get; set; }
-        [Required]
-        [StringLength(40)]
-        public string Nombre { get; set; }
-        [StringLength(40)]
-        public string Apellido { get; set; }
-        [StringLength(10)]
-        public string Telefono { get; set; }
-        [StringLength(40)]
-        public string Correo { get; set; }
-        [StringLength(150)]
-        public string Direccion { get; set; }
-        [StringLength(13)]
-        public string RFC { get; set; }
-        public bool? EsFrecuente { get; set; }
 
 
         public int EstatusOTFlujoId { get; set; }
@@ -57,17 +40,27 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         [StringLength(100)]
         public bool? Terminado { get; set; }
         public String Ubicacion { get; set; }
+        public DateTime? FechaRegistro { get; set; }
 
 
         [StringLength(100)]
         public string Descripcion { get; set; }
         public int Posicion { get; set; }
 
-        public decimal costoReparacion { get; set; }
 
-        public int cantidad { get; set; }
-        public bool esModelo { get; set; }
-        public bool esMarca { get; set; }
-        public bool esHerramienta { get; set; }
+        public int EmpleadoId { get; set; }
+        [StringLength(10)]
+        public string NumeroEmpleado { get; set; }
+        public string Nombre { get; set; }
+        public string Direccion { get; set; }
+        public string Telefono { get; set; }
+        public string Nss { get; set; }
+        public string Curp { get; set; }
+        public int PuestoId { get; set; }
+        public bool Activo { get; set; }
+        public bool PuedeEditar { get; set; }
+        
+
+        public decimal costoReparacion { get; set; }
     }
 }
