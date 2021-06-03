@@ -28,14 +28,13 @@
                                 <MatTextField FullWidth="true" @bind-Value="@RfcClienteBusqueda" HelperText="RFC del cliente" Label="RFC"></MatTextField>
                             </div>
                             <div class="col-md-2">
-                                @*<MatCheckbox @bind-Value="@ClienteFecuente">Cliente frecuente</MatCheckbox>*@
                                 <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueClienteFrecuente(value))" Value="@ClienteFecuente">Cliente frecuente</MatCheckbox>
                             </div>
                             <div class="col-md-2">
                                 <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueTodos(value))" Value="@TodosBusqueda">Todos</MatCheckbox>
-                                @*<MatCheckbox @bind-Value="@TodosBusqueda">Todos</MatCheckbox>*@
                             </div>
                             <div class="col-md-2">
+                                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueEsProblema(value))" Value="@ClienteProblema">Cliente Problema</MatCheckbox>
                             </div>
                             <div class="col-md-2">
                                 <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
@@ -51,19 +50,22 @@
     </div>
 </div>
 
-
+<div class="col-md-8" style="padding:15px 0px 0px 0px">
+    Clientes totales: <strong>@totalClientes</strong>
+</div>
 
 <div>
     <MatTable Items="@Clientes" class="mat-elevation-z5">
         <MatTableHeader>
             <th style="width:4%;">Código</th>
-            <th style="width:15%;">Nombre</th>
-            <th style="width:15%;">Apellido</th>
-            <th style="width:25%;">Direccion</th>
+            <th style="width:14%;">Nombre</th>
+            <th style="width:14%;">Apellido</th>
+            <th style="width:23%;">Direccion</th>
             <th style="width:15%;">Telefono</th>
             <th style="width:14%;">Correo</th>
             <th style="width:5%;">RFC</th>
             <th style="width:4%;">Frecuente</th>
+            <th style="width:5%;">Es Problema</th>
             <th style="width:3%;"></th>
         </MatTableHeader>
         <MatTableRow>
@@ -75,6 +77,7 @@
             <td>@context.Correo</td>
             <td>@context.RFC</td>
             <td><MatCheckbox @bind-Value="@context.EsFrecuente" Disabled="true"></MatCheckbox></td>
+            <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
             <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
         </MatTableRow>
     </MatTable>
@@ -115,8 +118,11 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-4">
                         <MatCheckbox @bind-Value="@Cliente.EsFrecuente">Cliente frecuente</MatCheckbox>
+                    </div>
+                    <div class="col-md-4">
+                        <MatCheckbox @bind-Value="@Cliente.EsProblema">Cliente Problema</MatCheckbox>
                     </div>
                 </div>
             </MatDialogContent>
@@ -137,7 +143,9 @@
     private string DireccionClienteBusqueda = string.Empty;
     private string RfcClienteBusqueda = string.Empty;
     private bool ClienteFecuente = false;
-    private bool TodosBusqueda = false;
+    private bool TodosBusqueda = true;
+    private bool ClienteProblema = false;
+
 
     //VARIABLES
     private List<ClienteDTO> Clientes = new List<ClienteDTO>();
@@ -146,11 +154,11 @@
     private bool dialogIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
-
+    private int totalClientes = 0;
 
     protected async override Task OnInitializedAsync()
     {
-        await CargaClientes();
+        await Buscar();
     }
 
     private void OnChangeValueTodos(bool value)
@@ -165,20 +173,27 @@
             TodosBusqueda = false;
     }
 
-    private void OpenDialog()
+    private void OnChangeValueEsProblema(bool value)
+    {
+        ClienteProblema = value;
+    }
+
+    private async Task OpenDialog()
     {
         if (!Expandido) { Expandido = false; }
         dialogIsOpen = true;
+
+        await Task.Delay(50);
     }
 
     private async Task CancelaDialog()
     {
         dialogIsOpen = false;
-        await CargaClientes();
+        await Buscar();
         Clear();
     }
 
-    private void OpenDialogEdit(ClienteDTO clienteEdicion)
+    private async Task OpenDialogEdit(ClienteDTO clienteEdicion)
     {
         if (!Expandido) { Expandido = false; }
         Cliente = new ClienteDTO()
@@ -192,17 +207,14 @@
             RFC = clienteEdicion.RFC,
             EsFrecuente = clienteEdicion.EsFrecuente,
             FechaRegistro = clienteEdicion.FechaRegistro,
-            FechaUltimaModificacion = clienteEdicion.FechaUltimaModificacion
+            FechaUltimaModificacion = clienteEdicion.FechaUltimaModificacion,
+            EsProblema = clienteEdicion.EsProblema
         };
         dialogIsOpen = true;
+
+        await Task.Delay(50);
     }
 
-
-    private async Task CargaClientes()
-    {
-        var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes");
-        Clientes = responseHttp.Response;
-    }
 
     private async Task GuardarCliente()
     {
@@ -223,9 +235,7 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            dialogIsOpen = false;
-            await CargaClientes();
-            Clear();
+            await CancelaDialog();
             toastService.ShowSuccess("Registro completo", "Guardado");
         }
     }
@@ -238,10 +248,8 @@
             toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
         else
         {
-            dialogIsOpen = false;
-            await CargaClientes();
-            Clear();
-            toastService.ShowSuccess("Registro completo", "Guardado");
+            toastService.ShowSuccess("Registro actualizado completo", "Guardado");
+            await CancelaDialog();
         }
     }
 
@@ -250,17 +258,13 @@
         var queryStrings = GenerarQueryStrings();
         var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesFilter?" + queryStrings);
         Clientes = responseHttp.Response;
+
+        if (Clientes.Count > 0)
+            totalClientes = Clientes.Count;
     }
 
     private void Clear()
     {
-        NombreClienteBusqueda = "";
-        ApellidoClienteBusqueda = "";
-        DireccionClienteBusqueda = "";
-        RfcClienteBusqueda = "";
-        ClienteFecuente = false;
-        TodosBusqueda = false;
-
         Cliente = new ClienteDTO();
     }
 
@@ -276,6 +280,7 @@
         queryStringsDict["RFC"] = RfcClienteBusqueda != null ? RfcClienteBusqueda : String.Empty;
         queryStringsDict["EsFrecuente"] = ClienteFecuente.ToString();
         queryStringsDict["Todos"] = TodosBusqueda.ToString();
+        queryStringsDict["EsProblema"] = ClienteProblema.ToString();
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

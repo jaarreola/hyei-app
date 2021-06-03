@@ -224,7 +224,7 @@
             <br />
             <div class="row">
                 <div class="col-md-12">
-                    <MatTable Items="@facturas" OnRowDbClick="@OnDbClickedFactura" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
+                    <MatTable Items="@facturas" OnRowDbClick="@OnDbClickedFactura" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalFacturas">
                         <MatTableHeader>
                             <th style="width:20%;">Factura</th>
                             <th style="width:70%;">Descripción</th>
@@ -369,6 +369,7 @@
     private DateTime? fechaInicio;
     private DateTime? fechaFin;
     private List<FacturaMovimientoDTO> facturas = new List<FacturaMovimientoDTO>();
+    private int totalFacturas = 0;
 
 
     private int pageSize = 0;
@@ -620,7 +621,7 @@
         var queryStrings = GenerarQueryStringsFactura();
         var responseHttp = await repository.Get<List<FacturaMovimientoDTO>>("api/Inventarios/BuscaFacturas?" + queryStrings);
         facturas = responseHttp.Response;
-
+        totalFacturas = facturas == null ? 0 : facturas.Count;
         await Task.Delay(50);
     }
 

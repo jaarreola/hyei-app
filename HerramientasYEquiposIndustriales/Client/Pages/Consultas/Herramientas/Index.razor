@@ -1,0 +1,340 @@
+﻿@page "/Consultas/Herramientas"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+
+<h5>Consulta de Herramientas</h5>
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoModelo">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>POR MODELO</h6></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalModelos</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioModelo" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinModelo" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@modeloBusqueda" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaModelosOt" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            <div class="row">
+                <MatTable Items="@modelos" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:300px;">Modelo</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:600px;"><strong>@context.Modelo</strong></td>
+                        <td style="width:100px;">@context.cantidad</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<br />
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoMarca">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>POR MARCA</h6></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalMarcas</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioMarca" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinMarca" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@marcaBusqueda" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaMarcasOt" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            <div class="row">
+                <MatTable Items="@marcas" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:300px;">Marca</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:600px;"><strong>@context.Marca</strong></td>
+                        <td style="width:100px;">@context.cantidad</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<br />
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoHerramienta">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>POR HERRAMIETA</h6></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalHerramientas</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioHerramienta" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinHerramienta" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@herramientaBusqueda" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaHerramientasOt" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            <div class="row">
+                <MatTable Items="@herramientas" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:300px;">Herramienta</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:600px;"><strong>@context.NombreHerramienta</strong></td>
+                        <td style="width:100px;">@context.cantidad</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+
+<MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog700">
+    <MatDialogTitle><h5>@tipoDetalle</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="col-md-3" style="padding:15px 0px 0px 0px">
+            <strong>@totalDetalle</strong>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@otds" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeOtd">
+                    <MatTableHeader>
+                        <th style="width:15%;">Numero OT</th>
+                        <th style="width:15%;">Herramienta</th>
+                        <th style="width:35%;">Modelo</th>
+                        <th style="width:15%;">Marca</th>
+                        <th style="width:15%;">Fecha Registro</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.NumeroOrdenTrabajo</td>
+                        <td>@context.NombreHerramienta</td>
+                        <td>@context.Modelo</td>
+                        <td>@context.Marca</td>
+                        <td>@context.FechaRegistro</td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+
+@code {
+    private String modeloBusqueda = String.Empty;
+    private String marcaBusqueda = String.Empty;
+    private String herramientaBusqueda = String.Empty;
+    private DateTime? fechaInicioModelo;
+    private DateTime? fechaFinModelo;
+    private DateTime? fechaInicioMarca;
+    private DateTime? fechaFinMarca;
+    private DateTime? fechaInicioHerramienta;
+    private DateTime? fechaFinHerramienta;
+
+    private String totalModelos;
+    private String totalMarcas;
+    private String totalHerramientas;
+
+    private bool expandidoModelo = false;
+    private bool expandidoMarca = false;
+    private bool expandidoHerramienta = false;
+
+    private List<OrdenTrabajoDetalleConsultaDTO> modelos = new List<OrdenTrabajoDetalleConsultaDTO>();
+    private List<OrdenTrabajoDetalleConsultaDTO> marcas = new List<OrdenTrabajoDetalleConsultaDTO>();
+    private List<OrdenTrabajoDetalleConsultaDTO> herramientas = new List<OrdenTrabajoDetalleConsultaDTO>();
+
+    private String modelo = String.Empty;
+    private String marca = String.Empty;
+    private String herramienta = String.Empty;
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+
+    Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
+
+    private bool dialogIsOpen = false;
+    private String tipoDetalle;
+    private String tipoDetalleFiltro;
+    private List<OrdenTrabajoDetalleDTO> otds = new List<OrdenTrabajoDetalleDTO>();
+    private int pageSizeOtd = 0;
+    private String totalDetalle;
+
+
+
+    private async Task BuscaModelosOt()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        modelo = modeloBusqueda;
+        marca = String.Empty;
+        herramienta = String.Empty;
+
+        fechaInicio = fechaInicioModelo;
+        fechaFin = fechaFinModelo;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOrdenesTrabajoByModelo?" + queryStrings);
+        modelos = responseHttp.Response;
+        totalModelos = modelos.Count > 0 ? "Total de modelos: " + modelos.Count.ToString() : "";
+        expandidoModelo = true;
+        expandidoMarca = false;
+        expandidoHerramienta = false;
+    }
+
+    private async Task BuscaMarcasOt()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        modelo = String.Empty;
+        marca = marcaBusqueda;
+        herramienta = String.Empty;
+
+        fechaInicio = fechaInicioMarca;
+        fechaFin = fechaFinMarca;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOrdenesTrabajoByMarca?" + queryStrings);
+        marcas = responseHttp.Response;
+        totalMarcas = marcas.Count > 0 ? "Total de marcas: " + marcas.Count.ToString() : "";
+        expandidoModelo = false;
+        expandidoMarca = true;
+        expandidoHerramienta = false;
+    }
+
+    private async Task BuscaHerramientasOt()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        modelo = String.Empty;
+        marca = String.Empty;
+        herramienta = herramientaBusqueda;
+
+        fechaInicio = fechaInicioHerramienta;
+        fechaFin = fechaFinHerramienta;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOrdenesTrabajoByNombreHerramienta?" + queryStrings);
+        herramientas = responseHttp.Response;
+        totalHerramientas = herramientas.Count > 0 ? "Total de herramientas: " + herramientas.Count.ToString() : "";
+        expandidoModelo = false;
+        expandidoMarca = false;
+        expandidoHerramienta = true;
+    }
+
+
+    private async Task MuestraDetalle(OrdenTrabajoDetalleConsultaDTO ot)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        modelo = ot.Modelo;
+        marca = ot.Marca;
+        herramienta = ot.NombreHerramienta;
+
+        if (ot.esModelo)
+        {
+            fechaInicio = fechaInicioModelo;
+            fechaFin = fechaFinModelo;
+            tipoDetalle = "Detalle del Modelo";
+            tipoDetalleFiltro = "Modelo";
+        }
+        else if (ot.esMarca)
+        {
+            fechaInicio = fechaInicioMarca;
+            fechaFin = fechaFinMarca;
+            tipoDetalle = "Detalle de la Marca";
+            tipoDetalleFiltro = "Marca";
+        }
+        else if (ot.esHerramienta)
+        {
+            fechaInicio = fechaInicioHerramienta;
+            fechaFin = fechaFinHerramienta;
+            tipoDetalle = "Detalle de la Herramienta";
+            tipoDetalleFiltro = "NombreHerramienta";
+        }
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<OrdenTrabajoDetalleDTO>>("api/OrdenTrabajo/ObtenerOrdenesTrabajoDetalleByFilter?" + queryStrings);
+        otds = responseHttp.Response;
+        totalDetalle = otds.Count > 0 ? "Total registros: " + otds.Count.ToString() : "";
+        pageSizeOtd = otds.Count > 0 ? otds.Count : 0;
+
+        dialogIsOpen = true;
+        await Task.Delay(50);
+    }
+
+    private async Task CancelaDialog()
+    {
+        dialogIsOpen = false;
+        await Task.Delay(50);
+    }
+
+
+    private string GenerarQueryStringsOT()
+    {
+        if (queryStringOt == null)
+            queryStringOt = new Dictionary<string, string>();
+
+        queryStringOt["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringOt["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        queryStringOt["Modelo"] = modelo != null ? modelo : String.Empty;
+        queryStringOt["Marca"] = marca != null ? marca : String.Empty;
+        queryStringOt["NombreHerramienta"] = herramienta != null ? herramienta : String.Empty;
+        queryStringOt["tipoBusqueda"] = tipoDetalleFiltro != null ? tipoDetalleFiltro : String.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringOt
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+}

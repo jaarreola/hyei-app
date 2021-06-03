@@ -21,5 +21,6 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         [StringLength(13)]
         public string RFC { get; set; }
         public bool EsFrecuente { get; set; }
+        public bool? EsProblema { get; set; }
     }
 }

@@ -1,0 +1,211 @@
+﻿@page "/Consultas/BitacoraTrabajoEmpleado"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+
+<h5>Consulta Bitácora del Empleado</h5>
+<div>
+    <MatAccordion>
+        <MatExpansionPanel @bind-Expanded="@expandido">
+            <MatExpansionPanelSummary>
+                <MatExpansionPanelHeader><h6>Filtros</h6></MatExpansionPanelHeader>
+            </MatExpansionPanelSummary>
+            <MatExpansionPanelDetails>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleado" Label="Nombre Empleado"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@numeroOt" Label="Numero OT"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatSelectItem @bind-Value="@estatusBusqueda" Items="@estatusOTCombo" Label="Estatus">
+                            <ItemTemplate Context="Estatus">
+                                @Estatus?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectItem>
+                    </div>
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-3">
+                        <MatButton Raised="true" Icon="search" OnClick="@BuscaHistorialEmpleados" class="mdc-button-background">Buscar</MatButton>
+                    </div>
+                </div>
+            </MatExpansionPanelDetails>
+        </MatExpansionPanel>
+    </MatAccordion>
+</div>
+
+<div class="col-md-3" style="padding:15px 0px 0px 0px">
+    Total de registros: <strong>@regTotales</strong>
+</div>
+<div class="row">
+    <MatTable Items="@consultaHistorialEmpleado" AllowSelection="true" class="mat-elevation-z10">
+        <MatTableHeader>
+            <th style="width:25%;">Empleado</th>
+            <th style="width:10%;">Número OT</th>
+            <th style="width:20%;">Herramienta</th>
+            <th style="width:10%;">Estatus</th>
+            <th style="width:25%;">Comentario</th>
+            <th style="width:20%;">Fecha Acción</th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td><strong>@context.NumeroEmpleado</strong> @context.Nombre</td>
+            <td>@context.NumeroOrdenTrabajo</td>
+            <td>@context.NombreHerramienta</td>
+            <td>@context.Descripcion</td>
+            <td>@context.Comentarios</td>
+            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+@code {
+    //ALERT
+    [Inject] IJSRuntime JS { get; set; }
+
+
+    //FILTROS DE BUSQUEDA
+    private EstatusOTDTO estatusBusqueda = new EstatusOTDTO();
+    private List<EstatusOTDTO> estatusOT = new List<EstatusOTDTO>();
+    private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
+    private String numeroEmpleado;
+    private String nombreEmpleado;
+    private String numeroOt;
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+
+    private bool expandido = true;
+
+    private List<HistorialTrabajoEmpleadoDTO> consultaHistorialEmpleado = new List<HistorialTrabajoEmpleadoDTO>();
+    //private HistorialTrabajoEmpleadoDTO ordenTrabajoConsulta = new HistorialTrabajoEmpleadoDTO();
+
+    Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
+    private int regTotales = 0;
+    
+    protected async override Task OnInitializedAsync()
+    {
+        await CargaComboEstatus();
+    }
+
+    private async Task CargaComboEstatus()
+    {
+        var responseHttp = await repository.Get<List<EstatusOTDTO>>("api/EstatusOT/GetEstatusOT");
+        estatusOT = responseHttp.Response;
+
+        estatusOTCombo = new List<EstatusOTDTO>();
+        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Todos", EstatusOTId = -1 });
+        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Sin Cotizar", EstatusOTId = 0 });
+        estatusOTCombo.AddRange(responseHttp.Response);
+    }
+
+
+    private async Task BuscaHistorialEmpleados()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<HistorialTrabajoEmpleadoDTO>>("api/OrdenTrabajo/GetHistorialTrabajo?" + queryStrings);
+        consultaHistorialEmpleado = responseHttp.Response;
+        regTotales = consultaHistorialEmpleado.Count > 0 ? consultaHistorialEmpleado.Count : 0;
+        expandido = false;
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
+    }
+
+    private String CalculaColumnaTotal(float? value, float? cantidad)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        return FormatoMoneda((value * cantidad).ToString());
+    }
+
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
+    }
+
+
+    private string GenerarQueryStringsOT()
+    {
+        if (queryStringOt == null)
+            queryStringOt = new Dictionary<string, string>();
+
+        queryStringOt["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringOt["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        queryStringOt["NumeroEmpleado"] = numeroEmpleado != null ? numeroEmpleado : String.Empty;
+        queryStringOt["NombreEmpleado"] = nombreEmpleado != null ? nombreEmpleado : String.Empty;
+
+        queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
+        queryStringOt["NumeroOrdenTrabajo"] = numeroOt != null ? numeroOt : "";
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringOt
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    //*************************************************************************************************************************************
+
+
+    public IEnumerable<string> items = Enumerable.Range(0, 1000).Select(i => i.ToString()).ToArray();
+
+    async Task ClickMe()
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure?");
+        if (!confirmed)
+        {
+            // Delete!
+        }
+    }
+}

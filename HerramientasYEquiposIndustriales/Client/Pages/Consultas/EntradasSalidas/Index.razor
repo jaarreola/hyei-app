@@ -1,0 +1,318 @@
+﻿@page "/Consultas/EntradasSalidas"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+
+<h5>Consulta de Cantidades</h5>
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoEntradas">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>ENTRADAS</h6></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalEntradas</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioEntrada" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinEntrada" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@noParteEntrada" Label="No Parte"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreEntrada" Label="Nombre"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaEntradas" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            <div class="row">
+                <MatTable Items="@entradas" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:300px;">No Parte</th>
+                        <th style="width:600px;">Nombre</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:300px;"><strong>@context.NoParte</strong></td>
+                        <td style="width:600px;">@context.Nombre</td>
+                        <td style="width:100px;">@FormatoDecimal(@context.Entradas.ToString())</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<br />
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoSalidas">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>SALIDAS</h6></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalSalidas</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioSalida" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinSalida" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@noParteSalida" Label="No Parte"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreSalida" Label="Nombre"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaSalidas" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            <div class="row">
+                <MatTable Items="@salidas" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:200px;">No Parte</th>
+                        <th style="width:500px;">Nombre</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:200px;"><strong>@context.NoParte</strong></td>
+                        <td style="width:500px;">@context.Nombre</td>
+                        <td style="width:100px;">@FormatoDecimal(@context.Salidas.ToString())</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>@tipoDetalle</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-3" style="padding:15px 0px 0px 0px">
+                <strong>@totalDetalle</strong>
+            </div>
+            <div class="col-md-3" style="padding:15px 0px 0px 0px">
+            </div>
+            <div class="col-md-3" style="padding:15px 0px 0px 0px">
+                <strong>@totalCantidad</strong>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@movimientos" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSize">
+                    <MatTableHeader>
+                        <th style="width:20%;">No Parte</th>
+                        <th style="width:35%;">Herramienta</th>
+                        <th style="width:15%;">Cantidad</th>
+                        <th style="width:15%;">Tipo</th>
+                        <th style="width:15%;">Fecha Registro</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.NoParte</td>
+                        <td>@context.Nombre</td>
+                        <td>@context.Cantidad</td>
+                        @if (context.EsEntrada)
+                                    {<td style="color:green; font-weight:bold">Entrada</td>}
+                        @if (context.EsSalida)
+                                    {<td style="color:red; font-weight:bold">Salida</td>}
+                        <td>@context.FechaRegistro</td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+
+@code {
+    private String noParteEntrada = String.Empty;
+    private String nombreEntrada = String.Empty;
+    private String noParteSalida = String.Empty;
+    private String nombreSalida = String.Empty;
+
+    private DateTime? fechaInicioEntrada;
+    private DateTime? fechaFinEntrada;
+    private DateTime? fechaInicioSalida;
+    private DateTime? fechaFinSalida;
+
+    private String totalEntradas;
+    private String totalSalidas;
+
+    private bool expandidoEntradas = false;
+    private bool expandidoSalidas = false;
+
+    private List<CostoInventarioDTO> entradas = new List<CostoInventarioDTO>();
+    private List<CostoInventarioDTO> salidas = new List<CostoInventarioDTO>();
+
+    private String noParte = String.Empty;
+    private String nombre = String.Empty;
+    private DateTime? fechaInicio;
+    private DateTime? fechaFin;
+
+    Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
+
+    private bool dialogIsOpen = false;
+    private String tipoDetalle;
+    private bool esEntrada;
+    private bool esSalida;
+    private List<CostoInventarioDTO> movimientos = new List<CostoInventarioDTO>();
+    private int pageSize = 0;
+    private String totalDetalle;
+    private String totalCantidad;
+
+
+
+    private async Task BuscaEntradas()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        noParte = noParteEntrada;
+        nombre = nombreEntrada;
+
+        fechaInicio = fechaInicioEntrada;
+        fechaFin = fechaFinEntrada;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetEntradasByFilter?" + queryStrings);
+        entradas = responseHttp.Response;
+        totalEntradas = entradas.Count > 0 ? "Total de entradas: " + entradas.Count.ToString() : "";
+        expandidoEntradas = true;
+        expandidoSalidas = false;
+    }
+
+    private async Task BuscaSalidas()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        noParte = noParteSalida;
+        nombre = nombreSalida;
+
+        fechaInicio = fechaInicioSalida;
+        fechaFin = fechaFinSalida;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetSalidasByFilter?" + queryStrings);
+        salidas = responseHttp.Response;
+        totalSalidas = salidas.Count > 0 ? "Total de salidas: " + salidas.Count.ToString() : "";
+        expandidoSalidas = true;
+        expandidoEntradas = false;
+    }
+
+
+
+    private async Task MuestraDetalle(CostoInventarioDTO reg)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        noParte = reg.NoParte;
+        nombre = reg.Nombre;
+
+        if (reg.EsEntrada)
+        {
+            fechaInicio = fechaInicioEntrada;
+            fechaFin = fechaFinEntrada;
+            tipoDetalle = "Detalle de entradas";
+            esEntrada = true;
+            esSalida = false;
+        }
+        else if (reg.EsSalida)
+        {
+            fechaInicio = fechaInicioSalida;
+            fechaFin = fechaFinSalida;
+            tipoDetalle = "Detalle de salidas";
+            esEntrada = false;
+            esSalida = true;
+        }
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetDetalleMovimientosByFilter?" + queryStrings);
+        movimientos = responseHttp.Response;
+        totalDetalle = movimientos.Count > 0 ? "Total registros: " + movimientos.Count.ToString() : "";
+        pageSize = movimientos.Count > 0 ? movimientos.Count : 0;
+
+        decimal cantidad = 0;
+        if (movimientos.Count > 0)
+        {
+            foreach (CostoInventarioDTO r in movimientos)
+            {
+                cantidad += r.Cantidad;
+            }
+            totalCantidad = "Total cantidad: " + cantidad.ToString();
+        }
+        dialogIsOpen = true;
+        await Task.Delay(50);
+    }
+
+    private async Task CancelaDialog()
+    {
+        dialogIsOpen = false;
+        await Task.Delay(50);
+    }
+
+
+    private string GenerarQueryStringsOT()
+    {
+        if (queryStringOt == null)
+            queryStringOt = new Dictionary<string, string>();
+
+        queryStringOt["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringOt["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        queryStringOt["NoParte"] = noParte ?? String.Empty;
+        queryStringOt["NombreParte"] = nombre ?? String.Empty;
+
+        queryStringOt["EsEntrada"] = esEntrada ? "true" : "false";
+        queryStringOt["EsSalida"] = esSalida ? "true" : "false";
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringOt
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private String FormatoDecimal(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        String result = "";
+
+        if (value != string.Empty)
+            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",", ".")));
+
+        return result;
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value.Replace(",", ".")));
+        else
+            return "";
+    }
+}

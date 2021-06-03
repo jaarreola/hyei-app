@@ -20,5 +20,15 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
         public string EstatusBusqueda { get; set; }
 
         public int Garantia { get; set; }
+
+
+        public string NumeroEmpleado { get; set; }
+        public string NombreEmpleado { get; set; }
+
+        public string NombreHerramienta { get; set; }
+        public string Modelo { get; set; }
+        public string Marca { get; set; }
+
+        public string tipoBusqueda { get; set; }
     }
 }

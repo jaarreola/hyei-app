@@ -179,6 +179,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     (x.Telefono.Contains(filtrosCliente.Telefono) || filtrosCliente.Telefono == null) &&
                     (x.Correo.Contains(filtrosCliente.Correo) || filtrosCliente.Correo == null) &&
                     (x.RFC.Contains(filtrosCliente.RFC) || filtrosCliente.RFC == null) &&
+                    (x.EsProblema == filtrosCliente.EsProblema || filtrosCliente.EsProblema == false) &&
                     (x.EsFrecuente == filtrosCliente.EsFrecuente || (filtrosCliente.Todos))
                 ).ToListAsync();
 
@@ -206,6 +207,32 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 ).ToListAsync();
 
                 return mapper.Map<List<ClienteDTO>>(clientes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("EsClienteProblemaFilter")]
+        public async Task<ActionResult<ClienteDTO>> EsClienteProblemaFilter([FromQuery] ClienteFilter filtrosCliente)
+        {
+            try
+            {
+                var cliente = await context.Clientes.FirstOrDefaultAsync(x =>
+                    ((x.Nombre.Contains(filtrosCliente.Nombre) && filtrosCliente.Nombre != null) ||
+                    (x.Apellido.Contains(filtrosCliente.Apellido) && filtrosCliente.Apellido != null)) &&
+                    (x.Telefono.Contains(filtrosCliente.Telefono) && filtrosCliente.Telefono != null) &&
+                    x.EsProblema == true
+                );
+
+                if (cliente == null) { return NotFound(); }
+
+                var dto = mapper.Map<ClienteDTO>(cliente);
+                return dto;
             }
             catch (Exception)
             {

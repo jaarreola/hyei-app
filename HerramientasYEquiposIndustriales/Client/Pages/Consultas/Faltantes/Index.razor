@@ -1,0 +1,136 @@
+﻿@page "/Consultas/Faltantes"
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandido">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h4>Faltantes</h4></MatExpansionPanelHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@numeroParteBusqueda" HelperText="Numero de parte" Label="No Parte"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreParteBusqueda" HelperText="Nombre" Label="Nombre"></MatTextField>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10">
+                    &nbsp;
+                </div>
+                <div class="col-md-2">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaFaltantes">Buscar</MatButton>
+                </div>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<div class="row">
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        Productos totales: <strong>@totalProductos</strong>
+    </div>
+</div>
+
+<MatTable Items="@movimientos" AllowSelection="true" class="mat-elevation-z10">
+    <MatTableHeader>
+        <th style="width:20%;">No Parte</th>
+        <th style="width:40%;">Nombre</th>
+        <th style="width:15%;">Existencias</th>
+        <th style="width:18%;">Cantidad Mínima</th>
+        <th style="width:30%;">Ubicación</th>
+    </MatTableHeader>
+    <MatTableRow>
+        <td style="font-weight:bold">@context.NoParte</td>
+        <td>@context.Nombre</td>
+        
+        @if ((context.Entradas - context.Salidas) > context.CantidadMinimaInventario)
+            { <td style="color:green; font-weight:bold">@FormatoDecimal(context.Existencias.ToString())</td> }
+        @if ((context.Entradas - context.Salidas) <= context.CantidadMinimaInventario)
+            {<td style="color:red; font-weight:bold;">@FormatoDecimal(context.Existencias.ToString())</td>}
+
+        <td style="font-weight:bold">@FormatoDecimal(context.CantidadMinimaInventario.ToString())</td>
+        <td>@context.Ubicacion</td>
+    </MatTableRow>
+</MatTable>
+
+
+
+@code {
+
+    //VARIABLES dDE BUSQUEDA
+    private string nombreParteBusqueda;
+    private string numeroParteBusqueda;
+    private DateTime? fechaInicio = null;
+    private DateTime? fechaFin = null;
+
+    //VARIABLES TOTALES
+    public int totalProductos = 0;
+
+    //LISTA DE MOVIMIENTOS
+    private List<CostoInventarioDTO> movimientos;
+    private CostoInventarioDTO movimiento;
+
+    //PANELES EXPANDIBLES
+    private bool expandido = true;
+
+    //VARIABLE QUERY STRING
+    Dictionary<string, string> queryStringsConsulta = new Dictionary<string, string>();
+
+
+    private async Task BuscaFaltantes()
+    {
+        var noParte = numeroParteBusqueda == null ? String.Empty : numeroParteBusqueda;
+        var queryStrings = GenerarQueryStringsConsulta(noParte);
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetFaltantesByFilter?" + queryStrings);
+        if (responseHttp.Response == null)
+            movimientos = new List<CostoInventarioDTO>();
+        else
+            movimientos = responseHttp.Response;
+        totalProductos = movimientos.Count;
+        await Task.Delay(100);
+    }
+
+
+    private string GenerarQueryStringsConsulta(String noParte)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (queryStringsConsulta == null)
+            queryStringsConsulta = new Dictionary<string, string>();
+
+        queryStringsConsulta["NoParte"] = noParte;
+        queryStringsConsulta["NombreParte"] = nombreParteBusqueda == null ? String.Empty : nombreParteBusqueda;
+        queryStringsConsulta["FechaInicio"] = fechaInicio == null ? String.Empty : fechaInicio.ToString();
+        queryStringsConsulta["FechaFin"] = fechaFin == null ? String.Empty : fechaFin.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsConsulta
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private String FormatoDecimal(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        String result = "";
+
+        if (value != string.Empty)
+            result = string.Format("{0:0.00}", Convert.ToDecimal(value.Replace(",", ".")));
+
+        return result;
+    }
+}

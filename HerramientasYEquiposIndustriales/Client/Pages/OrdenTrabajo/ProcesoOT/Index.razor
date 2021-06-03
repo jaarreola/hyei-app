@@ -35,6 +35,19 @@
                     <MatButton Raised="true" Icon="search" OnClick="@BuscarOT" class="mdc-button-background"></MatButton>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-9">
+                    <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
+                        <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
+                        <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
+                        <MatRadioButton Value="3" TValue="int">Sin Garantía</MatRadioButton>
+                        <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
+                    </MatRadioGroup>
+                </div>
+            </div>
             <div class="col-md-3" style="padding:15px 0px 0px 0px">
                 Ordenes de trabajo: <strong>@otTotales</strong>
             </div>
@@ -47,9 +60,10 @@
                         <th style="width:100px;">Ubicación</th>
                         <th style="width:200px;">Cliente</th>
                         <th style="width:100px;">Teléfono</th>
-                        <th style="width:100px;">RFC</th>
+                        <th style="width:100px;">Reparación</th>
                         <th style="width:100px;">Estatus</th>
-
+                        <th style="width:100px;">Garantía</th>
+                        <th style="width:100px;">Modelo</th>
                         <th style="width:100px;">Fecha Registro</th>
                         <th style="width:50px;"></th>
                     </MatTableHeader>
@@ -60,9 +74,10 @@
                         <td style="width:100px;">@context.Ubicacion</td>
                         <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
                         <td style="width:100px;">@context.Telefono</td>
-                        <td style="width:100px;">@context.RFC</td>
+                        <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
                         <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
-
+                        <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
+                        <td style="width:100px;">@context.Modelo</td>
                         <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
                         <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
                     </MatTableRow>
@@ -115,7 +130,10 @@
                 <div class="col-md-4">
                     <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@tipoGarantia" Label="Tipo de Garantia" ReadOnly="true" InputStyle="font-weight: bold"></MatTextField>
+                </div>
+                <div class="col-md-2">
                     <MatButton Raised="true" OnClick="@GuardaInfoOt" class="mdc-button-background">Guarda OT</MatButton>
                 </div>
                 <div class="col-md-2">
@@ -411,6 +429,103 @@
 </MatDialog>
 
 
+<EditForm Model="@producto">
+    <DataAnnotationsValidator />
+    <MatDialog @bind-IsOpen="@dialogNewProductIsOpen" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.NoParte" Label="No de Parte"></MatTextField>
+                </div>
+                <div class="col-md-6">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.Nombre" Label="Nombre"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatSelectItem @bind-Value="@marca" Items="@marcas" Label="Marca">
+                        <ItemTemplate Context="Marca">
+                            @Marca?.Descripcion
+                        </ItemTemplate>
+                    </MatSelectItem>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.Modelo" Label="Modelo"></MatTextField>
+                </div>
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                </div>
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+                </div>
+                <div class="col-md-7">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogNewProduct" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</EditForm>
+
+
+<MatDialog @bind-IsOpen="@dialogValidaEmpleadoSaveProduct" CanBeClosed="false">
+    <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+        <MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+<MatDialog @bind-IsOpen="@dialogFaltantesIsOpen" CanBeClosed="false">
+    <MatDialogTitle><h5>Productos faltantes para la OT - <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                No es posible hacer el cambio de estatus, no hay inventario suficiente de los siguientes productos:
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@faltantes" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeFaltantes">
+                    <MatTableHeader>
+                        <th style="width:30%;">No Parte</th>
+                        <th style="width:60%">Nombre</th>
+                        <th style="width:10%">Faltantes</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.Producto.NoParte</td>
+                        <td>@context.Producto.Nombre</td>
+                        <td>@context.Cantidad</td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CierraFaltantes" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
 
 @code {
     //FILTROS BUSQUEDA
@@ -418,8 +533,10 @@
     private List<EstatusOTDTO> estatusOT = new List<EstatusOTDTO>();
     private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
     private String otBusqueda;
+    private String modelo;
     private DateTime? fechaInicioBusqueda;
     private DateTime? fechaFinBusqueda;
+    private int tipoGarantiaBusqueda = 0;
 
     private List<OrdenTrabajoDetalleConsultaDTO> consultaOts = new List<OrdenTrabajoDetalleConsultaDTO>();
     private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
@@ -429,6 +546,7 @@
     private CotizacionDetalleDTO detalleCotizacion = new CotizacionDetalleDTO();
     private CotizacionDetalleDTO detalleCotizacionEdicion = new CotizacionDetalleDTO();
     private CotizacionDetalleDTO registroEditar = new CotizacionDetalleDTO();
+    private int cotizacionDetalleEliminarId;
 
     private List<ProductoDTO> productos = new List<ProductoDTO>();
     private ProductoDTO producto = new ProductoDTO();
@@ -438,6 +556,7 @@
     private EstatusOTDTO siguienteEstatusOt;
 
     private List<HistorialOrdenTrabajoDTO> historialOt = new List<HistorialOrdenTrabajoDTO>();
+    private List<CotizacionDetalleDTO> faltantes;
 
     //VARIABLES
     private bool expandido = true;
@@ -445,6 +564,7 @@
     private int otTotales = 0;
     private String nombreCompletoCliente;
     private String fechaRegistro;
+    private String tipoGarantia = String.Empty;
     Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
     Dictionary<string, string> queryStringsProducto = new Dictionary<string, string>();
 
@@ -461,6 +581,7 @@
     private bool dialogBuscarProductoIsOpen = false;
     private bool dialogValidaEmpleadoEdicionOt = false;
     private bool dialogHistorialIsOpen = false;
+    private bool dialogFaltantesIsOpen = false;
 
     private bool dialogValidaEmpleadoEdicionCotizacion = false;
     private bool dialogValidaEmpleadoSaveCotizacion = false;
@@ -481,16 +602,25 @@
     private int pageSize = 0;
     private int pageSizeProductos = 0;
     private int pageSizeHistorial = 0;
+    private int pageSizeFaltantes = 0;
     private string totalCotizacion;
 
+    //Agregar productos que no existan en la cotizacion
+    private List<MarcaDTO> marcas = new List<MarcaDTO>();
+    private MarcaDTO marca = new MarcaDTO();
+    private bool dialogNewProductIsOpen = false;
+    private String precioMayorPorcentaje = "";
+    private bool dialogValidaEmpleadoSaveProduct = false;
+
+    private bool afectaInventarioSalida = false;
 
 
     protected async override Task OnInitializedAsync()
     {
         await CargaComboEstatus();
+        await CargaComboMarcas();
         //await BuscarOT();
     }
-
 
 
     private async Task CargaComboEstatus()
@@ -503,6 +633,14 @@
         estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Sin Cotizar", EstatusOTId = 0 });
         estatusOTCombo.AddRange(responseHttp.Response);
     }
+
+
+    private async Task CargaComboMarcas()
+    {
+        var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
+        marcas = responseHttp.Response;
+    }
+
 
     private async Task BuscarOT()
     {
@@ -521,8 +659,10 @@
         ordenTrabajoConsulta = ot;
         nombreCompletoCliente = ordenTrabajoConsulta.Nombre + " " + (ordenTrabajoConsulta.Apellido != null ? ordenTrabajoConsulta.Apellido : String.Empty);
         fechaRegistro = ordenTrabajoConsulta.FechaRegistro != null ? ordenTrabajoConsulta.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+        tipoGarantia = ordenTrabajoConsulta.GarantiaLocal ? "Local" : ordenTrabajoConsulta.GarantiaFabrica ? "Fábrica" : String.Empty;
 
         await GetCotizacionOt();
+        siguienteEstatusOt = await GetSiguienteEstatus();
         await Task.Delay(50);
     }
 
@@ -537,8 +677,6 @@
         listaCotizacionDetalle = responseHttpCotDet.Response != null ? responseHttpCotDet.Response : new List<CotizacionDetalleDTO>();
         pageSize = listaCotizacionDetalle.Count;
         totalCotizacion = TotalCotizacion();
-
-        siguienteEstatusOt = await GetSiguienteEstatus();
     }
 
 
@@ -621,6 +759,7 @@
             if (await OpenConfirmacion("Desea eliminar este registro de la cotización guardada?") == 1)
             {
                 opcionEdicion = 2;
+                cotizacionDetalleEliminarId = registro.CotizacionDetalleId;
                 detalleCotizacionEdicion = registro;
                 dialogValidaEmpleadoEdicionCotizacion = true;
             }
@@ -798,6 +937,7 @@
         dialogValidaEmpleadoEdicionOt = false;
         dialogValidaEmpleadoCambioEstatus = false;
         dialogValidaEmpleadoCambioEstatusUbicacion = false;
+        dialogValidaEmpleadoSaveProduct = false;
 
         ubicacionEstatus = String.Empty;
         comentarioEstatus = String.Empty;
@@ -855,7 +995,7 @@
             }
         }
         else
-            toastService.ShowError("Numero de empleado no valido", "Error");
+            toastService.ShowError("Número de empleado no valido", "Error");
     }
 
 
@@ -907,7 +1047,7 @@
                     break;
                 case 2: //Eliminar
                     registroEditar.EmpleadoModificacion = empleado.EmpleadoId;
-                    var httpResponse2 = await repository.Delete("api/Cotizaciones/DeleteCotizacionDetalle/" + registroEditar.CotizacionDetalleId);
+                    var httpResponse2 = await repository.Delete("api/Cotizaciones/DeleteCotizacionDetalle/" + cotizacionDetalleEliminarId);
 
                     if (httpResponse2.Error)
                     {
@@ -923,7 +1063,7 @@
             await Task.Delay(50);
         }
         else
-            toastService.ShowError("Numero de empleado no valido", "Error");
+            toastService.ShowError("Número de empleado no valido", "Error");
     }
 
 
@@ -983,9 +1123,46 @@
             await CancelaDialogValidaEmpleado();
         }
         else
-            toastService.ShowError("Numero de empleado no valido", "Error");
+            toastService.ShowError("Número de empleado no valido", "Error");
     }
 
+
+    private async Task ValidaEmpleadoSaveProduct()
+    {
+        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+        if (empleado.EmpleadoId != 0)
+        {
+            producto.MarcaId = marca.MarcaId;
+            if (producto.ProductoId == 0)
+            {
+                producto.EmpleadoCreacion = empleado.EmpleadoId;
+                var httpResponse = await repository.Post("api/Productos", producto);
+                if (httpResponse.Error)
+                {
+                    if (producto.MarcaId == 0)
+                        toastService.ShowError("Debe seleccionar una marca", "Error");
+                    else
+                        toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                }
+                else
+                {
+                    producto = new ProductoDTO();
+                    dialogNewProductIsOpen = false;
+                    await Task.Delay(50);
+                    toastService.ShowSuccess("Registro completo", "Guardado");
+                }
+            }
+            await BuscarNombreProducto();
+            await CancelaDialogValidaEmpleado();
+        }
+        else
+            toastService.ShowError("Número de empleado no valido", "Error");
+    }
 
     //----------------------------------------------PROCESOS DE LOS ESTATUS---------------------------
     private async Task Revisada()
@@ -1009,7 +1186,7 @@
         }
 
         noRequiereUbicacion = false;
-        if (PuedeCambiarEstatus("Revisada"))
+        if (await PuedeCambiarEstatus("Revisada"))
             dialogValidaEmpleadoCambioEstatusUbicacion = true;
 
         await Task.Delay(50);
@@ -1018,7 +1195,7 @@
     private async Task Autorizada()
     {
         noRequiereUbicacion = true;
-        if (PuedeCambiarEstatus("Autorizada"))
+        if (await PuedeCambiarEstatus("Autorizada"))
             dialogValidaEmpleadoCambioEstatus = true;
 
         await Task.Delay(50);
@@ -1027,7 +1204,7 @@
     private async Task Reparada()
     {
         noRequiereUbicacion = false;
-        if (PuedeCambiarEstatus("Reparada"))
+        if (await PuedeCambiarEstatus("Reparada"))
             dialogValidaEmpleadoCambioEstatusUbicacion = true;
 
         await Task.Delay(50);
@@ -1036,7 +1213,7 @@
     private async Task Entregada()
     {
         noRequiereUbicacion = true;
-        if (PuedeCambiarEstatus("Entregada"))
+        if (await PuedeCambiarEstatus("Entregada"))
             dialogValidaEmpleadoCambioEstatus = true;
 
         await Task.Delay(50);
@@ -1044,8 +1221,8 @@
 
     private async Task Cancelada()
     {
-        noRequiereUbicacion = false;
-        if (PuedeCambiarEstatus("Cancelada"))
+        noRequiereUbicacion = true;
+        if (await PuedeCambiarEstatus("Cancelada"))
         {
             if (await OpenConfirmacion("Desea Cancelar esta Orden de Trabajo?") != 1)
                 return;
@@ -1055,7 +1232,7 @@
         await Task.Delay(50);
     }
 
-    private bool PuedeCambiarEstatus(String descripcionEstatusSiguiente)
+    private async Task<bool> PuedeCambiarEstatus(String descripcionEstatusSiguiente)
     {
         cancelaOt = false;
         estatusOt = descripcionEstatusSiguiente;
@@ -1104,6 +1281,12 @@
         }
         if (siguientePosicion == -1)
             cancelaOt = true;
+
+        if (descripcionEstatusSiguiente == "Reparada")
+            if (await OpenConfirmacion("Este cambio de estatus afectara el inventario de salida, desea continuar?") == 0)
+                return false;
+            else
+                return await ExistenciasSuficientes();
 
         return true;
     }
@@ -1160,6 +1343,8 @@
                         Ubicacion = ubicacionEstatus,
                         Comentario = comentarioEstatus
                     };
+                    ordenTrabajoConsulta.Ubicacion = ubicacionEstatus;
+
                     var httpResponseFlujoEstatus = await repository.Post<EstatusOTFlujoDTO>("api/FlujoEstatusOT/GuardaFlujoEstatusOTByOT", estatusFlujoCreacionDTO);
                     if (!httpResponseFlujoEstatus.Error)
                     {
@@ -1171,8 +1356,12 @@
                     }
                 }
             }
-            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0)
+            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0 || cancelaOt == true)
             {
+                if (afectaInventarioSalida)
+                    //se generan los registros de salida de material
+                    await GuardarRegistroSalida(listaCotizacionDetalle);
+
                 if (await GuardaSiguienteEstatus())
                 {
                     await ActualizaInfoOrdenTrabajoConsulta();
@@ -1182,6 +1371,7 @@
                 }
             }
             await GetCotizacionOt();
+            afectaInventarioSalida = false;
         }
         else
             toastService.ShowError("Número de empleado no valido", "Error");
@@ -1189,6 +1379,9 @@
 
     private async Task<bool> GuardaSiguienteEstatus()
     {
+        if ((ubicacionEstatus == null ? String.Empty : ubicacionEstatus) == String.Empty)
+            ubicacionEstatus = ordenTrabajoConsulta.Ubicacion;
+
         var httpResponseEstatusOtf = await repository.Get<EstatusOTFlujoDTO>("api/FlujoEstatusOT/GetLastEstatusOTByOtdId/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
         var estatusOTFlujoSeleccion = httpResponseEstatusOtf.Response;
         estatusOTFlujoSeleccion.OrdenTrabajoDetalle = estatusOTFlujoSeleccion.OrdenTrabajoDetalle != null ? estatusOTFlujoSeleccion.OrdenTrabajoDetalle : new OrdenTrabajoDetalle();
@@ -1220,6 +1413,12 @@
         await Task.Delay(50);
     }
 
+    private async Task CierraFaltantes()
+    {
+        dialogFaltantesIsOpen = false;
+        await Task.Delay(50);
+    }
+
     private async Task KeyPressNoParte(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
@@ -1238,6 +1437,16 @@
         var responseHttp = await repository.Get<ProductoDTO>("api/Productos/BuscaProductoPorNumeroParte?" + queryStrings);
         productoRegistro = responseHttp.Response;
         nombreProductoRegistro = productoRegistro.Nombre;
+
+        if ((precioUnitario == null ? 0 : precioUnitario) == 0)
+            precioUnitario = productoRegistro.CostoVenta;
+
+        if (((nombreProductoRegistro == null ? String.Empty : nombreProductoRegistro) == String.Empty) && ((numeroParteRegistro == null ? String.Empty : numeroParteRegistro) != String.Empty))
+            if (await OpenConfirmacion("No existe este producto, desea crearlo?") == 1)
+            {
+                producto = new ProductoDTO() { NoParte = numeroParteRegistro };
+                dialogNewProductIsOpen = true;
+            }
         await Task.Delay(50);
     }
 
@@ -1263,6 +1472,139 @@
     }
 
 
+    private async Task CancelaDialogNewProduct()
+    {
+        dialogNewProductIsOpen = false;
+        producto = new ProductoDTO();
+        await Task.Delay(50);
+    }
+
+
+    private async Task GuardarProducto()
+    {
+        if (producto.NoParte == String.Empty)
+        {
+            await OpenMessage("Debe capturar un numero de parte");
+            return;
+        }
+
+        if (producto.ProductoId == 0)
+        {
+            //validamos si ya existe un producto con ese numero de parte
+            var httpResponseExiste = await repository.Get<ProductoDTO>("api/Productos/GetProductoPorNoParte/" + producto.NoParte);
+            if (!httpResponseExiste.Error)
+            {
+                await OpenMessage("Ya existe un producto con ese Número de parte");
+                return;
+            }
+        }
+
+        if ((producto.CostoVenta != null ? producto.CostoVenta : 0) != 0 && (producto.CostoCompra != null ? producto.CostoCompra : 0) == 0)
+        {
+            await OpenMessage("Primero debe ingresar el costo de compra.");
+            return;
+        }
+
+        if ((producto.CostoVenta != null ? producto.CostoVenta : 0) != 0)
+            if (!CostoVentaCorrecto(producto.CostoCompra, producto.CostoVenta))
+            {
+                await OpenMessage("El Costo de Venta debe ser mayor al 20% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+                return;
+            }
+
+        dialogValidaEmpleadoSaveProduct = true;
+    }
+
+
+
+    //----------GENERACION DE LOS MOVIMIENTOS DE SALIDA-------------
+    private async Task<bool> ExistenciasSuficientes()
+    {
+        await GetCotizacionOt();
+        faltantes = new List<CotizacionDetalleDTO>();
+
+        var productosCot = from c in listaCotizacionDetalle
+                           group c by new { c.ProductoId } into r
+                           select new MovimientoDTO()
+                           {
+                               ProductoId = r.Key.ProductoId,
+                               Cantidad = r.Sum(x => (x.Cantidad != null ? (decimal)x.Cantidad : 0))
+                           };
+
+        foreach (MovimientoDTO d in productosCot.ToList())
+        {
+            var responseProd = await repository.Get<ProductoDTO>("api/Productos/" + d.ProductoId);
+            bool noAfectaInventario = responseProd.Response.NoAfectaInventario == null ? false : responseProd.Response.NoAfectaInventario == false ? false : true;
+            if (!noAfectaInventario)
+            {
+                var response = await repository.Get<decimal>("api/Inventarios/GetCantidadByProductoId/" + d.ProductoId);
+
+                if (response.Response - (decimal)d.Cantidad < 0)
+                {
+                    var prod = from c in listaCotizacionDetalle
+                               where (c.ProductoId == d.ProductoId)
+                               select new CotizacionDetalleDTO() { Producto = c.Producto };
+                    faltantes.Add(new CotizacionDetalleDTO { ProductoId = d.ProductoId, Cantidad = (float?)(d.Cantidad - response.Response), Producto = prod.FirstOrDefault().Producto });
+                }
+            }
+        }
+
+        if (faltantes.Count > 0)
+        {
+            //mensaje mostrando los faltantes que se necesitan
+            pageSizeFaltantes = faltantes.Count;
+            afectaInventarioSalida = false;
+            dialogFaltantesIsOpen = true;
+            return false;
+        }
+        else
+        {
+            afectaInventarioSalida = true;
+            return true;
+        }
+    }
+
+    private async Task<bool> GuardarRegistroSalida(List<CotizacionDetalleDTO> cotizacion)
+    {
+        await Task.Delay(50);
+        if (cotizacion.Count > 0)
+        {
+            MovimientoDTO movSalid;
+            foreach (CotizacionDetalleDTO cot in cotizacion)
+            {
+                var responseProd = await repository.Get<ProductoDTO>("api/Productos/" + cot.ProductoId);
+                bool noAfectaInventario = responseProd.Response.NoAfectaInventario == null ? false : responseProd.Response.NoAfectaInventario == false ? false : true;
+                if (!noAfectaInventario)
+                {
+                    movSalid = new MovimientoDTO();
+                    movSalid.ProductoId = cot.ProductoId;
+                    movSalid.Cantidad = cot.Cantidad != null ? (decimal)cot.Cantidad : 0;
+                    movSalid.Comentario = "Movimiento de salida para Orden de Trabajo: " + ordenTrabajoConsulta.NumeroOrdenTrabajo;
+                    movSalid.EsEntrada = false;
+                    movSalid.EsSalida = true;
+
+                    movSalid.EmpleadoCreacion = empleado.EmpleadoId;
+                    var httpResponse = await repository.Post("api/Inventarios", movSalid);
+
+                    if (httpResponse.Error)
+                    {
+                        toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        else
+        {
+            toastService.ShowError("La cotización no tiene detalle.", "Error");
+            return false;
+        }
+    }
+    //--------------------------------------------------------------
+
+
+
     //--------------------------------------------------------------
 
     private String TotalCotizacion()
@@ -1277,7 +1619,7 @@
     {
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         if (value != string.Empty)
-            return string.Format("{0:C2}", Convert.ToDecimal(value));
+            return string.Format("{0:C2}", Convert.ToDecimal(value.Replace(",", ".")));
         else
             return "";
     }
@@ -1286,6 +1628,22 @@
     {
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         return FormatoMoneda((value * cantidad).ToString());
+    }
+
+    private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        costoCompra = costoCompra != null ? costoCompra : 0;
+        costoVenta = costoVenta != null ? costoVenta : 0;
+        bool result = true;
+
+        float? procentaje = (float?)0.2; //20%
+        precioMayorPorcentaje = ((costoCompra * procentaje) + costoCompra)?.ToString("C2");
+        if (costoVenta < ((costoCompra * procentaje) + costoCompra))
+            result = false;
+
+        return result;
     }
 
     private string GenerarQueryStringsOT()
@@ -1298,6 +1656,10 @@
 
         queryStringOt["NumeroOrdenTrabajo"] = otBusqueda != null ? otBusqueda : "";
         queryStringOt["EstatusBusqueda"] = estatusBusqueda.Descripcion != null ? estatusBusqueda.Descripcion : "Todos";
+
+        queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
+
+        queryStringOt["Modelo"] = modelo != null ? modelo : "";
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 
