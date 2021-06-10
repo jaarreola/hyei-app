@@ -37,9 +37,12 @@
             </div>
             <div class="row">
                 <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@herramienta" Label="Herramienta"></MatTextField>
+                </div>
+                <div class="col-md-2">
                     <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-7">
                     <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                         <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
                         <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
@@ -534,6 +537,7 @@
     private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
     private String otBusqueda;
     private String modelo;
+    private String herramienta;
     private DateTime? fechaInicioBusqueda;
     private DateTime? fechaFinBusqueda;
     private int tipoGarantiaBusqueda = 0;
@@ -614,6 +618,8 @@
 
     private bool afectaInventarioSalida = false;
 
+    private String noRequiereAutorizacion = String.Empty;
+    private int siguientePosicionId = 0;
 
     protected async override Task OnInitializedAsync()
     {
@@ -682,6 +688,10 @@
 
     private async Task OpenDialogAgregaDetalleCotizacion()
     {
+        //valida si puede hacer cambio a la cotizacion
+        if (!await PuedeModificarCotizacion()) { return; }
+
+
         if (ordenTrabajoConsulta.OrdenTrabajoDetalleId == 0)
         {
             toastService.ShowWarning("Debe seleccionar una orden de trabajo primero.", "Atención");
@@ -729,6 +739,9 @@
 
     private async Task OpenDialogEditaRegistro(CotizacionDetalleDTO entidad)
     {
+        //valida si puede hacer cambio a la cotizacion
+        if (!await PuedeModificarCotizacion()) { return; }
+
         registroEditar = new CotizacionDetalleDTO()
         {
             CotizacionDetalleId = entidad.CotizacionDetalleId,
@@ -754,6 +767,9 @@
 
     private async Task EliminaRegistroGrid(CotizacionDetalleDTO registro)
     {
+        //valida si puede hacer cambio a la cotizacion
+        if (!await PuedeModificarCotizacion()) { return; }
+
         if (registro.CotizacionDetalleId != 0)
         {
             if (await OpenConfirmacion("Desea eliminar este registro de la cotización guardada?") == 1)
@@ -891,6 +907,9 @@
 
     private async Task GuardaCotizacion()
     {
+        //valida si puede hacer cambio a la cotizacion
+        if (!await PuedeModificarCotizacion()) { return; }
+
         //validamos que el detalle tengan productos validos
         if (listaCotizacionDetalle.Count > 0)
         {
@@ -1236,6 +1255,7 @@
     {
         cancelaOt = false;
         estatusOt = descripcionEstatusSiguiente;
+        noRequiereAutorizacion = String.Empty;
 
         if (ordenTrabajoConsulta.Descripcion == "Entregada")
         {
@@ -1256,12 +1276,18 @@
         }
 
         var siguientePosicion = 0;
+        siguientePosicionId = 0;
         foreach (EstatusOTDTO estatus in estatusOT)
+        {
+            if (estatus.Descripcion == "Autorizada")
+                siguientePosicionId = estatus.EstatusOTId;
+
             if (estatus.Descripcion == descripcionEstatusSiguiente)
             {
                 siguientePosicion = estatus.Posicion;
                 break;
             }
+        }
 
         if (ordenTrabajoConsulta.Posicion > siguientePosicion && siguientePosicion != -1)
         {
@@ -1275,6 +1301,12 @@
             foreach (EstatusOTDTO estatus in estatusOT)
                 if (estatus.Posicion == ordenTrabajoConsulta.Posicion + 1)
                 {
+                    if (descripcionEstatusSiguiente == "Reparada" && ordenTrabajoConsulta.Descripcion == "Cotizada")
+                    {
+                        noRequiereAutorizacion = ". Se reparo sin autorización.";
+                        break;
+                    }
+
                     toastService.ShowWarning("Primero debe estar " + estatus.Descripcion + " esta Orden de trabajo.", "Atención");
                     return false;
                 }
@@ -1386,7 +1418,10 @@
         var estatusOTFlujoSeleccion = httpResponseEstatusOtf.Response;
         estatusOTFlujoSeleccion.OrdenTrabajoDetalle = estatusOTFlujoSeleccion.OrdenTrabajoDetalle != null ? estatusOTFlujoSeleccion.OrdenTrabajoDetalle : new OrdenTrabajoDetalle();
         estatusOTFlujoSeleccion.Ubicacion = ubicacionEstatus;
-        estatusOTFlujoSeleccion.Comentario = comentarioEstatus;
+        estatusOTFlujoSeleccion.Comentario = String.Concat(comentarioEstatus, noRequiereAutorizacion);
+
+        if (siguientePosicionId != 0 && noRequiereAutorizacion != String.Empty)
+            estatusOTFlujoSeleccion.EstatusOTId = siguientePosicionId;
 
         //se manda guardar toda la lista
         List<Object> enviar = new List<Object>();
@@ -1646,6 +1681,18 @@
         return result;
     }
 
+
+    public async Task<bool> PuedeModificarCotizacion()
+    {
+        if (ordenTrabajoConsulta.Descripcion == "Entregada")
+        {
+            await OpenMessage("Esta Orden de trabajo ya fue Entregada.");
+            return false;
+        }
+        return true;
+    }
+
+
     private string GenerarQueryStringsOT()
     {
         if (queryStringOt == null)
@@ -1659,7 +1706,8 @@
 
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
 
-        queryStringOt["Modelo"] = modelo != null ? modelo : "";
+        queryStringOt["Modelo"] = modelo ?? String.Empty;
+        queryStringOt["NombreHerramienta"] = herramienta ?? String.Empty;
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 
