@@ -396,6 +396,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                where ef2.Terminado == null &&
                                    ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
                                    (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
+                                   (otd.NombreHerramienta.Contains(filtro.NombreHerramienta) || filtro.NombreHerramienta == null) &&
                                    (otd.Modelo.Contains(filtro.Modelo) || filtro.Modelo == null) &&
                                    (c.Nombre.Contains(filtro.NombreCLiente) || c.Apellido.Contains(filtro.NombreCLiente) || filtro.NombreCLiente == null) &&
                                    (c.Telefono.Contains(filtro.TelefonoCLiente) || filtro.TelefonoCLiente == null) &&
@@ -587,7 +588,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    FechaEntrega = otd.FechaEntrega,
                                    FechaFinaliacion = otd.FechaFinaliacion,
                                    TieneCotizacion = otd.TieneCotizacion,
-                                   Comentarios = otd.Comentarios,
+                                   Comentarios = ef.Comentario, //otd.Comentarios,
 
                                    EstatusOTFlujoId = ef.EstatusOTFlujoId,
                                    EstatusOTId = ef.EstatusOTId,

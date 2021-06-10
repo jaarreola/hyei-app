@@ -36,9 +36,12 @@
                 </div>
                 <div class="row">
                     <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@herramienta" Label="Herramienta"></MatTextField>
+                    </div>
+                    <div class="col-md-2">
                         <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-md-7">
                         <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                             <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
                             <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
@@ -65,9 +68,17 @@
         </MatExpansionPanel>
     </MatAccordion>
 
-    <div class="col-md-3" style="padding:15px 0px 0px 0px">
-        Ordenes de trabajo: <strong>@otTotales</strong>
+    <div class="row">
+        <div class="col-md-3" style="padding:15px 0px 0px 0px">
+            Ordenes de trabajo: <strong>@otTotales</strong>
+        </div>
+        <div class="col-md-3" style="padding:15px 0px 0px 0px">
+        </div>
+        <div class="col-md-4" style="padding:15px 0px 0px 0px">
+            Acumulado reparaciones: <strong>@acumuladoReparacion</strong>
+        </div>
     </div>
+
 
     <div class="row">
         <MatTable Items="@consultaOts" AllowSelection="true" class="mat-elevation-z10">
@@ -78,6 +89,7 @@
                 <th style="width:100px;">Ubicación</th>
                 <th style="width:200px;">Cliente</th>
                 <th style="width:100px;">Teléfono</th>
+                <th style="width:100px;">Reparación</th>
                 <th style="width:100px;">Modelo</th>
                 <th style="width:100px;">Marca</th>
                 <th style="width:100px;">Estatus</th>
@@ -93,6 +105,7 @@
                 <td style="width:100px;">@context.Ubicacion</td>
                 <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
                 <td style="width:100px;">@context.Telefono</td>
+                <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
                 <td style="width:100px;">@context.Modelo</td>
                 <td style="width:100px;">@context.Marca</td>
                 <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
@@ -252,6 +265,7 @@
     private String nombreCliente;
     private String telefonoCliente;
     private String modelo;
+    private String herramienta;
     private String rfcCliente;
     private DateTime? fechaInicio;
     private DateTime? fechaFin;
@@ -281,6 +295,8 @@
     private int pageSizeHistorial = 0;
     private string totalCotizacion;
 
+    private String acumuladoReparacion = String.Empty;
+
 
     protected async override Task OnInitializedAsync()
     {
@@ -308,6 +324,12 @@
         var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOTs?" + queryStrings);
         consultaOts = responseHttp.Response;
         otTotales = consultaOts.Count > 0 ? consultaOts.Count : 0;
+
+        decimal acumulado = 0;
+        foreach (OrdenTrabajoDetalleConsultaDTO reg in consultaOts)
+            acumulado += reg.costoReparacion;
+
+        acumuladoReparacion = FormatoMoneda(acumulado.ToString());
         expandido = false;
     }
 
@@ -426,8 +448,9 @@
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
         queryStringOt["NumeroOrdenTrabajo"] = numeroOt != null ? numeroOt : "";
 
-        queryStringOt["Modelo"] = modelo != null ? modelo : "";
-        
+        queryStringOt["Modelo"] = modelo ?? String.Empty;
+        queryStringOt["NombreHerramienta"] = herramienta ?? String.Empty;
+
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 
         return string.Join("&", queryStringOt
