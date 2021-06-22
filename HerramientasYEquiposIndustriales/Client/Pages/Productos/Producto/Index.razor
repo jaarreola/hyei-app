@@ -125,10 +125,13 @@
                     <div class="col-md-4">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
                     </div>
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
                     </div>
                 </div>
@@ -210,10 +213,13 @@
                     <div class="col-md-4">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
                     </div>
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                    <div class="col-md-3">1
+                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
                     </div>
                 </div>
@@ -340,6 +346,8 @@
 
     private int idProductoEliminar = 0;
     private int totalProductos = 0;
+
+    private int porcentajeVenta = 20;
 
 
     protected async override Task OnInitializedAsync()
@@ -558,11 +566,19 @@
 
     private async Task GuardarProducto()
     {
-        if (Producto.NoParte == String.Empty)
+        if ((Producto.NoParte ?? String.Empty) == String.Empty)
         {
             await OpenMessage("Debe capturar un numero de parte");
             return;
         }
+
+
+        if ((Producto.Nombre ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el nombre");
+            return;
+        }
+
 
         if (Producto.ProductoId == 0)
         {
@@ -584,7 +600,7 @@
         if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
             if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
             {
-                await OpenMessage("El Costo de Venta debe ser mayor al 20% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+                await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
                 return;
             }
 
@@ -747,13 +763,35 @@
         costoVenta = costoVenta != null ? costoVenta : 0;
         bool result = true;
 
-        float? procentaje = (float?)0.2; //20%
-        precioMayorPorcentaje = ((costoCompra * procentaje) + costoCompra)?.ToString("C2");
-        if (costoVenta < ((costoCompra * procentaje) + costoCompra))
+        float? porcentaje = ((float?)porcentajeVenta / 100); //0.2; //20%
+        porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
+        precioMayorPorcentaje = ((costoCompra * porcentaje) + costoCompra)?.ToString("C2");
+        if (costoVenta < ((costoCompra * porcentaje) + costoCompra))
             result = false;
 
         return result;
     }
+
+
+    private async Task ajustaCostoVenta()
+    {
+        if(Producto != null)
+            Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
+
+        await Task.Delay(50);
+    }
+
+    private float? GeneraCostoVenta(float? costoCompra)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        costoCompra = costoCompra ?? 0;
+
+        float? porcentaje = ((float?)porcentajeVenta / 100);
+        porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
+        return ((porcentaje * costoCompra) + costoCompra);
+    }
+
 
 
     private String FormatoMoneda(String value)

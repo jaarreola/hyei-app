@@ -128,19 +128,22 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 Empleado empleado;
                 bool cancelaOt;
 
-                if (datos.Count == 3)
+                int sigEstatusSinAutorizacion = 0;
+
+                if (datos.Count == 4)
                 {
                     DateTime fecha = DateTime.Now;
                     estatusActual = mapper.Map<EstatusOTFlujo>(JsonConvert.DeserializeObject<EstatusOTFlujoDTO>(datos[0].ToString()));
                     empleado = mapper.Map<Empleado>(JsonConvert.DeserializeObject<EmpleadoDTO>(datos[1].ToString()));
                     cancelaOt = !datos[2].ToString().Equals("False");
+                    sigEstatusSinAutorizacion = int.Parse(datos[3].ToString());
 
                     estatusActual.Terminado = true;
                     estatusSiguiente = new EstatusOTFlujo()
                     {
                         EmpleadoCreacion = empleado.EmpleadoId,
                         EstatusOT = null,
-                        EstatusOTId = SiguienteEstatusOT(estatusActual.EstatusOTId, cancelaOt),
+                        EstatusOTId = SiguienteEstatusOT(sigEstatusSinAutorizacion == 0 ? estatusActual.EstatusOTId : sigEstatusSinAutorizacion, cancelaOt),
                         FechaRegistro = fecha,
                         OrdenTrabajoDetalleId = estatusActual.OrdenTrabajoDetalleId,
                         OrdenTrabajoDetalle = null,

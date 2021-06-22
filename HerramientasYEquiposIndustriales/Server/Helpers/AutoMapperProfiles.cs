@@ -25,6 +25,7 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
             CreateMap<Producto, ProductoDTO>().ReverseMap();
 
             CreateMap<Marca, MarcaDTO>().ReverseMap();
+            CreateMap<MarcaHerramienta, MarcaHerramientaDTO>().ReverseMap();
 
             CreateMap<OrdenTrabajo, OrdenTrabajoDTO>().ReverseMap();
             CreateMap<OrdenTrabajoDetalle, OrdenTrabajoDetalleDTO>().ReverseMap();

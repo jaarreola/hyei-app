@@ -57,6 +57,7 @@ namespace HerramientasYEquiposIndustriales.Server.Context
 
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Marca> Marcas { get; set; }
+        public DbSet<MarcaHerramienta> MarcaHerramientas { get; set; }
 
         public DbSet<OrdenTrabajo> OrdenTrabajo { get; set; }
         public DbSet<OrdenTrabajoDetalle> OrdenTrabajoDetalle { get; set; }

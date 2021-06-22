@@ -142,11 +142,18 @@
             <MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NombreHerramienta" Label="Nombre" HelperText="Nombre de la herramienta"></MatTextField>
                     </div>
                     <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Marca" Label="Marca" HelperText="Marca de la herramienta"></MatTextField>
+                        <MatSelectValue @bind-Value="@_ordenTrabajoDetalle.Marca" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
+                            <ItemTemplate Context="Marca">
+                                @Marca?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectValue>
+                    </div>
+                    <div class="col-md-1">
+                        <MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
                     </div>
                     <div class="col-md-2">
                         <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Modelo" Label="Modelo" HelperText="Modelo de la herramienta"></MatTextField>
@@ -204,12 +211,39 @@
 </div>
 
 
+<EditForm Model="@NuevaMarca">
+    <DataAnnotationsValidator />
+    <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
+        <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+            <MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</EditForm>
+
+
 
 @code{
     //FILTROS BUSQUEDA
     private string _nombreClienteBuscar = string.Empty;
     private string _rfcClienteBuscar = string.Empty;
     private string _telefonoClienteBuscar = string.Empty;
+
+    private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
+    private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
+
+    private bool dialogMarcaIsOpen = false;
 
     //VARIABLES
     private List<OrdenTrabajoDetalleDTO> _ordenesTrabajoDetalle = new List<OrdenTrabajoDetalleDTO>();
@@ -240,11 +274,64 @@
     private String telefono;
 
 
-    //protected async override Task OnInitializedAsync()
-    //{
-    //    System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-    //    CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-    //}
+    protected async override Task OnInitializedAsync()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        await CargaComboMarcas();
+    }
+
+
+    private async Task CargaComboMarcas()
+    {
+        var responseHttp = await repository.Get<List<MarcaHerramientaDTO>>("api/Marcas/GetMarcasHerramientas");
+        MarcasBusqueda = responseHttp.Response;
+    }
+
+    private void OpenDialogMarca()
+    {
+        //if (!Expandido) { Expandido = false; }
+        dialogMarcaIsOpen = true;
+    }
+
+    private async Task CancelaDialogMarca()
+    {
+        dialogMarcaIsOpen = false;
+        NuevaMarca = new MarcaHerramientaDTO();
+
+        await Task.Delay(50);
+    }
+
+    private async Task GuardarMarca()
+    {
+        if (NuevaMarca.MarcaHerramientaId == 0)
+            await CrearMarca();
+    }
+
+    private async Task CrearMarca()
+    {
+        var httpResponse = await repository.Post("api/Marcas/SaveMarcaHerramienta", NuevaMarca);
+
+        if (httpResponse.Error)
+        {
+            if (httpResponse.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                toastService.ShowWarning("Ya existe esa marca.", "Atención");
+                return;
+            }
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        }
+        else
+        {
+            dialogMarcaIsOpen = false;
+            await CargaComboMarcas();
+            await Task.Delay(50);
+            toastService.ShowSuccess("Registro completo", "Guardado");
+            NuevaMarca = new MarcaHerramientaDTO();
+        }
+    }
+
 
 
     private async Task BuscarCliente()

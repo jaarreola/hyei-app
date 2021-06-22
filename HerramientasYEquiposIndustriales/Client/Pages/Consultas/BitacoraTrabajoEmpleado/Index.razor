@@ -99,7 +99,7 @@
 
     Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
     private int regTotales = 0;
-    
+
     protected async override Task OnInitializedAsync()
     {
         await CargaComboEstatus();
@@ -111,9 +111,18 @@
         estatusOT = responseHttp.Response;
 
         estatusOTCombo = new List<EstatusOTDTO>();
-        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Todos", EstatusOTId = -1 });
-        estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Sin Cotizar", EstatusOTId = 0 });
+        List<EstatusOTDTO> estatusOTComboT = new List<EstatusOTDTO>();
+
+        //estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Todos", EstatusOTId = -1 });
+        //estatusOTCombo.Add(new EstatusOTDTO() { Descripcion = "Sin Cotizar", EstatusOTId = 0 });
         estatusOTCombo.AddRange(responseHttp.Response);
+        estatusOTComboT.AddRange(responseHttp.Response);
+
+        foreach(EstatusOTDTO estatus in estatusOTComboT)
+        {
+            if (estatus.Descripcion != "Revisada" && estatus.Descripcion != "Reparada")
+                estatusOTCombo.Remove(estatus);
+        }
     }
 
 
