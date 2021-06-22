@@ -39,9 +39,18 @@
                 <div class="col-md-3">
                     <MatTextField FullWidth="true" @bind-Value="@herramienta" Label="Herramienta"></MatTextField>
                 </div>
+                <div class="col-md-3">
+                    <MatSelectValue @bind-Value="@marcaBusqueda" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
+                        <ItemTemplate Context="Marca">
+                            @Marca?.Descripcion
+                        </ItemTemplate>
+                    </MatSelectValue>
+                </div>
                 <div class="col-md-2">
                     <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
                 </div>
+            </div>
+            <div class="row">
                 <div class="col-md-7">
                     <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
                         <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
@@ -66,6 +75,7 @@
                         <th style="width:100px;">Reparación</th>
                         <th style="width:100px;">Estatus</th>
                         <th style="width:100px;">Garantía</th>
+                        <th style="width:100px;">Marca</th>
                         <th style="width:100px;">Modelo</th>
                         <th style="width:100px;">Fecha Registro</th>
                         <th style="width:50px;"></th>
@@ -80,6 +90,7 @@
                         <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
                         <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
                         <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
+                        <td style="width:100px;">@context.Marca</td>
                         <td style="width:100px;">@context.Modelo</td>
                         <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
                         <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
@@ -101,72 +112,81 @@
             </MatExpansionPanelSubHeader>
         </MatExpansionPanelSummary>
         <MatExpansionPanelDetails>
-            <div class="row">
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NombreHerramienta" Label="Herramienta"></MatTextField>
+            <EditForm Model="@ordenTrabajoConsulta">
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NombreHerramienta" Label="Herramienta"></MatTextField>
+                    </div>
+                    <div class="col-md-2">
+                        <MatSelectValue @bind-Value="@ordenTrabajoConsulta.Marca" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
+                            <ItemTemplate Context="Marca">
+                                @Marca?.Descripcion
+                            </ItemTemplate>
+                        </MatSelectValue>
+                    </div>
+                    <div class="col-md-1">
+                        <MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Modelo" Label="Modelo"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NumeroSerie" Label="Numero Serie"></MatTextField>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Marca" Label="Marca"></MatTextField>
+                <div class="row">
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@nombreCompletoCliente" Label="Cliente" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Telefono" Label="Teléfono" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.RFC" Label="RFC" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-3">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Correo" Label="Correo" ReadOnly="true"></MatTextField>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Modelo" Label="Modelo"></MatTextField>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@tipoGarantia" Label="Tipo de Garantia" ReadOnly="true" InputStyle="font-weight: bold"></MatTextField>
+                    </div>
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@GuardaInfoOt" class="mdc-button-background">Guarda OT</MatButton>
+                    </div>
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@AbreRegistrosCotizacion" class="mdc-button-background">Cotización</MatButton>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NumeroSerie" Label="Numero Serie"></MatTextField>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Comentarios" Label="Comentario / Observación Herramienta" TextArea="true"></MatTextField>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@nombreCompletoCliente" Label="Cliente" ReadOnly="true"></MatTextField>
+                <div class="row">
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial</MatButton>
+                    </div>
+                    <div class="col-md-2">
+                    </div>
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@Autorizada" class="mdc-button-background">Autorizar</MatButton>
+                    </div>
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@Reparada" class="mdc-button-background">Reparar</MatButton>
+                    </div>
+                    <div class="col-md-2">
+                        <MatButton Raised="true" OnClick="@Entregada" class="mdc-button-background">Entregar</MatButton>
+                    </div>
+                    <div class="col-md-2">
+                        @*<MatButton Raised="true" OnClick="@Cancelada" class="mdc-button-background">Cancelar</MatButton>*@
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Telefono" Label="Teléfono" ReadOnly="true"></MatTextField>
-                </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.RFC" Label="RFC" ReadOnly="true"></MatTextField>
-                </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Correo" Label="Correo" ReadOnly="true"></MatTextField>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
-                </div>
-                <div class="col-md-4">
-                    <MatTextField FullWidth="true" @bind-Value="@tipoGarantia" Label="Tipo de Garantia" ReadOnly="true" InputStyle="font-weight: bold"></MatTextField>
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@GuardaInfoOt" class="mdc-button-background">Guarda OT</MatButton>
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@AbreRegistrosCotizacion" class="mdc-button-background">Cotización</MatButton>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Comentarios" Label="Comentario / Observación Herramienta" TextArea="true"></MatTextField>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial</MatButton>
-                </div>
-                <div class="col-md-2">
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@Autorizada" class="mdc-button-background">Autorizar</MatButton>
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@Reparada" class="mdc-button-background">Reparar</MatButton>
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@Entregada" class="mdc-button-background">Entregar</MatButton>
-                </div>
-                <div class="col-md-2">
-                    <MatButton Raised="true" OnClick="@Cancelada" class="mdc-button-background">Cancelar</MatButton>
-                </div>
-            </div>
+            </EditForm>
         </MatExpansionPanelDetails>
     </MatExpansionPanel>
 </MatAccordion>
@@ -529,6 +549,24 @@
     </MatDialogActions>
 </MatDialog>
 
+<MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
+    <MatDialogTitle><h5>Marca para Herramientas</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            &nbsp;
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+        <MatButton OnClick="@GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
 
 @code {
     //FILTROS BUSQUEDA
@@ -537,6 +575,7 @@
     private List<EstatusOTDTO> estatusOTCombo = new List<EstatusOTDTO>();
     private String otBusqueda;
     private String modelo;
+    private String marcaBusqueda;
     private String herramienta;
     private DateTime? fechaInicioBusqueda;
     private DateTime? fechaFinBusqueda;
@@ -621,10 +660,18 @@
     private String noRequiereAutorizacion = String.Empty;
     private int siguientePosicionId = 0;
 
+
+    private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
+    private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
+
+    private bool dialogMarcaIsOpen = false;
+
+
     protected async override Task OnInitializedAsync()
     {
         await CargaComboEstatus();
         await CargaComboMarcas();
+        await CargaComboMarcasHerramientas();
         //await BuscarOT();
     }
 
@@ -646,6 +693,57 @@
         var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
         marcas = responseHttp.Response;
     }
+
+
+    private async Task CargaComboMarcasHerramientas()
+    {
+        var responseHttp = await repository.Get<List<MarcaHerramientaDTO>>("api/Marcas/GetMarcasHerramientas");
+        MarcasBusqueda = responseHttp.Response;
+    }
+
+    private void OpenDialogMarca()
+    {
+        //if (!Expandido) { Expandido = false; }
+        dialogMarcaIsOpen = true;
+    }
+
+    private async Task CancelaDialogMarca()
+    {
+        dialogMarcaIsOpen = false;
+        NuevaMarca = new MarcaHerramientaDTO();
+
+        await Task.Delay(50);
+    }
+
+    private async Task GuardarMarca()
+    {
+        if (NuevaMarca.MarcaHerramientaId == 0)
+            await CrearMarca();
+    }
+
+    private async Task CrearMarca()
+    {
+        var httpResponse = await repository.Post("api/Marcas/SaveMarcaHerramienta", NuevaMarca);
+
+        if (httpResponse.Error)
+        {
+            if (httpResponse.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                toastService.ShowWarning("Ya existe esa marca.", "Atención");
+                return;
+            }
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        }
+        else
+        {
+            dialogMarcaIsOpen = false;
+            await CargaComboMarcasHerramientas();
+            await Task.Delay(50);
+            toastService.ShowSuccess("Registro completo", "Guardado");
+            NuevaMarca = new MarcaHerramientaDTO();
+        }
+    }
+
 
 
     private async Task BuscarOT()
@@ -1418,16 +1516,19 @@
         var estatusOTFlujoSeleccion = httpResponseEstatusOtf.Response;
         estatusOTFlujoSeleccion.OrdenTrabajoDetalle = estatusOTFlujoSeleccion.OrdenTrabajoDetalle != null ? estatusOTFlujoSeleccion.OrdenTrabajoDetalle : new OrdenTrabajoDetalle();
         estatusOTFlujoSeleccion.Ubicacion = ubicacionEstatus;
-        estatusOTFlujoSeleccion.Comentario = String.Concat(comentarioEstatus, noRequiereAutorizacion);
+        estatusOTFlujoSeleccion.Comentario = String.Concat(comentarioEstatus, noRequiereAutorizacion.ToUpper());
 
-        if (siguientePosicionId != 0 && noRequiereAutorizacion != String.Empty)
-            estatusOTFlujoSeleccion.EstatusOTId = siguientePosicionId;
+        if (siguientePosicionId == 0 || noRequiereAutorizacion == String.Empty)
+            siguientePosicionId = 0;
+        
+        //estatusOTFlujoSeleccion.EstatusOTId = siguientePosicionId;
 
         //se manda guardar toda la lista
         List<Object> enviar = new List<Object>();
         enviar.Add(estatusOTFlujoSeleccion);
         enviar.Add(empleado);
         enviar.Add(cancelaOt);
+        enviar.Add(siguientePosicionId);
         var httpResponse = await repository.Post("api/FlujoEstatusOT/GuardaSiguienteEstatus", enviar);
 
         if (httpResponse.Error)
@@ -1707,6 +1808,7 @@
         queryStringOt["Garantia"] = tipoGarantiaBusqueda.ToString();
 
         queryStringOt["Modelo"] = modelo ?? String.Empty;
+        queryStringOt["Marca"] = marcaBusqueda ?? String.Empty;
         queryStringOt["NombreHerramienta"] = herramienta ?? String.Empty;
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };

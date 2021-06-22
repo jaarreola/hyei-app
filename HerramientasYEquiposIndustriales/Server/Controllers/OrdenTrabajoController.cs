@@ -397,6 +397,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
                                    (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
                                    (otd.NombreHerramienta.Contains(filtro.NombreHerramienta) || filtro.NombreHerramienta == null) &&
+                                   (otd.Marca == filtro.Marca || filtro.Marca == null) &&
                                    (otd.Modelo.Contains(filtro.Modelo) || filtro.Modelo == null) &&
                                    (c.Nombre.Contains(filtro.NombreCLiente) || c.Apellido.Contains(filtro.NombreCLiente) || filtro.NombreCLiente == null) &&
                                    (c.Telefono.Contains(filtro.TelefonoCLiente) || filtro.TelefonoCLiente == null) &&

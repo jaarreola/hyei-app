@@ -9,114 +9,126 @@
 
 
 <h5>Consulta de Ordenes de Trabajo</h5>
-<div>
-    <MatAccordion>
-        <MatExpansionPanel @bind-Expanded="@expandido">
-            <MatExpansionPanelSummary>
-                <MatExpansionPanelHeader><h6>Filtros</h6></MatExpansionPanelHeader>
-            </MatExpansionPanelSummary>
-            <MatExpansionPanelDetails>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+<div class="row">
+    <div class="col-md-12">
+        <MatAccordion>
+            <MatExpansionPanel @bind-Expanded="@expandido">
+                <MatExpansionPanelSummary>
+                    <MatExpansionPanelHeader><h6>Filtros</h6></MatExpansionPanelHeader>
+                </MatExpansionPanelSummary>
+                <MatExpansionPanelDetails>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatDatePicker @bind-Value="@fechaInicio" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                        </div>
+                        <div class="col-md-3">
+                            <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@numeroOt" Label="Numero OT"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatSelectItem @bind-Value="@estatusBusqueda" Items="@estatusOTCombo" Label="Estatus">
+                                <ItemTemplate Context="Estatus">
+                                    @Estatus?.Descripcion
+                                </ItemTemplate>
+                            </MatSelectItem>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@herramienta" Label="Herramienta"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatSelectValue @bind-Value="@marcaBusqueda" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
+                                <ItemTemplate Context="Marca">
+                                    @Marca?.Descripcion
+                                </ItemTemplate>
+                            </MatSelectValue>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@numeroOt" Label="Numero OT"></MatTextField>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
+                                <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
+                                <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
+                                <MatRadioButton Value="3" TValue="int">Sin Garantía</MatRadioButton>
+                                <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
+                            </MatRadioGroup>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <MatSelectItem @bind-Value="@estatusBusqueda" Items="@estatusOTCombo" Label="Estatus">
-                            <ItemTemplate Context="Estatus">
-                                @Estatus?.Descripcion
-                            </ItemTemplate>
-                        </MatSelectItem>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@nombreCliente" Label="Nombre Cliente"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@telefonoCliente" Label="Telefono Clente"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@rfcCliente" Label="RFC Cliente"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatButton Raised="true" Icon="search" OnClick="@BuscaOTs" class="mdc-button-background">Buscar</MatButton>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@herramienta" Label="Herramienta"></MatTextField>
-                    </div>
-                    <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@modelo" Label="Modelo"></MatTextField>
-                    </div>
-                    <div class="col-md-7">
-                        <MatRadioGroup @bind-Value="@tipoGarantiaBusqueda" TValue="int">
-                            <MatRadioButton Value="1" TValue="int">Garantía Local</MatRadioButton>
-                            <MatRadioButton Value="2" TValue="int">Garantía Fábrica</MatRadioButton>
-                            <MatRadioButton Value="3" TValue="int">Sin Garantía</MatRadioButton>
-                            <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
-                        </MatRadioGroup>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreCliente" Label="Nombre Cliente"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@telefonoCliente" Label="Telefono Clente"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@rfcCliente" Label="RFC Cliente"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatButton Raised="true" Icon="search" OnClick="@BuscaOTs" class="mdc-button-background">Buscar</MatButton>
-                    </div>
-                </div>
-            </MatExpansionPanelDetails>
-        </MatExpansionPanel>
-    </MatAccordion>
-
-    <div class="row">
-        <div class="col-md-3" style="padding:15px 0px 0px 0px">
-            Ordenes de trabajo: <strong>@otTotales</strong>
-        </div>
-        <div class="col-md-3" style="padding:15px 0px 0px 0px">
-        </div>
-        <div class="col-md-4" style="padding:15px 0px 0px 0px">
-            Acumulado reparaciones: <strong>@acumuladoReparacion</strong>
-        </div>
-    </div>
-
-
-    <div class="row">
-        <MatTable Items="@consultaOts" AllowSelection="true" class="mat-elevation-z10">
-            <MatTableHeader>
-                <th style="width:120px;">Numero Orden</th>
-                <th style="width:200px;">Herramienta</th>
-
-                <th style="width:100px;">Ubicación</th>
-                <th style="width:200px;">Cliente</th>
-                <th style="width:100px;">Teléfono</th>
-                <th style="width:100px;">Reparación</th>
-                <th style="width:100px;">Modelo</th>
-                <th style="width:100px;">Marca</th>
-                <th style="width:100px;">Estatus</th>
-
-                <th style="width:100px;">Fecha Registro</th>
-                <th style="width:100px;">LLega por Garantía</th>
-                <th style="width:50px;"></th>
-            </MatTableHeader>
-            <MatTableRow>
-                <td style="width:120px; font-weight:bold">@context.NumeroOrdenTrabajo</td>
-                <td style="width:200px;">@context.NombreHerramienta</td>
-
-                <td style="width:100px;">@context.Ubicacion</td>
-                <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
-                <td style="width:100px;">@context.Telefono</td>
-                <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
-                <td style="width:100px;">@context.Modelo</td>
-                <td style="width:100px;">@context.Marca</td>
-                <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
-
-                <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
-                <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
-                <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
-            </MatTableRow>
-        </MatTable>
+                </MatExpansionPanelDetails>
+            </MatExpansionPanel>
+        </MatAccordion>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-md-3" style="padding:15px 0px 0px 0px">
+        Ordenes de trabajo: <strong>@otTotales</strong>
+    </div>
+    <div class="col-md-3" style="padding:15px 0px 0px 0px">
+    </div>
+    <div class="col-md-4" style="padding:15px 0px 0px 0px">
+        Acumulado reparaciones: <strong>@acumuladoReparacion</strong>
+    </div>
+</div>
+
+
+<div class="row">
+    <MatTable Items="@consultaOts" AllowSelection="true" class="mat-elevation-z10">
+        <MatTableHeader>
+            <th style="width:120px;">Numero Orden</th>
+            <th style="width:200px;">Herramienta</th>
+
+            <th style="width:100px;">Ubicación</th>
+            <th style="width:200px;">Cliente</th>
+            <th style="width:100px;">Teléfono</th>
+            <th style="width:100px;">Reparación</th>
+            <th style="width:100px;">Modelo</th>
+            <th style="width:100px;">Marca</th>
+            <th style="width:100px;">Estatus</th>
+
+            <th style="width:100px;">Fecha Registro</th>
+            <th style="width:100px;">LLega por Garantía</th>
+            <th style="width:50px;"></th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td style="width:120px; font-weight:bold">@context.NumeroOrdenTrabajo</td>
+            <td style="width:200px;">@context.NombreHerramienta</td>
+
+            <td style="width:100px;">@context.Ubicacion</td>
+            <td style="width:200px;">@String.Concat(context.Nombre, " ", context.Apellido)</td>
+            <td style="width:100px;">@context.Telefono</td>
+            <td style="width:100px;">@FormatoMoneda(context.costoReparacion.ToString())</td>
+            <td style="width:100px;">@context.Modelo</td>
+            <td style="width:100px;">@context.Marca</td>
+            <td style="width:100px;">@(context.Descripcion != null ? context.Descripcion : "Sin Cotizar")</td>
+
+            <td style="width:100px;">@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+            <td style="width:100px;">@(context.GarantiaLocal ? "Local": context.GarantiaFabrica ? "Fábrica" : "")</td>
+            <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context))" Icon="visibility"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
 
 
 <div>
@@ -266,6 +278,7 @@
     private String telefonoCliente;
     private String modelo;
     private String herramienta;
+    private String marcaBusqueda;
     private String rfcCliente;
     private DateTime? fechaInicio;
     private DateTime? fechaFin;
@@ -298,11 +311,22 @@
     private String acumuladoReparacion = String.Empty;
 
 
+    private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
+    private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
+
+
     protected async override Task OnInitializedAsync()
     {
         //OrdenTrabajoCotizar.Cliente = new Cliente();
         //await BuscaOTParaCotizar();
         await CargaComboEstatus();
+        await CargaComboMarcasHerramientas();
+    }
+
+    private async Task CargaComboMarcasHerramientas()
+    {
+        var responseHttp = await repository.Get<List<MarcaHerramientaDTO>>("api/Marcas/GetMarcasHerramientas");
+        MarcasBusqueda = responseHttp.Response;
     }
 
     private async Task CargaComboEstatus()
@@ -449,6 +473,8 @@
         queryStringOt["NumeroOrdenTrabajo"] = numeroOt != null ? numeroOt : "";
 
         queryStringOt["Modelo"] = modelo ?? String.Empty;
+        queryStringOt["Marca"] = marcaBusqueda ?? String.Empty;
+
         queryStringOt["NombreHerramienta"] = herramienta ?? String.Empty;
 
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
