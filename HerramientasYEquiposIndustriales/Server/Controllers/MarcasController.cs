@@ -43,6 +43,23 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+        [HttpGet("GetMarcasHerramientas")]
+        public async Task<ActionResult<IEnumerable<MarcaHerramientaDTO>>> GetMarcasHerramientas()
+        {
+            try
+            {
+                var Marcas = await context.MarcaHerramientas.OrderBy(x => x.Descripcion).ToListAsync();
+                return mapper.Map<List<MarcaHerramientaDTO>>(Marcas);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de Marcas para las herramientas. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
         [HttpGet("{id}", Name = "ObtenerMarca")]
         public async Task<ActionResult<MarcaDTO>> GetMarca(int id)
         {
@@ -111,7 +128,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var Marca = mapper.Map<Marca>(MarcaCreacionDTO);
-               
+
                 context.Marcas.Add(Marca);
                 await context.SaveChangesAsync();
 
@@ -128,6 +145,33 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpPost("SaveMarcaHerramienta")]
+        public async Task<ActionResult<MarcaHerramientaDTO>> SaveMarcaHerramienta(MarcaHerramientaDTO MarcaCreacionDTO)
+        {
+            try
+            {
+                var Marca = mapper.Map<MarcaHerramienta>(MarcaCreacionDTO);
+                Marca.Descripcion = Marca.Descripcion.ToUpper();
+
+                if (MarcaHerramientaExists(Marca.Descripcion)) { return NotFound(); }
+
+                context.MarcaHerramientas.Add(Marca);
+                await context.SaveChangesAsync();
+
+                return mapper.Map<MarcaHerramientaDTO>(Marca);
+                //var dto = mapper.Map<MarcaHerramientaDTO>(Marca);
+                //return new CreatedAtRouteResult("ObtenerMarcaHerramienta", new { id = Marca.MarcaHerramientaId }, dto);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al crear el Marca. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
         [HttpPut("{id}")]
         public async Task<ActionResult<MarcaDTO>> PutMarca(int id, [FromBody] MarcaDTO MarcaModificacionDTO)
         {
@@ -138,9 +182,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var Marca = mapper.Map<Marca>(MarcaModificacionDTO);
 
                 Marca.MarcaId = id;
-                
+
                 context.Entry(Marca).State = EntityState.Modified;
-                
+
                 await context.SaveChangesAsync();
 
                 return NoContent();
@@ -178,6 +222,11 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         private bool MarcaExists(int id)
         {
             return context.Marcas.Any(x => x.MarcaId == id);
+        }
+
+        private bool MarcaHerramientaExists(String nombre)
+        {
+            return context.MarcaHerramientas.Any(x => x.Descripcion == nombre);
         }
     }
 }
