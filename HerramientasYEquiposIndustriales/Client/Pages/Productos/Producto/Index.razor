@@ -213,7 +213,7 @@
                     <div class="col-md-4">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
                     </div>
-                    <div class="col-md-3">1
+                    <div class="col-md-3">
                         <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
                     </div>
                     <div class="col-md-2">
@@ -360,21 +360,6 @@
         await Task.Delay(50);
     }
 
-
-    //private async Task OpenDialog()
-    //{
-    //    System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-    //    CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-    //
-    //    if (!Expandido) { Expandido = false; }
-    //    dialogIsOpen = true;
-    //    await Task.Delay(50);
-    //}
-
-    //private void OnChangeValueNoAfectaInventario(bool value)
-    //{
-    //    noAfectaInventario = value;
-    //}
 
     private void OpenDialog()
     {
@@ -759,14 +744,13 @@
     {
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-        costoCompra = costoCompra != null ? costoCompra : 0;
-        costoVenta = costoVenta != null ? costoVenta : 0;
+        costoCompra = costoCompra ?? 0;
+        costoVenta = costoVenta ?? 0;
         bool result = true;
 
-        float? porcentaje = ((float?)porcentajeVenta / 100); //0.2; //20%
-        porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
-        precioMayorPorcentaje = ((costoCompra * porcentaje) + costoCompra)?.ToString("C2");
-        if (costoVenta < ((costoCompra * porcentaje) + costoCompra))
+        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+        precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
+        if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
             result = false;
 
         return result;
@@ -775,7 +759,7 @@
 
     private async Task ajustaCostoVenta()
     {
-        if(Producto != null)
+        if (Producto != null)
             Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
 
         await Task.Delay(50);
@@ -786,10 +770,20 @@
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
         costoCompra = costoCompra ?? 0;
+        if (porcentajeVenta >= 100)
+            porcentajeVenta = 99;
+        if (porcentajeVenta < 0)
+            porcentajeVenta = 0;
 
-        float? porcentaje = ((float?)porcentajeVenta / 100);
-        porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
-        return ((porcentaje * costoCompra) + costoCompra);
+        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+        //porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
+        //return ((porcentaje * costoCompra) + costoCompra);
+        if (costoCompra > 0)
+            return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
+        //return (float?)(Math.Truncate((decimal)(costoCompra / porcentaje)) / 100);
+        else
+            return 0;
+
     }
 
 
