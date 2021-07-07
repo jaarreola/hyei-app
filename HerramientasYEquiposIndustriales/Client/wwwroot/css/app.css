@@ -132,6 +132,14 @@ app {
     width: 100px;
     height: auto;
 }
+.logoInicio {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    height: auto;
+}
+
 
 .fontNav {
     font-size: 14px;

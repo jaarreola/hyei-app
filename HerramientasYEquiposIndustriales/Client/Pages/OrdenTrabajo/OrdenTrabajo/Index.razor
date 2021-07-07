@@ -62,7 +62,7 @@
             <MatButton Raised="true" Icon="search" OnClick="@OpenDialogAgregaHerramienta" class="mdc-button-background">Agregar Herramienta</MatButton>
         </div>
         <div class="col-md-2">
-            <MatButton Raised="true" Icon="save" OnClick="@GuardaOrdenesTrabajo" class="mdc-button-background">GUARDAR</MatButton>
+            <MatButton Raised="true" Icon="save" OnClick="@GuardaOrdenesTrabajo" Disabled="@desactivaGuardar" class="mdc-button-background">GUARDAR</MatButton>
         </div>
     </div>
 
@@ -205,7 +205,7 @@
         </MatDialogContent>
         <MatDialogActions>
             <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+            <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal" Disabled="@desactivaEmpleadoGuardar">Aceptar</MatButton>
         </MatDialogActions>
     </MatDialog>
 </div>
@@ -272,6 +272,10 @@
     private String nombre;
     private String apellido;
     private String telefono;
+
+
+    private bool desactivaGuardar = false;
+    private bool desactivaEmpleadoGuardar = false;
 
 
     protected async override Task OnInitializedAsync()
@@ -460,6 +464,9 @@
 
     private async Task<bool> GuardaOrdenesTrabajo()
     {
+        if (desactivaGuardar == true)
+            return false;
+
         await Task.Delay(50);
         if (_cliente.ClienteId == 0)
         {
@@ -481,7 +488,7 @@
                     return false;
                 }
             }
-
+            desactivaGuardar = true;
             _dialogValidaEmpleado = true;
             return true;
         }
@@ -640,10 +647,13 @@
     {
         _numeroEmpleado = String.Empty;
         _dialogValidaEmpleado = false;
+        desactivaGuardar = false;
     }
 
     private async Task ValidaEmpleado()
     {
+        if (desactivaEmpleadoGuardar == true) { return; }
+
         var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", _numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -652,6 +662,8 @@
 
         if (_empleado.EmpleadoId != 0)
         {
+            desactivaEmpleadoGuardar = true;
+
             //se manda guardar toda la lista
             List<Object> _enviar = new List<Object>();
             _enviar.Add(_cliente);
@@ -681,10 +693,14 @@
                 _cliente = new ClienteDTO();
                 _consecutivoOT = 0;
                 toastService.ShowSuccess("Registro completo", "Guardado");
+
+                desactivaGuardar = false;
             }
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+
+        desactivaEmpleadoGuardar = false;
     }
 
 

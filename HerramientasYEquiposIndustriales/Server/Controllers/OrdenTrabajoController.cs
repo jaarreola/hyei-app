@@ -283,7 +283,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     _ordenTrabajo = mapper.Map<OrdenTrabajo>(JsonConvert.DeserializeObject<OrdenTrabajoDTO>(datos[1].ToString()));
                     foreach (OrdenTrabajoDetalleDTO otd in (JsonConvert.DeserializeObject<List<OrdenTrabajoDetalleDTO>>(datos[2].ToString())))
                     {
-                        _ordenesTrabajoDetalle.Add(mapper.Map<OrdenTrabajoDetalle>(otd));
+                        //si no existe el numero de orden se agrega
+                        if (!OrdenTrabajoDetalleExists(otd.NumeroOrdenTrabajo))
+                            _ordenesTrabajoDetalle.Add(mapper.Map<OrdenTrabajoDetalle>(otd));
                     }
                 }
 
@@ -295,6 +297,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         context.Clientes.Add(_cliente);
                         context.SaveChanges();
                     }
+
 
                     _ordenTrabajo.ClienteId = _cliente.ClienteId;
                     _ordenTrabajo.FechaRegistro = DateTime.Now;

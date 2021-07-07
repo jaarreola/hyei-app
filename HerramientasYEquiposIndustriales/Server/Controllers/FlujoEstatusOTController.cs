@@ -80,7 +80,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var result = await context.EstatusOTFlujos.Include(x => x.OrdenTrabajoDetalle).Include(x => x.EstatusOT).Where(x => x.OrdenTrabajoDetalleId == otdId && x.Terminado == null).FirstOrDefaultAsync();
-                return mapper.Map<EstatusOTFlujoDTO>(result);
+                EstatusOTFlujoDTO res;
+                if (result == null)
+                {
+                    res = new EstatusOTFlujoDTO();
+                    res.OrdenTrabajoDetalleId = otdId;
+                }   
+                else
+                    res = mapper.Map<EstatusOTFlujoDTO>(result);
+
+                return res;
             }
             catch (Exception ex)
             {
@@ -156,11 +165,14 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         using var scope = new TransactionScope(TransactionScopeOption.Required,
                         new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted });
 
-                        context.Entry(estatusActual).State = EntityState.Modified;
-                        context.Entry(estatusActual).Property(x => x.FechaRegistro).IsModified = false;
-                        context.Entry(estatusActual).Property(x => x.Ubicacion).IsModified = false;
-                        context.Entry(estatusActual).Property(x => x.Comentario).IsModified = false;
-                        context.SaveChanges();
+                        if(estatusActual.EstatusOTFlujoId != 0)
+                        {
+                            context.Entry(estatusActual).State = EntityState.Modified;
+                            context.Entry(estatusActual).Property(x => x.FechaRegistro).IsModified = false;
+                            context.Entry(estatusActual).Property(x => x.Ubicacion).IsModified = false;
+                            context.Entry(estatusActual).Property(x => x.Comentario).IsModified = false;
+                            context.SaveChanges();
+                        }
 
                         context.EstatusOTFlujos.Add(estatusSiguiente);
                         context.SaveChanges();
@@ -190,7 +202,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var estatusActual = context.EstatusOTs.FirstOrDefault(x => x.EstatusOTId == estatusIdActual);
                 posicionSig = cancelarOt ? -1 : (estatusActual.Posicion == -1 ? 1 : estatusActual.Posicion + 1);
                 var estatusSiguiente = context.EstatusOTs.FirstOrDefault(x => x.Posicion == posicionSig);
-                if (estatusSiguiente == null) { return posicionSig; }
+                if (estatusSiguiente == null) { return estatusIdActual; }
 
                 estatusIdSiguiente = mapper.Map<EstatusOTDTO>(estatusSiguiente).EstatusOTId;
                 return estatusIdSiguiente;

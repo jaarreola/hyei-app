@@ -458,7 +458,7 @@
         <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
         <MatDialogContent>
             <div class="row">
-                &nbsp;
+                <MatCheckbox TValue="bool" @bind-Value="@noAfectaInventario">No Afecta Inventario</MatCheckbox>
             </div>
             <div class="row">
                 <div class="col-md-3">
@@ -479,10 +479,13 @@
                 <div class="col-md-4">
                     <MatTextField FullWidth="true" @bind-Value="@producto.Modelo" Label="Modelo"></MatTextField>
                 </div>
-                <div class="col-md-4">
-                    <MatTextField FullWidth="true" @bind-Value="@producto.CostoCompra" Label="Costo de Compra"></MatTextField>
+                <div class="col-md-3">
+                    <MatTextField FullWidth="true" @bind-Value="@producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+                </div>
+                <div class="col-md-3">
                     <MatTextField FullWidth="true" @bind-Value="@producto.CostoVenta" Label="Costo de Venta"></MatTextField>
                 </div>
             </div>
@@ -665,6 +668,9 @@
     private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
 
     private bool dialogMarcaIsOpen = false;
+
+    private bool noAfectaInventario = false;
+    private int porcentajeVenta = 20;
 
 
     protected async override Task OnInitializedAsync()
@@ -1255,6 +1261,7 @@
         if (empleado.EmpleadoId != 0)
         {
             producto.MarcaId = marca.MarcaId;
+            producto.NoAfectaInventario = noAfectaInventario;
             if (producto.ProductoId == 0)
             {
                 producto.EmpleadoCreacion = empleado.EmpleadoId;
@@ -1405,6 +1412,17 @@
                         break;
                     }
 
+                    if (descripcionEstatusSiguiente == "Entregada" && ordenTrabajoConsulta.Descripcion != "Reparada")
+                    {
+                        if (await OpenConfirmacion("Desea entregar la herramienta sin reparar?") == 0)
+                            return false;
+                        
+                        noRequiereAutorizacion = ". Se entrego sin reparar.";
+                        var responseHttpEstatus = await repository.Get<EstatusOTDTO>("api/EstatusOT/GetEstatusOTByDescripcion/" + descripcionEstatusSiguiente);
+                        siguientePosicionId = responseHttpEstatus.Response.EstatusOTId;
+                        break;
+                    }
+
                     toastService.ShowWarning("Primero debe estar " + estatus.Descripcion + " esta Orden de trabajo.", "Atención");
                     return false;
                 }
@@ -1448,7 +1466,7 @@
 
         if (empleado.EmpleadoId != 0 && (ubicacionEstatus != String.Empty || noRequiereUbicacion))
         {
-            if (cotizacion.CotizacionId == 0)
+            if (cotizacion.CotizacionId == 0 && (noRequiereAutorizacion ?? String.Empty) == String.Empty)
             {
                 //se agrega el registro del empleado de creacion/modificacion a los registros de factura
                 cotizacion.Comentario = comentarioCotizacion;
@@ -1486,7 +1504,7 @@
                     }
                 }
             }
-            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0 || cancelaOt == true)
+            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0 || cancelaOt == true || (noRequiereAutorizacion ?? String.Empty) != String.Empty)
             {
                 if (afectaInventarioSalida)
                     //se generan los registros de salida de material
@@ -1520,7 +1538,7 @@
 
         if (siguientePosicionId == 0 || noRequiereAutorizacion == String.Empty)
             siguientePosicionId = 0;
-        
+
         //estatusOTFlujoSeleccion.EstatusOTId = siguientePosicionId;
 
         //se manda guardar toda la lista
@@ -1581,6 +1599,7 @@
             if (await OpenConfirmacion("No existe este producto, desea crearlo?") == 1)
             {
                 producto = new ProductoDTO() { NoParte = numeroParteRegistro };
+                noAfectaInventario = false;
                 dialogNewProductIsOpen = true;
             }
         await Task.Delay(50);
@@ -1644,7 +1663,7 @@
         if ((producto.CostoVenta != null ? producto.CostoVenta : 0) != 0)
             if (!CostoVentaCorrecto(producto.CostoCompra, producto.CostoVenta))
             {
-                await OpenMessage("El Costo de Venta debe ser mayor al 20% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+                await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
                 return;
             }
 
@@ -1770,13 +1789,13 @@
     {
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
-        costoCompra = costoCompra != null ? costoCompra : 0;
-        costoVenta = costoVenta != null ? costoVenta : 0;
+        costoCompra = costoCompra ?? 0;
+        costoVenta = costoVenta ?? 0;
         bool result = true;
 
-        float? procentaje = (float?)0.2; //20%
-        precioMayorPorcentaje = ((costoCompra * procentaje) + costoCompra)?.ToString("C2");
-        if (costoVenta < ((costoCompra * procentaje) + costoCompra))
+        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+        precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
+        if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
             result = false;
 
         return result;
@@ -1847,6 +1866,34 @@
             .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
             .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
     }
+
+
+    private async Task ajustaCostoVenta()
+    {
+        if (producto != null)
+            producto.CostoVenta = GeneraCostoVenta(producto.CostoCompra);
+
+        await Task.Delay(50);
+    }
+
+    private float? GeneraCostoVenta(float? costoCompra)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        costoCompra = costoCompra ?? 0;
+        if (porcentajeVenta >= 100)
+            porcentajeVenta = 99;
+        if (porcentajeVenta < 0)
+            porcentajeVenta = 0;
+
+        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+        if (costoCompra > 0)
+            return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
+        else
+            return 0;
+
+    }
+
 
     private async Task<int> OpenConfirmacion(string pregunta)
     {
