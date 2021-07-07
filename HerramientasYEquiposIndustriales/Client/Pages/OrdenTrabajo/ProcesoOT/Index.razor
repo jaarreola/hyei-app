@@ -1412,6 +1412,17 @@
                         break;
                     }
 
+                    if (descripcionEstatusSiguiente == "Entregada" && ordenTrabajoConsulta.Descripcion != "Reparada")
+                    {
+                        if (await OpenConfirmacion("Desea entregar la herramienta sin reparar?") == 0)
+                            return false;
+                        
+                        noRequiereAutorizacion = ". Se entrego sin reparar.";
+                        var responseHttpEstatus = await repository.Get<EstatusOTDTO>("api/EstatusOT/GetEstatusOTByDescripcion/" + descripcionEstatusSiguiente);
+                        siguientePosicionId = responseHttpEstatus.Response.EstatusOTId;
+                        break;
+                    }
+
                     toastService.ShowWarning("Primero debe estar " + estatus.Descripcion + " esta Orden de trabajo.", "Atención");
                     return false;
                 }
@@ -1455,7 +1466,7 @@
 
         if (empleado.EmpleadoId != 0 && (ubicacionEstatus != String.Empty || noRequiereUbicacion))
         {
-            if (cotizacion.CotizacionId == 0)
+            if (cotizacion.CotizacionId == 0 && (noRequiereAutorizacion ?? String.Empty) == String.Empty)
             {
                 //se agrega el registro del empleado de creacion/modificacion a los registros de factura
                 cotizacion.Comentario = comentarioCotizacion;
@@ -1493,7 +1504,7 @@
                     }
                 }
             }
-            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0 || cancelaOt == true)
+            else if (ordenTrabajoConsulta.EstatusOTFlujoId != 0 || cancelaOt == true || (noRequiereAutorizacion ?? String.Empty) != String.Empty)
             {
                 if (afectaInventarioSalida)
                     //se generan los registros de salida de material
