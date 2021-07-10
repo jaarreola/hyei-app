@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="DetalleEtiqueta" targetNamespace="http://tempuri.org/DetalleEtiqueta.xsd" xmlns:mstns="http://tempuri.org/DetalleEtiqueta.xsd" xmlns="http://tempuri.org/DetalleEtiqueta.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="DetalleEtiqueta" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="DetalleEtiqueta" msprop:Generator_UserDSName="DetalleEtiqueta">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="DetalleEtiqueta" msprop:Generator_TableClassName="DetalleEtiquetaDataTable" msprop:Generator_TableVarName="tableDetalleEtiqueta" msprop:Generator_TablePropName="_DetalleEtiqueta" msprop:Generator_RowDeletingName="DetalleEtiquetaRowDeleting" msprop:Generator_RowChangingName="DetalleEtiquetaRowChanging" msprop:Generator_RowEvHandlerName="DetalleEtiquetaRowChangeEventHandler" msprop:Generator_RowDeletedName="DetalleEtiquetaRowDeleted" msprop:Generator_UserTableName="DetalleEtiqueta" msprop:Generator_RowChangedName="DetalleEtiquetaRowChanged" msprop:Generator_RowEvArgName="DetalleEtiquetaRowChangeEvent" msprop:Generator_RowClassName="DetalleEtiquetaRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="NumeroOrdenTrabajo" msprop:Generator_ColumnVarNameInTable="columnNumeroOrdenTrabajo" msprop:Generator_ColumnPropNameInRow="NumeroOrdenTrabajo" msprop:Generator_ColumnPropNameInTable="NumeroOrdenTrabajoColumn" msprop:Generator_UserColumnName="NumeroOrdenTrabajo" type="xs:long" minOccurs="0" />
+              <xs:element name="NombreHerramienta" msprop:Generator_ColumnVarNameInTable="columnNombreHerramienta" msprop:Generator_ColumnPropNameInRow="NombreHerramienta" msprop:Generator_ColumnPropNameInTable="NombreHerramientaColumn" msprop:Generator_UserColumnName="NombreHerramienta" type="xs:string" minOccurs="0" />
+              <xs:element name="Marca" msprop:Generator_ColumnVarNameInTable="columnMarca" msprop:Generator_ColumnPropNameInRow="Marca" msprop:Generator_ColumnPropNameInTable="MarcaColumn" msprop:Generator_UserColumnName="Marca" type="xs:string" minOccurs="0" />
+              <xs:element name="Modelo" msprop:Generator_ColumnVarNameInTable="columnModelo" msprop:Generator_ColumnPropNameInRow="Modelo" msprop:Generator_ColumnPropNameInTable="ModeloColumn" msprop:Generator_UserColumnName="Modelo" type="xs:string" minOccurs="0" />
+              <xs:element name="NumeroSerie" msprop:Generator_ColumnVarNameInTable="columnNumeroSerie" msprop:Generator_ColumnPropNameInRow="NumeroSerie" msprop:Generator_ColumnPropNameInTable="NumeroSerieColumn" msprop:Generator_UserColumnName="NumeroSerie" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

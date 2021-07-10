@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="DataSet1" targetNamespace="http://tempuri.org/DataSet1.xsd" xmlns:mstns="http://tempuri.org/DataSet1.xsd" xmlns="http://tempuri.org/DataSet1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="DataSet1" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="DataSet1" msprop:Generator_UserDSName="DataSet1">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="EncabezadoEtiqueta" msprop:Generator_TableClassName="EncabezadoEtiquetaDataTable" msprop:Generator_TableVarName="tableEncabezadoEtiqueta" msprop:Generator_TablePropName="EncabezadoEtiqueta" msprop:Generator_RowDeletingName="EncabezadoEtiquetaRowDeleting" msprop:Generator_RowChangingName="EncabezadoEtiquetaRowChanging" msprop:Generator_RowEvHandlerName="EncabezadoEtiquetaRowChangeEventHandler" msprop:Generator_RowDeletedName="EncabezadoEtiquetaRowDeleted" msprop:Generator_UserTableName="EncabezadoEtiqueta" msprop:Generator_RowChangedName="EncabezadoEtiquetaRowChanged" msprop:Generator_RowEvArgName="EncabezadoEtiquetaRowChangeEvent" msprop:Generator_RowClassName="EncabezadoEtiquetaRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="FechaRegistro" msprop:Generator_ColumnVarNameInTable="columnFechaRegistro" msprop:Generator_ColumnPropNameInRow="FechaRegistro" msprop:Generator_ColumnPropNameInTable="FechaRegistroColumn" msprop:Generator_UserColumnName="FechaRegistro" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="OrdenTrabajoId" msprop:Generator_ColumnVarNameInTable="columnOrdenTrabajoId" msprop:Generator_ColumnPropNameInRow="OrdenTrabajoId" msprop:Generator_ColumnPropNameInTable="OrdenTrabajoIdColumn" msprop:Generator_UserColumnName="OrdenTrabajoId" type="xs:long" minOccurs="0" />
+              <xs:element name="Cliente" msprop:Generator_ColumnVarNameInTable="columnCliente" msprop:Generator_ColumnPropNameInRow="Cliente" msprop:Generator_ColumnPropNameInTable="ClienteColumn" msprop:Generator_UserColumnName="Cliente" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
