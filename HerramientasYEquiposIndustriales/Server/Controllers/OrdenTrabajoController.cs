@@ -763,6 +763,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
 
+        [HttpGet("GetUltimaOrdenTrabajoId")]
+        public async Task<ActionResult<int>> GetUltimaOrdenTrabajoId()
+        {
+            try
+            {
+                var configuracion = await context.OrdenTrabajo.OrderByDescending(x => x.FechaRegistro).FirstOrDefaultAsync();
+                if (configuracion == null) { return NotFound(); }
+
+                return configuracion.OrdenTrabajoId;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el ultimo valor de las Ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
+
         private Cliente GetClienteExists(Cliente cliente)
         {
             var clienteE = context.Clientes.FirstOrDefault(x => x.Nombre == cliente.Nombre && x.Apellido == cliente.Apellido && x.Telefono == cliente.Telefono && x.Correo == cliente.Correo && x.RFC == cliente.RFC && x.Direccion == cliente.Direccion);

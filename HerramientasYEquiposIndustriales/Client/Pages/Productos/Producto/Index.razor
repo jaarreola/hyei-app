@@ -6,835 +6,868 @@
 @inject IToastService toastService
 @inject IMatDialogService MatDialogService
 
-<div>
-    <div class="row">
-        <div class="col-md-11 col-sm-4">
-            <MatAccordion>
-                <MatExpansionPanel @bind-Expanded="@Expandido">
-                    <MatExpansionPanelSummary>
-                        <MatExpansionPanelHeader><h3>Productos</h3></MatExpansionPanelHeader>
-                    </MatExpansionPanelSummary>
-                    <MatExpansionPanelDetails>
-                        <div class="row">
-                            <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@NoParteBusqueda" HelperText="Número de Parte" Label="No Parte"></MatTextField>
-                            </div>
-                            <div class="col-md-3">
-                                <MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del producto/refacción" Label="Nombre"></MatTextField>
-                            </div>
-                            <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@ModeloBusqueda" HelperText="Modelo del producto/refacción" Label="Modelo"></MatTextField>
-                            </div>
-                            <div class="col-md-2">
-                                <MatSelectItem @bind-Value="@MarcaBusqueda" Items="@MarcasBusqueda" Label="Marca">
-                                    <ItemTemplate Context="Marca">
-                                        @Marca?.Descripcion
-                                    </ItemTemplate>
-                                </MatSelectItem>
-                            </div>
-                            <div class="col-md-1">
-                                <MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
-                            </div>
-                            <div class="col-md-2">
-                                <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
-                            </div>
-                        </div>
-                    </MatExpansionPanelDetails>
-                </MatExpansionPanel>
-            </MatAccordion>
-        </div>
-        <div class="col-md-1 col-sm-4">
-            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
-        </div>
-    </div>
-</div>
-
-<div class="col-md-3" style="padding:15px 0px 0px 0px">
-    Productos totales: <strong>@totalProductos</strong>
-</div>
+@inject IJSRuntime Js
 
 <div>
-    <MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
-        <MatTableHeader>
-            <th style="width:13%;">NoParte</th>
-            <th style="width:28%;">Nombre</th>
-            <th style="width:15%;">Marca</th>
-            <th style="width:10%;">Modelo</th>
-            <th style="width:8%;">Ubicación</th>
-            @*<th style="width:8%;">Costo Compra</th>*@
-            <th style="width:8%;">Costo Venta</th>
-            <th style="width:8%;">Registro</th>
-            <th style="width:5%;"></th>
-            <th style="width:5%;"></th>
-        </MatTableHeader>
-        <MatTableRow>
-            @if (context.FechaBaja == null)
-                {<td style="font-weight:bold">@context.NoParte</td>}
-            @if (context.FechaBaja != null)
-                {<td style="color:Red">@context.NoParte</td>}
-
-            <td>@context.Nombre</td>
-            <td>@context.Marca.Descripcion</td>
-            <td>@context.Modelo</td>
-
-            @if (context.Ubicacion != null)
-                {<td>@context.Ubicacion</td>}
-                else
-                {<td></td>}
-
-            @*<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>*@
-            <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
-            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
-            <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
-
-            @if (context.FechaBaja == null)
-                {<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>}
-            @if (context.FechaBaja != null)
-                {<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>}
-
-        </MatTableRow>
-    </MatTable>
+	<div class="row">
+		<div class="col-md-11 col-sm-4">
+			<MatAccordion>
+				<MatExpansionPanel @bind-Expanded="@Expandido">
+					<MatExpansionPanelSummary>
+						<MatExpansionPanelHeader><h3>Productos</h3></MatExpansionPanelHeader>
+					</MatExpansionPanelSummary>
+					<MatExpansionPanelDetails>
+						<div class="row">
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@NoParteBusqueda" HelperText="Número de Parte" Label="No Parte"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del producto/refacción" Label="Nombre"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@ModeloBusqueda" HelperText="Modelo del producto/refacción" Label="Modelo"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatSelectItem @bind-Value="@MarcaBusqueda" Items="@MarcasBusqueda" Label="Marca">
+									<ItemTemplate Context="Marca">
+										@Marca?.Descripcion
+									</ItemTemplate>
+								</MatSelectItem>
+							</div>
+							<div class="col-md-1">
+								<MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
+							</div>
+							<div class="col-md-2">
+								<MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
+							</div>
+						</div>
+					</MatExpansionPanelDetails>
+				</MatExpansionPanel>
+			</MatAccordion>
+		</div>
+		<div class="col-md-1 col-sm-4">
+			<MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+		</div>
+	</div>
 </div>
 
+<div class="row">
+	<div class="col-md-4 col-sm-4">
+		Productos totales: <strong>@totalProductos</strong>
+	</div>
+	<div class="col-md-4 col-sm-4">
+	</div>
+	<div class="col-md-4 col-sm-4">
+		<MatButton OnClick="@ImprimirInventario" Icon="receipt">Reporte de Inventario</MatButton>
+	</div>
+</div>
 
 <div>
-    <EditForm Model="@Producto">
-        <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogEditIsOpen" CanBeClosed="false" class="mdc-dialog900">
-            <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
-            <MatDialogContent>
-                <div class="row">
-                    <MatCheckbox TValue="bool" @bind-Value="@noAfectaInventario">No Afecta Inventario</MatCheckbox>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
-                    </div>
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-                            <ItemTemplate Context="Marca">
-                                @Marca?.Descripcion
-                            </ItemTemplate>
-                        </MatSelectItem>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-                    </div>
-                    <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
-                    </div>
-                    <div class="col-md-7">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
-                    </div>
-                    <div class="col-md-1">
-                        <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete" hidden="true"></MatIconButton>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@Producto.FechaRegistro" Label="Fecha Creación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-                    </div>
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@Producto.FechaUltimaModificacion" Label="Fecha Modificación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-                    </div>
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@Producto.FechaBaja" Label="Fecha Baja" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-                    </div>
-                    <div class="col-md-3">
-                        <MatDatePicker @bind-Value="@Producto.FechaActivo" Label="Fecha Reactivación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoCreacion" Label="Empleado Creación" ReadOnly="true"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModificacion" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoBaja" Label="Empleado Baja" ReadOnly="true"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoActivo" Label="Empleado Activación" ReadOnly="true"></MatTextField>
-                    </div>
-                </div>
-            </MatDialogContent>
-            <MatDialogActions>
-                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
-            </MatDialogActions>
-        </MatDialog>
-    </EditForm>
+	<MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
+		<MatTableHeader>
+			<th style="width:13%;">NoParte</th>
+			<th style="width:28%;">Nombre</th>
+			<th style="width:15%;">Marca</th>
+			<th style="width:10%;">Modelo</th>
+			<th style="width:8%;">Ubicación</th>
+			<th style="width:8%;">Costo Venta</th>
+			<th style="width:8%;">Registro</th>
+			<th style="width:5%;"></th>
+			<th style="width:5%;"></th>
+		</MatTableHeader>
+		<MatTableRow>
+			@if (context.FechaBaja == null)
+			{<td style="font-weight:bold">@context.NoParte</td>}
+			@if (context.FechaBaja != null)
+			{<td style="color:Red">@context.NoParte</td>}
+			<td>@context.Nombre</td>
+			<td>@context.Marca.Descripcion</td>
+			<td>@context.Modelo</td>
+
+			@if (context.Ubicacion != null)
+			{<td>@context.Ubicacion</td>}
+			else
+			{<td></td>}
+			<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+			<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+			<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+
+			@if (context.FechaBaja == null)
+			{<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>}
+			@if (context.FechaBaja != null)
+			{<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>}
+		</MatTableRow>
+	</MatTable>
 </div>
 
 
-
 <div>
-    <EditForm Model="@Producto">
-        <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
-            <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
-            <MatDialogContent>
-                <div class="row">
-                    <MatCheckbox TValue="bool" @bind-Value="@noAfectaInventario">No Afecta Inventario</MatCheckbox>
-                </div>
-                <div class="row">
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
-                    </div>
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-                            <ItemTemplate Context="Marca">
-                                @Marca?.Descripcion
-                            </ItemTemplate>
-                        </MatSelectItem>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-                    </div>
-                    <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-                    </div>
-                    <div class="col-md-3">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
-                    </div>
-                    <div class="col-md-7">
-                        <MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
-                    </div>
-                    <div class="col-md-1">
-                        <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete" hidden="true"></MatIconButton>
-                    </div>
-                </div>
-            </MatDialogContent>
-            <MatDialogActions>
-                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
-            </MatDialogActions>
-        </MatDialog>
-    </EditForm>
-</div>
-
-
-
-
-<div>
-    <EditForm Model="@NuevaMarca">
-        <DataAnnotationsValidator />
-        <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
-            <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
-            <MatDialogContent>
-                <div class="row">
-                    &nbsp;
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
-                    </div>
-                </div>
-            </MatDialogContent>
-            <MatDialogActions>
-                <MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
-            </MatDialogActions>
-        </MatDialog>
-    </EditForm>
+	<EditForm Model="@Producto">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogEditIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<MatCheckbox TValue="bool" @bind-Value="@noAfectaInventario">No Afecta Inventario</MatCheckbox>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
+							<ItemTemplate Context="Marca">
+								@Marca?.Descripcion
+							</ItemTemplate>
+						</MatSelectItem>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+					</div>
+					<div class="col-md-7">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
+					</div>
+					<div class="col-md-1">
+						<MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete" hidden="true"></MatIconButton>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaRegistro" Label="Fecha Creación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaUltimaModificacion" Label="Fecha Modificación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaBaja" Label="Fecha Baja" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaActivo" Label="Fecha Reactivación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoCreacion" Label="Empleado Creación" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModificacion" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoBaja" Label="Empleado Baja" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoActivo" Label="Empleado Activación" ReadOnly="true"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
 </div>
 
 
 
 <div>
-    <MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
-        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
-        <MatDialogContent>
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
-                </div>
-            </div>
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
-        </MatDialogActions>
-    </MatDialog>
+	<EditForm Model="@Producto">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<MatCheckbox TValue="bool" @bind-Value="@noAfectaInventario">No Afecta Inventario</MatCheckbox>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.NoParte" Label="No de Parte"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
+							<ItemTemplate Context="Marca">
+								@Marca?.Descripcion
+							</ItemTemplate>
+						</MatSelectItem>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CantidadMinimaInventario" Label="Cantidad Mínima en Inventario"></MatTextField>
+					</div>
+					<div class="col-md-7">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Ubicacion" Label="Ubicación" TextArea="true"></MatTextField>
+					</div>
+					<div class="col-md-1">
+						<MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductoId))" Icon="delete" hidden="true"></MatIconButton>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
+</div>
+
+
+
+
+<div>
+	<EditForm Model="@NuevaMarca">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
+			<MatDialogTitle><h5>Marca</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					&nbsp;
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
 </div>
 
 
 
 <div>
-    <MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
-        <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
-        <MatDialogContent>
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
-                </div>
-            </div>
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
-        </MatDialogActions>
-    </MatDialog>
+	<MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+		</MatDialogActions>
+	</MatDialog>
 </div>
 
 
-@code{
-    //FILTROS BUSQUEDA
-    private string NoParteBusqueda = string.Empty;
-    private string NombreBusqueda = string.Empty;
-    private string ModeloBusqueda = string.Empty;
-    private MarcaDTO MarcaBusqueda = new MarcaDTO();
-    private List<MarcaDTO> Marcas = new List<MarcaDTO>();
-    private List<MarcaDTO> MarcasBusqueda = new List<MarcaDTO>();
-
-
-    //VARIABLES
-    private List<ProductoDTO> Productos = new List<ProductoDTO>();
-    private ProductoDTO Producto = new ProductoDTO();
-    private MarcaDTO Marca = new MarcaDTO();
-    private MarcaDTO NuevaMarca = new MarcaDTO();
-    private bool Expandido = true;
-    private bool dialogIsOpen = false;
-    private bool dialogEditIsOpen = false;
-    private bool dialogMarcaIsOpen = false;
-    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
-
-    private ProductoDTO productoSeleccionado;
-    private bool dialogValidaEmpleado;
-    private bool dialogValidaEmpleadoSave;
-    private String numeroEmpleado = String.Empty;
-    private EmpleadoDTO empleado = new EmpleadoDTO();
-
-    private String nombreEmpleadoCreacion = String.Empty;
-    private String nombreEmpleadoModificacion = String.Empty;
-    private String nombreEmpleadoBaja = String.Empty;
-    private String nombreEmpleadoActivo = String.Empty;
-
-    private String precioMayorPorcentaje = "";
-
-    private bool noAfectaInventario = false;
-
-    private int idProductoEliminar = 0;
-    private int totalProductos = 0;
-
-    private int porcentajeVenta = 20;
-
-
-    protected async override Task OnInitializedAsync()
-    {
-        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-
-        await CargaComboMarcas();
-        await CargaProductos();
-        await Task.Delay(50);
-    }
-
-
-    private void OpenDialog()
-    {
-        if (!Expandido) { Expandido = false; }
-        noAfectaInventario = false;
-        dialogIsOpen = true;
-    }
-
-
-    private void OpenDialogEdit()
-    {
-        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-
-        if (!Expandido) { Expandido = false; }
-        dialogEditIsOpen = true;
-    }
-
-    private async Task CancelaDialog()
-    {
-        dialogIsOpen = false;
-        dialogEditIsOpen = false;
-        //await CargaProductos();
-        Clear();
-        await Task.Delay(50);
-    }
-
-    private void OpenDialogMarca()
-    {
-        if (!Expandido) { Expandido = false; }
-        dialogMarcaIsOpen = true;
-    }
-
-    private async Task CancelaDialogMarca()
-    {
-        dialogMarcaIsOpen = false;
-        dialogIsOpen = false;
-        await CargaProductos();
-        Clear();
-        await Task.Delay(50);
-    }
-
-    private async Task OpenDialogEdit(ProductoDTO productoEdicion)
-    {
-        if (!Expandido) { Expandido = false; }
-        Producto = new ProductoDTO()
-        {
-            ProductoId = productoEdicion.ProductoId,
-            NoParte = productoEdicion.NoParte,
-            Nombre = productoEdicion.Nombre,
-            Modelo = productoEdicion.Modelo,
-            MarcaId = productoEdicion.MarcaId,
-            CostoCompra = productoEdicion.CostoCompra,
-            CostoVenta = productoEdicion.CostoVenta,
-            Marca = productoEdicion.Marca,
-            FechaRegistro = productoEdicion.FechaRegistro,
-            FechaUltimaModificacion = productoEdicion.FechaUltimaModificacion,
-            FechaBaja = productoEdicion.FechaBaja,
-            FechaActivo = productoEdicion.FechaActivo,
-            CantidadMinimaInventario = productoEdicion.CantidadMinimaInventario,
-            Ubicacion = productoEdicion.Ubicacion,
-            NoAfectaInventario = productoEdicion.NoAfectaInventario
-        };
-        Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
-        noAfectaInventario = Producto.NoAfectaInventario == null ? false : Producto.NoAfectaInventario == false ? false : true;
-
-        if (productoEdicion.EmpleadoCreacion != null)
-            nombreEmpleadoCreacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoCreacion)).Response.Nombre;
-        else
-            nombreEmpleadoCreacion = String.Empty;
-
-        if (productoEdicion.EmpleadoModificacion != null)
-            nombreEmpleadoModificacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoModificacion)).Response.Nombre;
-        else
-            nombreEmpleadoModificacion = String.Empty;
-
-        if (productoEdicion.EmpleadoBaja != null)
-            nombreEmpleadoBaja = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoBaja)).Response.Nombre;
-        else
-            nombreEmpleadoBaja = String.Empty;
-
-        if (productoEdicion.EmpleadoActivo != null)
-            nombreEmpleadoActivo = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoActivo)).Response.Nombre;
-        else
-            nombreEmpleadoActivo = String.Empty;
-
-        dialogEditIsOpen = true;
-    }
-
-
-    private async Task CargaComboMarcas()
-    {
-        var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
-        Marcas = responseHttp.Response;
-
-        MarcasBusqueda = new List<MarcaDTO>();
-        MarcasBusqueda.Add(new MarcaDTO() { Descripcion = "" });
-        MarcasBusqueda.AddRange(responseHttp.Response);
-    }
-
-
-    private async Task CargaProductos()
-    {
-        var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos");
-        Productos = responseHttp.Response;
-
-        totalProductos = Productos.Count > 0 ? Productos.Count : 0;
-    }
-
-
-    private async Task BajaArticulo(object item)
-    {
-        productoSeleccionado = item as ProductoDTO;
-        if (await OpenConfirmacion("Desea dar de baja el producto seleccionado?") == 1)
-            dialogValidaEmpleado = true;
-    }
-
-    private async Task AltaArticulo(object item)
-    {
-        productoSeleccionado = item as ProductoDTO;
-        if (await OpenConfirmacion("Desea volver a activar el producto seleccionado?") == 1)
-            dialogValidaEmpleado = true;
-    }
-
-    private async Task EliminarArticulo(int id)
-    {
-        idProductoEliminar = id;
-        if (idProductoEliminar != 0)
-            if (await OpenConfirmacion("Desea eliminar de forma permanente el producto seleccionado?") == 1)
-                dialogValidaEmpleado = true;
-            else
-                idProductoEliminar = 0;
-
-    }
-
-
-
-    private async Task ValidaEmpleadoSave()
-    {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
-
-        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
-        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
-
-        if (empleado.EmpleadoId != 0)
-        {
-            Producto.MarcaId = Marca.MarcaId;
-            Producto.NoAfectaInventario = noAfectaInventario;
-            if (Producto.ProductoId == 0)
-            {
-                Producto.EmpleadoCreacion = empleado.EmpleadoId;
-                await CrearProducto();
-            }
-            else
-            {
-                Producto.EmpleadoModificacion = empleado.EmpleadoId;
-                await ActualizarProducto();
-            }
-            CancelaDialogValidaEmpleado();
-        }
-        else
-            toastService.ShowError("Numero de empleado no valido", "Error");
-    }
-
-    private async Task ValidaEmpleado()
-    {
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
-
-        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
-        empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
-
-        if (empleado.EmpleadoId != 0)
-        {
-            if (idProductoEliminar != 0)
-                await EliminarProducto();
-            else
-            {
-                productoSeleccionado.EmpleadoModificacion = empleado.EmpleadoId;
-                await ActivarDesactivarProducto();
-            }
-            CancelaDialogValidaEmpleado();
-        }
-        else
-            toastService.ShowError("Numero de empleado no valido", "Error");
-    }
-
-
-    private async Task GuardarProducto()
-    {
-        if ((Producto.NoParte ?? String.Empty) == String.Empty)
-        {
-            await OpenMessage("Debe capturar un numero de parte");
-            return;
-        }
-
-
-        if ((Producto.Nombre ?? String.Empty) == String.Empty)
-        {
-            await OpenMessage("Debe capturar el nombre");
-            return;
-        }
-
-
-        if (Producto.ProductoId == 0)
-        {
-            //validamos si ya existe un producto con ese numero de parte
-            var httpResponseExiste = await repository.Get<ProductoDTO>("api/Productos/GetProductoPorNoParte/" + Producto.NoParte);
-            if (!httpResponseExiste.Error)
-            {
-                await OpenMessage("Ya existe un producto con ese Número de parte");
-                return;
-            }
-        }
-
-        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0 && (Producto.CostoCompra != null ? Producto.CostoCompra : 0) == 0)
-        {
-            await OpenMessage("Primero debe ingresar el costo de compra.");
-            return;
-        }
-
-        if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
-            if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
-            {
-                await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
-                return;
-            }
-
-        dialogValidaEmpleadoSave = true;
-    }
-
-    private async Task CrearProducto()
-    {
-        var httpResponse = await repository.Post("api/Productos", Producto);
-        if (httpResponse.Error)
-        {
-            if (Producto.MarcaId == 0)
-                toastService.ShowError("Debe seleccionar una marca", "Error");
-            else
-                toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        }
-        else
-        {
-            Clear();
-            dialogIsOpen = false;
-            await CargaProductos();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Registro completo", "Guardado");
-        }
-    }
-
-    private async Task ActualizarProducto()
-    {
-        var httpResponse = await repository.Put("api/Productos/" + Producto.ProductoId, Producto);
-
-        if (httpResponse.Error)
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        else
-        {
-            Clear();
-            dialogIsOpen = false;
-            dialogEditIsOpen = false;
-            await CargaProductos();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Registro completo", "Guardado");
-        }
-    }
-
-    private async Task ActivarDesactivarProducto()
-    {
-        var httpResponse = await repository.Put("api/Productos/ActivarDesactivarProducto/" + productoSeleccionado.ProductoId, productoSeleccionado);
-
-        if (httpResponse.Error)
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        else
-        {
-            Clear();
-            dialogIsOpen = false;
-            await CargaProductos();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Registro completo", "Guardado");
-        }
-    }
-
-
-    private async Task EliminarProducto()
-    {
-        var httpResponse = await repository.Delete("api/Productos/" + idProductoEliminar);
-
-        if (httpResponse.Error)
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        else
-        {
-            Clear();
-            dialogIsOpen = false;
-            await CargaProductos();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Producto Eliminado", "Completo");
-        }
-    }
-
-
-    private async Task GuardarMarca()
-    {
-        if (NuevaMarca.MarcaId == 0)
-            await CrearMarca();
-    }
-
-    private async Task CrearMarca()
-    {
-        //validamos que no exista la marca
-        var httpResponseV = await repository.Get<MarcaDTO>("api/Marcas/GetMarcaByNombre/" + NuevaMarca.Descripcion);
-        if (httpResponseV.Response != null)
-        {
-            toastService.ShowWarning("Este nombe de marca ya existe.", "Atención");
-            return;
-        }
-
-        var httpResponse = await repository.Post("api/Marcas", NuevaMarca);
-
-        if (httpResponse.Error)
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        else
-        {
-            dialogMarcaIsOpen = false;
-            await CargaComboMarcas();
-            await CargaProductos();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Registro completo", "Guardado");
-            NuevaMarca = new MarcaDTO();
-        }
-    }
-
-
-    private async Task Buscar()
-    {
-        var queryStrings = GenerarQueryStrings();
-        var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/ObtenerProductosFilter?" + queryStrings);
-        Productos = responseHttp.Response;
-
-        totalProductos = Productos.Count > 0 ? Productos.Count : 0;
-    }
-
-    private void Clear()
-    {
-        NoParteBusqueda = string.Empty;
-        NombreBusqueda = string.Empty;
-        ModeloBusqueda = string.Empty;
-        MarcaBusqueda = new MarcaDTO();
-        Marca = new MarcaDTO();
-        NuevaMarca = new MarcaDTO();
-
-        Producto = new ProductoDTO();
-
-        nombreEmpleadoCreacion = String.Empty;
-        nombreEmpleadoModificacion = String.Empty;
-        nombreEmpleadoBaja = String.Empty;
-        nombreEmpleadoActivo = String.Empty;
-    }
-
-
-    private string GenerarQueryStrings()
-    {
-        if (queryStringsDict == null)
-            queryStringsDict = new Dictionary<string, string>();
-
-        queryStringsDict["NoParte"] = NoParteBusqueda != null ? NoParteBusqueda : String.Empty;
-        queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
-        queryStringsDict["Modelo"] = ModeloBusqueda != null ? ModeloBusqueda : String.Empty;
-        queryStringsDict["MarcaId"] = MarcaBusqueda.MarcaId.ToString();
-
-        var valoresPorDefecto = new List<string>() { "false", "", "0" };
-
-        return string.Join("&", queryStringsDict
-            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
-            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
-    }
-
-
-    private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
-    {
-        CultureInfo.CurrentCulture = new CultureInfo("en-US");
-
-        costoCompra = costoCompra ?? 0;
-        costoVenta = costoVenta ?? 0;
-        bool result = true;
-
-        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
-        precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
-        if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
-            result = false;
-
-        return result;
-    }
-
-
-    private async Task ajustaCostoVenta()
-    {
-        if (Producto != null)
-            Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
-
-        await Task.Delay(50);
-    }
-
-    private float? GeneraCostoVenta(float? costoCompra)
-    {
-        CultureInfo.CurrentCulture = new CultureInfo("en-US");
-
-        costoCompra = costoCompra ?? 0;
-        if (porcentajeVenta >= 100)
-            porcentajeVenta = 99;
-        if (porcentajeVenta < 0)
-            porcentajeVenta = 0;
-
-        float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
-        //porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
-        //return ((porcentaje * costoCompra) + costoCompra);
-        if (costoCompra > 0)
-            return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
-        //return (float?)(Math.Truncate((decimal)(costoCompra / porcentaje)) / 100);
-        else
-            return 0;
-
-    }
-
-
-
-    private String FormatoMoneda(String value)
-    {
-        CultureInfo.CurrentCulture = new CultureInfo("en-US");
-
-        if (value != string.Empty)
-            return string.Format("{0:C2}", Convert.ToDecimal(value));
-        else
-            return "";
-    }
-
-
-    private void CancelaDialogValidaEmpleado()
-    {
-        numeroEmpleado = String.Empty;
-        empleado = new EmpleadoDTO();
-        dialogValidaEmpleado = false;
-        dialogValidaEmpleadoSave = false;
-        idProductoEliminar = 0;
-    }
-
-    private async Task<int> OpenConfirmacion(string pregunta)
-    {
-        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
-        int r = 0;
-        switch (result)
-        {
-            case "Si":
-                r = 1;
-                break;
-            case "No":
-                r = 0;
-                break;
-        }
-        return r;
-    }
-
-    private async Task<int> OpenMessage(string pregunta)
-    {
-        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
-        int r = 0;
-        switch (result)
-        {
-            case "Si":
-                r = 1;
-                break;
-        }
-        return r;
-    }
+
+<div>
+	<MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+		</MatDialogActions>
+	</MatDialog>
+</div>
+
+
+@code  {
+	//FILTROS BUSQUEDA
+	private string NoParteBusqueda = string.Empty;
+	private string NombreBusqueda = string.Empty;
+	private string ModeloBusqueda = string.Empty;
+	private MarcaDTO MarcaBusqueda = new MarcaDTO();
+	private List<MarcaDTO> Marcas = new List<MarcaDTO>();
+	private List<MarcaDTO> MarcasBusqueda = new List<MarcaDTO>();
+
+
+	//VARIABLES
+	private List<ProductoDTO> Productos = new List<ProductoDTO>();
+	private ProductoDTO Producto = new ProductoDTO();
+	private MarcaDTO Marca = new MarcaDTO();
+	private MarcaDTO NuevaMarca = new MarcaDTO();
+	private bool Expandido = true;
+	private bool dialogIsOpen = false;
+	private bool dialogEditIsOpen = false;
+	private bool dialogMarcaIsOpen = false;
+	Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+	private ProductoDTO productoSeleccionado;
+	private bool dialogValidaEmpleado;
+	private bool dialogValidaEmpleadoSave;
+	private String numeroEmpleado = String.Empty;
+	private EmpleadoDTO empleado = new EmpleadoDTO();
+
+	private String nombreEmpleadoCreacion = String.Empty;
+	private String nombreEmpleadoModificacion = String.Empty;
+	private String nombreEmpleadoBaja = String.Empty;
+	private String nombreEmpleadoActivo = String.Empty;
+
+	private String precioMayorPorcentaje = "";
+
+	private bool noAfectaInventario = false;
+
+	private int idProductoEliminar = 0;
+	private int totalProductos = 0;
+
+	private int porcentajeVenta = 20;
+
+	private string ipRutaReportes = string.Empty;
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		await CargaComboMarcas();
+		await CargaProductos();
+		await CargaRutaReportes();
+		await Task.Delay(50);
+	}
+
+
+	private void OpenDialog()
+	{
+		if (!Expandido) { Expandido = false; }
+		noAfectaInventario = false;
+		dialogIsOpen = true;
+	}
+
+
+	private void OpenDialogEdit()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		if (!Expandido) { Expandido = false; }
+		dialogEditIsOpen = true;
+	}
+
+	private async Task CancelaDialog()
+	{
+		dialogIsOpen = false;
+		dialogEditIsOpen = false;
+		//await CargaProductos();
+		Clear();
+		await Task.Delay(50);
+	}
+
+	private void OpenDialogMarca()
+	{
+		if (!Expandido) { Expandido = false; }
+		dialogMarcaIsOpen = true;
+	}
+
+	private async Task CancelaDialogMarca()
+	{
+		dialogMarcaIsOpen = false;
+		dialogIsOpen = false;
+		await CargaProductos();
+		Clear();
+		await Task.Delay(50);
+	}
+
+	private async Task OpenDialogEdit(ProductoDTO productoEdicion)
+	{
+		if (!Expandido) { Expandido = false; }
+		Producto = new ProductoDTO()
+		{
+			ProductoId = productoEdicion.ProductoId,
+			NoParte = productoEdicion.NoParte,
+			Nombre = productoEdicion.Nombre,
+			Modelo = productoEdicion.Modelo,
+			MarcaId = productoEdicion.MarcaId,
+			CostoCompra = productoEdicion.CostoCompra,
+			CostoVenta = productoEdicion.CostoVenta,
+			Marca = productoEdicion.Marca,
+			FechaRegistro = productoEdicion.FechaRegistro,
+			FechaUltimaModificacion = productoEdicion.FechaUltimaModificacion,
+			FechaBaja = productoEdicion.FechaBaja,
+			FechaActivo = productoEdicion.FechaActivo,
+			CantidadMinimaInventario = productoEdicion.CantidadMinimaInventario,
+			Ubicacion = productoEdicion.Ubicacion,
+			NoAfectaInventario = productoEdicion.NoAfectaInventario
+		};
+		Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
+		noAfectaInventario = Producto.NoAfectaInventario == null ? false : Producto.NoAfectaInventario == false ? false : true;
+
+		if (productoEdicion.EmpleadoCreacion != null)
+			nombreEmpleadoCreacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoCreacion)).Response.Nombre;
+		else
+			nombreEmpleadoCreacion = String.Empty;
+
+		if (productoEdicion.EmpleadoModificacion != null)
+			nombreEmpleadoModificacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoModificacion)).Response.Nombre;
+		else
+			nombreEmpleadoModificacion = String.Empty;
+
+		if (productoEdicion.EmpleadoBaja != null)
+			nombreEmpleadoBaja = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoBaja)).Response.Nombre;
+		else
+			nombreEmpleadoBaja = String.Empty;
+
+		if (productoEdicion.EmpleadoActivo != null)
+			nombreEmpleadoActivo = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoActivo)).Response.Nombre;
+		else
+			nombreEmpleadoActivo = String.Empty;
+
+		dialogEditIsOpen = true;
+	}
+
+
+	private async Task CargaComboMarcas()
+	{
+		var responseHttp = await repository.Get<List<MarcaDTO>>("api/Marcas");
+		Marcas = responseHttp.Response;
+
+		MarcasBusqueda = new List<MarcaDTO>();
+		MarcasBusqueda.Add(new MarcaDTO() { Descripcion = "" });
+		MarcasBusqueda.AddRange(responseHttp.Response);
+	}
+
+
+	private async Task CargaProductos()
+	{
+		var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos");
+		Productos = responseHttp.Response;
+
+		totalProductos = Productos.Count > 0 ? Productos.Count : 0;
+	}
+
+
+	private async Task BajaArticulo(object item)
+	{
+		productoSeleccionado = item as ProductoDTO;
+		if (await OpenConfirmacion("Desea dar de baja el producto seleccionado?") == 1)
+			dialogValidaEmpleado = true;
+	}
+
+	private async Task AltaArticulo(object item)
+	{
+		productoSeleccionado = item as ProductoDTO;
+		if (await OpenConfirmacion("Desea volver a activar el producto seleccionado?") == 1)
+			dialogValidaEmpleado = true;
+	}
+
+	private async Task EliminarArticulo(int id)
+	{
+		idProductoEliminar = id;
+		if (idProductoEliminar != 0)
+			if (await OpenConfirmacion("Desea eliminar de forma permanente el producto seleccionado?") == 1)
+				dialogValidaEmpleado = true;
+			else
+				idProductoEliminar = 0;
+
+	}
+
+
+
+	private async Task ValidaEmpleadoSave()
+	{
+		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+		var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+		empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+		if (empleado.EmpleadoId != 0)
+		{
+			Producto.MarcaId = Marca.MarcaId;
+			Producto.NoAfectaInventario = noAfectaInventario;
+			if (Producto.ProductoId == 0)
+			{
+				Producto.EmpleadoCreacion = empleado.EmpleadoId;
+				await CrearProducto();
+			}
+			else
+			{
+				Producto.EmpleadoModificacion = empleado.EmpleadoId;
+				await ActualizarProducto();
+			}
+			CancelaDialogValidaEmpleado();
+		}
+		else
+			toastService.ShowError("Numero de empleado no valido", "Error");
+	}
+
+	private async Task ValidaEmpleado()
+	{
+		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+		var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+		empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+		if (empleado.EmpleadoId != 0)
+		{
+			if (idProductoEliminar != 0)
+				await EliminarProducto();
+			else
+			{
+				productoSeleccionado.EmpleadoModificacion = empleado.EmpleadoId;
+				await ActivarDesactivarProducto();
+			}
+			CancelaDialogValidaEmpleado();
+		}
+		else
+			toastService.ShowError("Numero de empleado no valido", "Error");
+	}
+
+
+	private async Task GuardarProducto()
+	{
+		if ((Producto.NoParte ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar un numero de parte");
+			return;
+		}
+
+
+		if ((Producto.Nombre ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el nombre");
+			return;
+		}
+
+
+		if (Producto.ProductoId == 0)
+		{
+			//validamos si ya existe un producto con ese numero de parte
+			var httpResponseExiste = await repository.Get<ProductoDTO>("api/Productos/GetProductoPorNoParte/" + Producto.NoParte);
+			if (!httpResponseExiste.Error)
+			{
+				await OpenMessage("Ya existe un producto con ese Número de parte");
+				return;
+			}
+		}
+
+		if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0 && (Producto.CostoCompra != null ? Producto.CostoCompra : 0) == 0)
+		{
+			await OpenMessage("Primero debe ingresar el costo de compra.");
+			return;
+		}
+
+		if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
+			if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
+			{
+				await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+				return;
+			}
+
+		dialogValidaEmpleadoSave = true;
+	}
+
+	private async Task CrearProducto()
+	{
+		var httpResponse = await repository.Post("api/Productos", Producto);
+		if (httpResponse.Error)
+		{
+			if (Producto.MarcaId == 0)
+				toastService.ShowError("Debe seleccionar una marca", "Error");
+			else
+				toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		}
+		else
+		{
+			Clear();
+			dialogIsOpen = false;
+			await CargaProductos();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+		}
+	}
+
+	private async Task ActualizarProducto()
+	{
+		var httpResponse = await repository.Put("api/Productos/" + Producto.ProductoId, Producto);
+
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			Clear();
+			dialogIsOpen = false;
+			dialogEditIsOpen = false;
+			await CargaProductos();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+		}
+	}
+
+	private async Task ActivarDesactivarProducto()
+	{
+		var httpResponse = await repository.Put("api/Productos/ActivarDesactivarProducto/" + productoSeleccionado.ProductoId, productoSeleccionado);
+
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			Clear();
+			dialogIsOpen = false;
+			await CargaProductos();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+		}
+	}
+
+
+	private async Task EliminarProducto()
+	{
+		var httpResponse = await repository.Delete("api/Productos/" + idProductoEliminar);
+
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			Clear();
+			dialogIsOpen = false;
+			await CargaProductos();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Producto Eliminado", "Completo");
+		}
+	}
+
+
+	private async Task GuardarMarca()
+	{
+		if (NuevaMarca.MarcaId == 0)
+			await CrearMarca();
+	}
+
+	private async Task CrearMarca()
+	{
+		//validamos que no exista la marca
+		var httpResponseV = await repository.Get<MarcaDTO>("api/Marcas/GetMarcaByNombre/" + NuevaMarca.Descripcion);
+		if (httpResponseV.Response != null)
+		{
+			toastService.ShowWarning("Este nombe de marca ya existe.", "Atención");
+			return;
+		}
+
+		var httpResponse = await repository.Post("api/Marcas", NuevaMarca);
+
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			dialogMarcaIsOpen = false;
+			await CargaComboMarcas();
+			await CargaProductos();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+			NuevaMarca = new MarcaDTO();
+		}
+	}
+
+
+	private async Task Buscar()
+	{
+		var queryStrings = GenerarQueryStrings();
+		var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/ObtenerProductosFilter?" + queryStrings);
+		Productos = responseHttp.Response;
+
+		totalProductos = Productos.Count > 0 ? Productos.Count : 0;
+	}
+
+	private void Clear()
+	{
+		NoParteBusqueda = string.Empty;
+		NombreBusqueda = string.Empty;
+		ModeloBusqueda = string.Empty;
+		MarcaBusqueda = new MarcaDTO();
+		Marca = new MarcaDTO();
+		NuevaMarca = new MarcaDTO();
+
+		Producto = new ProductoDTO();
+
+		nombreEmpleadoCreacion = String.Empty;
+		nombreEmpleadoModificacion = String.Empty;
+		nombreEmpleadoBaja = String.Empty;
+		nombreEmpleadoActivo = String.Empty;
+	}
+
+
+
+	private async Task CargaRutaReportes()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteInventario");
+		var configuracion = responseHttp.Response;
+		ipRutaReportes = configuracion.Valor;
+	}
+
+	private async Task ImprimirInventario()
+	{
+		try
+		{
+			if (await OpenConfirmacion("Desea imrpimir el inventario de artículos?") == 1)
+			{
+				String url = "http://" + ipRutaReportes + "/Reportes/GetInventario";
+					//await Js.InvokeAsync<object>("open", url, "_blank");
+				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+			}
+		}
+		catch (Exception ex)
+		{
+			System.Console.WriteLine(ex.Message);
+		}
+	}
+
+
+	private string GenerarQueryStrings()
+	{
+		if (queryStringsDict == null)
+			queryStringsDict = new Dictionary<string, string>();
+
+		queryStringsDict["NoParte"] = NoParteBusqueda != null ? NoParteBusqueda : String.Empty;
+		queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
+		queryStringsDict["Modelo"] = ModeloBusqueda != null ? ModeloBusqueda : String.Empty;
+		queryStringsDict["MarcaId"] = MarcaBusqueda.MarcaId.ToString();
+
+		var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+		return string.Join("&", queryStringsDict
+			.Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+			.Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+	}
+
+
+	private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+		costoCompra = costoCompra ?? 0;
+		costoVenta = costoVenta ?? 0;
+		bool result = true;
+
+		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
+		if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
+			result = false;
+
+		return result;
+	}
+
+
+	private async Task ajustaCostoVenta()
+	{
+		if (Producto != null)
+			Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
+
+		await Task.Delay(50);
+	}
+
+	private float? GeneraCostoVenta(float? costoCompra)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+		costoCompra = costoCompra ?? 0;
+		if (porcentajeVenta >= 100)
+			porcentajeVenta = 99;
+		if (porcentajeVenta < 0)
+			porcentajeVenta = 0;
+
+		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		//porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
+		//return ((porcentaje * costoCompra) + costoCompra);
+		if (costoCompra > 0)
+			return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
+		//return (float?)(Math.Truncate((decimal)(costoCompra / porcentaje)) / 100);
+		else
+			return 0;
+
+	}
+
+
+
+	private String FormatoMoneda(String value)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+		if (value != string.Empty)
+			return string.Format("{0:C2}", Convert.ToDecimal(value));
+		else
+			return "";
+	}
+
+
+	private void CancelaDialogValidaEmpleado()
+	{
+		numeroEmpleado = String.Empty;
+		empleado = new EmpleadoDTO();
+		dialogValidaEmpleado = false;
+		dialogValidaEmpleadoSave = false;
+		idProductoEliminar = 0;
+	}
+
+	private async Task<int> OpenConfirmacion(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+			case "No":
+				r = 0;
+				break;
+		}
+		return r;
+	}
+
+	private async Task<int> OpenMessage(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+		}
+		return r;
+	}
 
 }
