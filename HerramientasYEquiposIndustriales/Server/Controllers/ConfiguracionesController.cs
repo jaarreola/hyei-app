@@ -47,6 +47,26 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpGet("GetIpRutaReporteCotizacion")]
+        public async Task<ActionResult<ConfiguracionesDTO>> GetIpRutaReporteCotizacion()
+        {
+            try
+            {
+                var configuracion = await context.Configuraciones.FirstOrDefaultAsync(x => x.Tipo == "ipReporteCotizacion");
+                if (configuracion == null) { return NotFound(); }
+
+                return mapper.Map<ConfiguracionesDTO>(configuracion);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener valores de Configuraciones. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
         [HttpGet("GetIpRutaReporteInventario")]
         public async Task<ActionResult<ConfiguracionesDTO>> GetIpRutaReporteInventario()
         {

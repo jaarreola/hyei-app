@@ -1,4 +1,5 @@
 ﻿@page "/Producto"
+
 @using System.Globalization
 @using System.Text.Json
 
@@ -8,98 +9,108 @@
 
 @inject IJSRuntime Js
 
-<div>
-	<div class="row">
-		<div class="col-md-11 col-sm-4">
-			<MatAccordion>
-				<MatExpansionPanel @bind-Expanded="@Expandido">
-					<MatExpansionPanelSummary>
-						<MatExpansionPanelHeader><h3>Productos</h3></MatExpansionPanelHeader>
-					</MatExpansionPanelSummary>
-					<MatExpansionPanelDetails>
-						<div class="row">
-							<div class="col-md-2">
-								<MatTextField FullWidth="true" @bind-Value="@NoParteBusqueda" HelperText="Número de Parte" Label="No Parte"></MatTextField>
-							</div>
-							<div class="col-md-3">
-								<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del producto/refacción" Label="Nombre"></MatTextField>
-							</div>
-							<div class="col-md-2">
-								<MatTextField FullWidth="true" @bind-Value="@ModeloBusqueda" HelperText="Modelo del producto/refacción" Label="Modelo"></MatTextField>
-							</div>
-							<div class="col-md-2">
-								<MatSelectItem @bind-Value="@MarcaBusqueda" Items="@MarcasBusqueda" Label="Marca">
-									<ItemTemplate Context="Marca">
-										@Marca?.Descripcion
-									</ItemTemplate>
-								</MatSelectItem>
-							</div>
-							<div class="col-md-1">
-								<MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
-							</div>
-							<div class="col-md-2">
-								<MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
-							</div>
-						</div>
-					</MatExpansionPanelDetails>
-				</MatExpansionPanel>
-			</MatAccordion>
-		</div>
-		<div class="col-md-1 col-sm-4">
-			<MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
-		</div>
-	</div>
-</div>
-
 <div class="row">
-	<div class="col-md-4 col-sm-4">
-		Productos totales: <strong>@totalProductos</strong>
+	<div class="col-md-11 col-sm-4">
+		<MatAccordion>
+			<MatExpansionPanel @bind-Expanded="@Expandido">
+				<MatExpansionPanelSummary>
+					<MatExpansionPanelHeader><h3>Productos</h3></MatExpansionPanelHeader>
+				</MatExpansionPanelSummary>
+				<MatExpansionPanelDetails>
+					<div class="row">
+						<div class="col-md-2">
+							<MatTextField FullWidth="true" @bind-Value="@NoParteBusqueda" HelperText="Número de Parte" Label="No Parte"></MatTextField>
+						</div>
+						<div class="col-md-3">
+							<MatTextField FullWidth="true" @bind-Value="@NombreBusqueda" HelperText="Nombre del producto/refacción" Label="Nombre"></MatTextField>
+						</div>
+						<div class="col-md-2">
+							<MatTextField FullWidth="true" @bind-Value="@ModeloBusqueda" HelperText="Modelo del producto/refacción" Label="Modelo"></MatTextField>
+						</div>
+						<div class="col-md-2">
+							<MatSelectItem @bind-Value="@MarcaBusqueda" Items="@MarcasBusqueda" Label="Marca">
+								<ItemTemplate Context="Marca">
+									@Marca?.Descripcion
+								</ItemTemplate>
+							</MatSelectItem>
+						</div>
+						<div class="col-md-1">
+							<MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
+						</div>
+						<div class="col-md-2">
+							<MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
+						</div>
+					</div>
+				</MatExpansionPanelDetails>
+			</MatExpansionPanel>
+		</MatAccordion>
 	</div>
-	<div class="col-md-4 col-sm-4">
-	</div>
-	<div class="col-md-4 col-sm-4">
-		<MatButton OnClick="@ImprimirInventario" Icon="receipt">Reporte de Inventario</MatButton>
+	<div class="col-md-1 col-sm-4">
+		<MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
 	</div>
 </div>
 
-<div>
-	<MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
-		<MatTableHeader>
-			<th style="width:13%;">NoParte</th>
-			<th style="width:28%;">Nombre</th>
-			<th style="width:15%;">Marca</th>
-			<th style="width:10%;">Modelo</th>
-			<th style="width:8%;">Ubicación</th>
-			<th style="width:8%;">Costo Venta</th>
-			<th style="width:8%;">Registro</th>
-			<th style="width:5%;"></th>
-			<th style="width:5%;"></th>
-		</MatTableHeader>
-		<MatTableRow>
-			@if (context.FechaBaja == null)
-			{<td style="font-weight:bold">@context.NoParte</td>}
-			@if (context.FechaBaja != null)
-			{<td style="color:Red">@context.NoParte</td>}
-			<td>@context.Nombre</td>
-			<td>@context.Marca.Descripcion</td>
-			<td>@context.Modelo</td>
+@if(Productos == null)
+{
+	<br />
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+	<h5 class="mat-subtitle1">Cargando Productos</h5>
+}
+else
+{
+	@if(procesando == true)
+	{
+		<MatProgressBar Indeterminate="true"></MatProgressBar>
+	}
+	<div class="row">
+		<div class="col-md-4 col-sm-4">
+			Productos totales: <strong>@totalProductos</strong>
+		</div>
+		<div class="col-md-4 col-sm-4">
+		</div>
+	</div>
 
-			@if (context.Ubicacion != null)
-			{<td>@context.Ubicacion</td>}
-			else
-			{<td></td>}
-			<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
-			<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
-			<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+	<div>
+		<MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
+			<MatTableHeader>
+				<th style="width:13%;">NoParte</th>
+				<th style="width:28%;">Nombre</th>
+				<th style="width:15%;">Marca</th>
+				<th style="width:10%;">Modelo</th>
+				<th style="width:8%;">Ubicación</th>
+				<th style="width:8%;">Costo Venta</th>
+				<th style="width:8%;">Registro</th>
+				<th style="width:5%;"></th>
+				<th style="width:5%;"></th>
+			</MatTableHeader>
+			<MatTableRow>
+				@if (context.FechaBaja == null)
+				{<td style="font-weight:bold">@context.NoParte</td>}
+				@if (context.FechaBaja != null)
+				{<td style="color:Red">@context.NoParte</td>}
+				<td>@context.Nombre</td>
+				<td>@context.Marca.Descripcion</td>
+				<td>@context.Modelo</td>
 
-			@if (context.FechaBaja == null)
-			{<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>}
-			@if (context.FechaBaja != null)
-			{<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>}
-		</MatTableRow>
-	</MatTable>
-</div>
+				@if (context.Ubicacion != null)
+				{<td>@context.Ubicacion</td>}
+				else
+				{<td></td>}
+				<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+				<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+				<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
 
+				@if (context.FechaBaja == null)
+				{<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>}
+				@if (context.FechaBaja != null)
+				{<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>}
+			</MatTableRow>
+		</MatTable>
+		<div class="col-md-4 col-sm-4">
+			<MatButton OnClick="@ImprimirInventario" Icon="receipt">Reporte de Inventario</MatButton>
+		</div>
+	</div>
+}
 
 <div>
 	<EditForm Model="@Producto">
@@ -188,7 +199,6 @@
 </div>
 
 
-
 <div>
 	<EditForm Model="@Producto">
 		<DataAnnotationsValidator />
@@ -249,7 +259,6 @@
 
 
 
-
 <div>
 	<EditForm Model="@NuevaMarca">
 		<DataAnnotationsValidator />
@@ -286,8 +295,16 @@
 			</div>
 		</MatDialogContent>
 		<MatDialogActions>
-			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-			<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+			@if(procesando == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			
+			}
+			else
+			{
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+			}
 		</MatDialogActions>
 	</MatDialog>
 </div>
@@ -305,8 +322,16 @@
 			</div>
 		</MatDialogContent>
 		<MatDialogActions>
-			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-			<MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+			@if(procesando == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			
+			}
+			else
+			{
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+			}
 		</MatDialogActions>
 	</MatDialog>
 </div>
@@ -323,7 +348,7 @@
 
 
 	//VARIABLES
-	private List<ProductoDTO> Productos = new List<ProductoDTO>();
+	private List<ProductoDTO> Productos; //= new List<ProductoDTO>();
 	private ProductoDTO Producto = new ProductoDTO();
 	private MarcaDTO Marca = new MarcaDTO();
 	private MarcaDTO NuevaMarca = new MarcaDTO();
@@ -354,6 +379,8 @@
 	private int porcentajeVenta = 20;
 
 	private string ipRutaReportes = string.Empty;
+
+	private bool procesando = false;
 
 
 	protected async override Task OnInitializedAsync()
@@ -506,6 +533,7 @@
 
 	private async Task ValidaEmpleadoSave()
 	{
+		procesando = true;
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -530,10 +558,13 @@
 		}
 		else
 			toastService.ShowError("Numero de empleado no valido", "Error");
+
+		procesando = false;
 	}
 
 	private async Task ValidaEmpleado()
 	{
+		procesando = true;
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -553,6 +584,8 @@
 		}
 		else
 			toastService.ShowError("Numero de empleado no valido", "Error");
+
+		procesando = false;
 	}
 
 
@@ -704,11 +737,13 @@
 
 	private async Task Buscar()
 	{
+		procesando = true;
 		var queryStrings = GenerarQueryStrings();
 		var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/ObtenerProductosFilter?" + queryStrings);
 		Productos = responseHttp.Response;
 
 		totalProductos = Productos.Count > 0 ? Productos.Count : 0;
+		procesando = false;
 	}
 
 	private void Clear()
@@ -744,7 +779,8 @@
 			if (await OpenConfirmacion("Desea imrpimir el inventario de artículos?") == 1)
 			{
 				String url = "http://" + ipRutaReportes + "/Reportes/GetInventario";
-					//await Js.InvokeAsync<object>("open", url, "_blank");
+				//String url = "http://" + ipRutaReportes + "/Reporte/Inventario";
+				//await Js.InvokeAsync<object>("open", url, "_blank");
 				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 			}
 		}

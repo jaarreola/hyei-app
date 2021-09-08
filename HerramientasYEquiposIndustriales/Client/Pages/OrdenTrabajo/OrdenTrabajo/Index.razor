@@ -106,6 +106,10 @@
 				</div>
 			</div>
 			<br />
+			@if(guardandoOt == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			}
 			<div class="row">
 				<div class="col-md-12">
 					<MatTable Items="@_clientes" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
@@ -205,8 +209,16 @@
 			</div>
 		</MatDialogContent>
 		<MatDialogActions>
-			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-			<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal" Disabled="@desactivaEmpleadoGuardar">Aceptar</MatButton>
+			@if(guardandoOt == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+				<br />
+			}
+			else
+			{
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+			}
 		</MatDialogActions>
 	</MatDialog>
 </div>
@@ -276,10 +288,10 @@
 
 
 	private bool desactivaGuardar = false;
-	private bool desactivaEmpleadoGuardar = false;
-
-
+	
 	private string ipRutaReportes = string.Empty;
+
+	private bool guardandoOt = false;
 
 
 	protected async override Task OnInitializedAsync()
@@ -353,9 +365,11 @@
 
 	private async Task BuscarCliente()
 	{
+		guardandoOt = true;
 		var queryStrings = GenerarQueryStringsCliente();
 		var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesOTFilter?" + queryStrings);
 		_clientes = responseHttp.Response;
+		guardandoOt = false;
 	}
 
 	private async Task<bool> EsClienteProblema()
@@ -665,8 +679,8 @@
 
 	private async Task ValidaEmpleado()
 	{
-		if (desactivaEmpleadoGuardar == true) { return; }
-
+		guardandoOt = true;
+		
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", _numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -675,8 +689,6 @@
 
 		if (_empleado.EmpleadoId != 0)
 		{
-			desactivaEmpleadoGuardar = true;
-
 			//se manda guardar toda la lista
 			List<Object> _enviar = new List<Object>();
 			_enviar.Add(_cliente);
@@ -709,14 +721,14 @@
 
 				desactivaGuardar = false;
 
-				await Task.Delay(2000);
+				await Task.Delay(1000);
 				await ImprimirUltimoTicket();
 			}
 		}
 		else
 			toastService.ShowError("Numero de empleado no valido", "Error");
 
-		desactivaEmpleadoGuardar = false;
+		guardandoOt = false;
 	}
 
 
@@ -728,6 +740,7 @@
 			var ultimaOrdenTrabajoId = responseHttp.Response;
 
 			String url = "http://" + ipRutaReportes + "/Reportes/GetTicketsByNumeroOrden?numeroOrdenId=" + ultimaOrdenTrabajoId;
+			//String url = "http://" + ipRutaReportes + "/Reporte/Ticket/" + ultimaOrdenTrabajoId;
 			//await Js.InvokeAsync<object>("open", url, "_blank");
 			await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 		}

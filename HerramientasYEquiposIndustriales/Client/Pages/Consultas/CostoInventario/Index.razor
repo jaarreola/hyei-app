@@ -44,6 +44,11 @@
     </MatExpansionPanel>
 </MatAccordion>
 
+@if(procesando == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+
 <div class="row">
     <div class="col-md-8" style="padding:15px 0px 0px 0px">
         &nbsp;
@@ -228,10 +233,11 @@
     //VARIABLE QUERY STRING
     Dictionary<string, string> queryStringsConsulta = new Dictionary<string, string>();
 
-
+    private bool procesando = false;
 
     private async Task BuscaMovimientos()
     {
+        procesando = true;
         var noParte = numeroParteBusqueda == null ? String.Empty : numeroParteBusqueda;
         var queryStrings = GenerarQueryStringsConsulta(noParte);
         var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetCostoInventarioByFilter?" + queryStrings);
@@ -242,6 +248,7 @@
         totalProductos = movimientos.Count;
         CalculaCostosInventario();
         await Task.Delay(100);
+        procesando = false;
     }
 
     private void CalculaCostosInventario()

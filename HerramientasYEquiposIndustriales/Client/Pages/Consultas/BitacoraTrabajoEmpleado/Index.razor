@@ -52,6 +52,11 @@
     </MatAccordion>
 </div>
 
+@if(procesando == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+
 <div class="col-md-3" style="padding:15px 0px 0px 0px">
     Total de registros: <strong>@regTotales</strong>
 </div>
@@ -100,6 +105,8 @@
     Dictionary<string, string> queryStringOt = new Dictionary<string, string>();
     private int regTotales = 0;
 
+    private bool procesando = false;
+
     protected async override Task OnInitializedAsync()
     {
         await CargaComboEstatus();
@@ -128,12 +135,14 @@
 
     private async Task BuscaHistorialEmpleados()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         var queryStrings = GenerarQueryStringsOT();
         var responseHttp = await repository.Get<List<HistorialTrabajoEmpleadoDTO>>("api/OrdenTrabajo/GetHistorialTrabajo?" + queryStrings);
         consultaHistorialEmpleado = responseHttp.Response;
         regTotales = consultaHistorialEmpleado.Count > 0 ? consultaHistorialEmpleado.Count : 0;
         expandido = false;
+        procesando = false;
     }
 
     private String FormatoMoneda(String value)

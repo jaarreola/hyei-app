@@ -35,6 +35,11 @@
                 </div>
             </div>
 
+            @if(procesando == true)
+            {
+	            <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+
             <div class="row">
                 <MatTable Items="@entradas" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
@@ -82,6 +87,11 @@
                     <MatButton Raised="true" Icon="search" OnClick="@BuscaSalidas" class="mdc-button-background">Buscar</MatButton>
                 </div>
             </div>
+
+            @if(procesando == true)
+            {
+	            <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
 
             <div class="row">
                 <MatTable Items="@salidas" AllowSelection="true" class="mat-elevation-z10">
@@ -184,10 +194,11 @@
     private String totalDetalle;
     private String totalCantidad;
 
-
+    private bool procesando = false;
 
     private async Task BuscaEntradas()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
         noParte = noParteEntrada;
@@ -202,10 +213,12 @@
         totalEntradas = entradas.Count > 0 ? "Total de entradas: " + entradas.Count.ToString() : "";
         expandidoEntradas = true;
         expandidoSalidas = false;
+        procesando = false;
     }
 
     private async Task BuscaSalidas()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
         noParte = noParteSalida;
@@ -220,6 +233,7 @@
         totalSalidas = salidas.Count > 0 ? "Total de salidas: " + salidas.Count.ToString() : "";
         expandidoSalidas = true;
         expandidoEntradas = false;
+        procesando = false;
     }
 
 

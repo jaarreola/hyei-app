@@ -45,6 +45,12 @@
             <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
         </div>
     </div>
+    @if(procesando == true)
+    {
+        <div class="col-md-11">
+            <MatProgressBar Indeterminate="true"></MatProgressBar>  
+        </div>
+    }
 </div>
 
 <div class="col-md-3" style="padding:15px 0px 0px 0px">
@@ -137,8 +143,15 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="@GuardarEmpleado" class="mdc-button-modal">Guardar</MatButton>
+                @if(procesando == true)
+                {
+                    <MatProgressBar Indeterminate="true"></MatProgressBar>
+                }
+                else
+                {
+                    <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                    <MatButton OnClick="@GuardarEmpleado" class="mdc-button-modal">Guardar</MatButton>
+                }
             </MatDialogActions>
         </MatDialog>
     </EditForm>
@@ -163,6 +176,8 @@
     private Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
     private int totalEmpleadosConsulta = 0;
     private bool dialogIsOpen = false;
+
+    private bool procesando = false;
 
     protected async override Task OnInitializedAsync()
     {
@@ -197,11 +212,13 @@
 
     private async Task Buscar()
     {
+        procesando = true;
         var queryStrings = GenerarQueryStrings();
         var responseHttpEmpleados = await repository.Get<List<EmpleadoDTO>>("api/Empleados/ObtenerEmpleadosFilter?" + queryStrings);
         Empleados = responseHttpEmpleados.Response;
 
         totalEmpleadosConsulta = Empleados.Count > 0 ? Empleados.Count : 0;
+        procesando = false;
     }
 
 
@@ -216,17 +233,33 @@
     private async Task GuardarEmpleado()
     {
         if (Puesto == null)
+            Puesto = new PuestoComboDTO();
+
+        if ((Empleado.Nombre ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Se debe capturar el nombre");
+            return;
+        }
+        if ((Empleado.Direccion ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Se debe capturar la direccion");
+            return;
+        }
+        if (Puesto.PuestoId == 0)
         {
             await OpenMessage("Debe seleccionar un puesto");
             return;
         }
 
+        procesando = true;
         Empleado.PuestoId = Puesto.PuestoId;
 
         if (Empleado.EmpleadoId == 0)
             await CrearEmpleado();
         else
             await ActualizarEmpleado();
+
+        procesando = false;
     }
 
     private async Task CrearEmpleado()

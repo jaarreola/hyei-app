@@ -2,6 +2,7 @@
 
 @inject IRepository repository
 @inject IToastService toastService
+@inject IMatDialogService MatDialogService
 
 <div>
     <div class="row">
@@ -50,39 +51,53 @@
     </div>
 </div>
 
-<div class="col-md-8" style="padding:15px 0px 0px 0px">
-    Clientes totales: <strong>@totalClientes</strong>
-</div>
+@if(Clientes == null)
+{
+	<br />
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+	<h5 class="mat-subtitle1">Cargando Clientes</h5>
+}
+else
+{
+    @if(procesando == true)
+	{
+		<div class="col-md-11">
+            <MatProgressBar Indeterminate="true"></MatProgressBar>  
+        </div>
+	}
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        Clientes totales: <strong>@totalClientes</strong>
+    </div>
 
-<div>
-    <MatTable Items="@Clientes" class="mat-elevation-z5">
-        <MatTableHeader>
-            <th style="width:4%;">Código</th>
-            <th style="width:14%;">Nombre</th>
-            <th style="width:14%;">Apellido</th>
-            <th style="width:23%;">Direccion</th>
-            <th style="width:15%;">Telefono</th>
-            <th style="width:14%;">Correo</th>
-            <th style="width:5%;">RFC</th>
-            <th style="width:4%;">Frecuente</th>
-            <th style="width:5%;">Es Problema</th>
-            <th style="width:3%;"></th>
-        </MatTableHeader>
-        <MatTableRow>
-            <td>@context.ClienteId.ToString("00000")</td>
-            <td>@context.Nombre</td>
-            <td>@context.Apellido</td>
-            <td>@context.Direccion</td>
-            <td>@context.Telefono</td>
-            <td>@context.Correo</td>
-            <td>@context.RFC</td>
-            <td><MatCheckbox @bind-Value="@context.EsFrecuente" Disabled="true"></MatCheckbox></td>
-            <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
-            <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
-        </MatTableRow>
-    </MatTable>
-</div>
-
+    <div>
+        <MatTable Items="@Clientes" class="mat-elevation-z5">
+            <MatTableHeader>
+                <th style="width:4%;">Código</th>
+                <th style="width:14%;">Nombre</th>
+                <th style="width:14%;">Apellido</th>
+                <th style="width:23%;">Direccion</th>
+                <th style="width:15%;">Telefono</th>
+                <th style="width:14%;">Correo</th>
+                <th style="width:5%;">RFC</th>
+                <th style="width:4%;">Frecuente</th>
+                <th style="width:5%;">Es Problema</th>
+                <th style="width:3%;"></th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.ClienteId.ToString("00000")</td>
+                <td>@context.Nombre</td>
+                <td>@context.Apellido</td>
+                <td>@context.Direccion</td>
+                <td>@context.Telefono</td>
+                <td>@context.Correo</td>
+                <td>@context.RFC</td>
+                <td><MatCheckbox @bind-Value="@context.EsFrecuente" Disabled="true"></MatCheckbox></td>
+                <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
+                <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+            </MatTableRow>
+        </MatTable>
+    </div>
+}
 
 <div>
     <EditForm Model="@Cliente">
@@ -127,8 +142,15 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="@GuardarCliente" class="mdc-button-modal">Guardar</MatButton>
+                @if(procesando == true)
+	            {
+		            <MatProgressBar Indeterminate="true"></MatProgressBar>
+	            }
+                else
+                {
+                    <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                    <MatButton OnClick="@GuardarCliente" class="mdc-button-modal">Guardar</MatButton>
+                }
             </MatDialogActions>
         </MatDialog>
     </EditForm>
@@ -148,13 +170,15 @@
 
 
     //VARIABLES
-    private List<ClienteDTO> Clientes = new List<ClienteDTO>();
+    private List<ClienteDTO> Clientes; //new List<ClienteDTO>();
     private ClienteDTO Cliente = new ClienteDTO();
     private bool Expandido = true;
     private bool dialogIsOpen = false;
     Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
 
     private int totalClientes = 0;
+
+    private bool procesando = false;
 
     protected async override Task OnInitializedAsync()
     {
@@ -218,10 +242,17 @@
 
     private async Task GuardarCliente()
     {
+        if ((Cliente.Nombre ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el nombre");
+            return;
+        }
+        procesando = true;
         if (Cliente.ClienteId == 0)
             await CrearCliente();
         else
             await ActualizarCliente();
+        procesando = false;
     }
 
     private async Task CrearCliente()
@@ -255,12 +286,14 @@
 
     private async Task Buscar()
     {
+        procesando = true;
         var queryStrings = GenerarQueryStrings();
         var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesFilter?" + queryStrings);
         Clientes = responseHttp.Response;
 
         if (Clientes.Count > 0)
             totalClientes = Clientes.Count;
+        procesando = false;
     }
 
     private void Clear()
@@ -287,6 +320,19 @@
         return string.Join("&", queryStringsDict
             .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
             .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
     }
 
 }

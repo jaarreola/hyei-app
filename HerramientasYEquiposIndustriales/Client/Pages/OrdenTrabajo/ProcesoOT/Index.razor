@@ -62,6 +62,12 @@
 					</MatRadioGroup>
 				</div>
 			</div>
+
+			@if(guardandoOt == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			}
+
 			<div class="col-md-3" style="padding:15px 0px 0px 0px">
 				Ordenes de trabajo: <strong>@otTotales</strong>
 			</div>
@@ -241,7 +247,10 @@
 		</MatTable>
 		<div class="row">
 			<div class="col-md-4">
-				<MatHeadline6>Total Cotización: @totalCotizacion</MatHeadline6>  <MatIconButton OnClick="@ImprimirCotizacion" Icon="receipt"></MatIconButton>
+				<MatHeadline6>Total Cotización: @totalCotizacion</MatHeadline6>
+			</div>
+			<div class="col-md-2">
+				<MatIconButton OnClick="@ImprimirCotizacion" Icon="receipt"></MatIconButton>
 			</div>
 		</div>
 	</MatDialogContent>
@@ -287,7 +296,7 @@
 
 
 <MatDialog @bind-IsOpen="@dialogBuscarProductoIsOpen" CanBeClosed="false" class="mdc-dialog900">
-	<MatDialogTitle><h5>Busqueda Producto</h5></MatDialogTitle>
+	<MatDialogTitle><h5>Búsqueda Producto</h5></MatDialogTitle>
 	<MatDialogContent>
 		<div class="row">
 			<div class="col-md-3">
@@ -301,6 +310,10 @@
 			</div>
 		</div>
 		<br />
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+		}
 		<div class="row">
 			<div class="col-md-12">
 				<MatTable Items="@productos" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeProductos">
@@ -371,8 +384,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoSaveDetalleCotizacion" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoSaveDetalleCotizacion" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -387,8 +408,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoEditCotizacion" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoEditCotizacion" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -403,8 +432,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoEditOt" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoEditOt" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -424,8 +461,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoCambioEstatus" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoCambioEstatus" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -449,8 +494,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoCambioEstatus" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoCambioEstatus" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -519,8 +572,16 @@
 		</div>
 	</MatDialogContent>
 	<MatDialogActions>
-		<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-		<MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+		@if(guardandoOt == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+		}
 	</MatDialogActions>
 </MatDialog>
 
@@ -675,12 +736,16 @@
 	private bool noAfectaInventario = false;
 	private int porcentajeVenta = 20;
 
-	private string ipRutaReportes = string.Empty;
+	private string ipRutaReporteOt = string.Empty;
+	private string ipRutaReporteCotizacion = string.Empty;
+
+	private bool guardandoOt = false;
 
 
 	protected async override Task OnInitializedAsync()
 	{
-		 await CargaRutaReportes();
+		 await CargaRutaReporteOt();
+		 await CargaRutaCotizacion();
 
 		await CargaComboEstatus();
 		await CargaComboMarcas();
@@ -689,12 +754,20 @@
 	}
 
 
-	private async Task CargaRutaReportes()
+	private async Task CargaRutaReporteOt()
 	{
 		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReportes");
 		var configuracion = responseHttp.Response;
 
-		ipRutaReportes = configuracion.Valor;
+		ipRutaReporteOt = configuracion.Valor;
+	}
+
+	private async Task CargaRutaCotizacion()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteCotizacion");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteCotizacion = configuracion.Valor;
 	}
 
 	private async Task CargaComboEstatus()
@@ -772,7 +845,8 @@
 		{
 			if (await OpenConfirmacion("Desea reimprimir el ticket de esta Orden de trabajo?") == 1)
 			{
-				String url = "http://" + ipRutaReportes + "/Reportes/GetEtiquetaByNumeroOrden?ordenTrabajoDetalleId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+				String url = "http://" + ipRutaReporteOt + "/Reportes/GetEtiquetaByNumeroOrden?ordenTrabajoDetalleId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+				//String url = "http://" + ipRutaReporteOt + "/Reporte/Etiqueta/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
 				//await Js.InvokeAsync<object>("open", url, "_blank");
 				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 			}
@@ -791,7 +865,8 @@
 			if (listaCotizacionDetalle.Count > 0)
 				if (await OpenConfirmacion("Desea imrpimir esta cotizacion?") == 1)
 				{
-					String url = "http://" + ipRutaReportes + "/Reportes/GetCotizacionByCotizacion?cotizacionId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+					String url = "http://" + ipRutaReporteCotizacion + "/Reportes/GetCotizacionByCotizacion?cotizacionId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+					//String url = "http://" + ipRutaReporteCotizacion + "/Reporte/Cotizacion/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
 					//await Js.InvokeAsync<object>("open", url, "_blank");
 					await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 				}
@@ -806,11 +881,13 @@
 
 	private async Task BuscarOT()
 	{
+		guardandoOt = true;
 		CultureInfo.CurrentCulture = new CultureInfo("en-US");
 		var queryStrings = GenerarQueryStringsOT();
 		var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOTs?" + queryStrings);
 		consultaOts = responseHttp.Response;
 		otTotales = consultaOts.Count > 0 ? consultaOts.Count : 0;
+		guardandoOt = false;
 	}
 
 	private async Task MuestraDetalleOT(OrdenTrabajoDetalleConsultaDTO ot)
@@ -1122,6 +1199,7 @@
 
 	private async Task ValidaEmpleadoSaveDetalleCotizacion()
 	{
+		guardandoOt = true;
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -1171,6 +1249,8 @@
 		}
 		else
 			toastService.ShowError("Número de empleado no valido", "Error");
+
+		guardandoOt = false;
 	}
 
 
@@ -1187,6 +1267,7 @@
 
 	private async Task ValidaEmpleadoEditCotizacion()
 	{
+		guardandoOt = true;
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -1204,6 +1285,7 @@
 					if (httpResponse1.Error)
 					{
 						toastService.ShowError(await httpResponse1.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+						guardandoOt = false;
 						return;
 					}
 					else
@@ -1227,6 +1309,7 @@
 					if (httpResponse2.Error)
 					{
 						toastService.ShowError(await httpResponse2.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+						guardandoOt = false;
 						return;
 					}
 					else
@@ -1239,6 +1322,8 @@
 		}
 		else
 			toastService.ShowError("Número de empleado no valido", "Error");
+
+		guardandoOt = false;
 	}
 
 
@@ -1252,6 +1337,7 @@
 
 	private async Task ValidaEmpleadoEditOt()
 	{
+		guardandoOt = true;
 		var numEmp = numeroEmpleado;
 
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numEmp);
@@ -1291,6 +1377,7 @@
 			if (httpResponse1.Error)
 			{
 				toastService.ShowError(await httpResponse1.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+				guardandoOt = false;
 				return;
 			}
 
@@ -1299,11 +1386,14 @@
 		}
 		else
 			toastService.ShowError("Número de empleado no valido", "Error");
+
+		guardandoOt = false;
 	}
 
 
 	private async Task ValidaEmpleadoSaveProduct()
 	{
+		guardandoOt = true;
 		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
 		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -1338,6 +1428,8 @@
 		}
 		else
 			toastService.ShowError("Número de empleado no valido", "Error");
+
+		guardandoOt = false;
 	}
 
 	//----------------------------------------------PROCESOS DE LOS ESTATUS---------------------------
@@ -1503,10 +1595,13 @@
 
 	private async Task ValidaEmpleadoCambioEstatus()
 	{
+		guardandoOt = true;
+
 		if (dialogValidaEmpleadoCambioEstatusUbicacion)
 			if (ubicacionEstatus == String.Empty || ubicacionEstatus == null)
 			{
 				await OpenMessage("Se debe capturar una ubicación para este estatus.");
+				guardandoOt = false;
 				return;
 			}
 
@@ -1530,7 +1625,10 @@
 				var httpResponse = await repository.Post("api/Cotizaciones/SaveOnlyCotizacion", cotizacion);
 
 				if (httpResponse.Error)
+				{
+					guardandoOt = false;
 					return;
+				}
 
 				var httpResponseEstatus = await repository.Get<EstatusOTDTO>("api/EstatusOT/GetEstatusOTByDescripcion/Revisada");
 				if (!httpResponseEstatus.Error)
@@ -1575,6 +1673,8 @@
 		}
 		else
 			toastService.ShowError("Número de empleado no valido", "Error");
+
+		guardandoOt = false;
 	}
 
 	private async Task<bool> GuardaSiguienteEstatus()
@@ -1671,11 +1771,13 @@
 
 	private async Task BuscarProductos()
 	{
+		guardandoOt = true;
 		var queryStrings = GenerarQueryStringsProducto();
 		var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/BuscaProductosFilter?" + queryStrings);
 		productos = responseHttp.Response;
 		pageSizeProductos = productos.Count;
 		await Task.Delay(50);
+		guardandoOt = false;
 	}
 
 

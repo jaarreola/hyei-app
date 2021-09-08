@@ -240,6 +240,11 @@ app {
     color: steelblue !important;
 }
 
+/* MatDialog TO SCROOLBAR*/
+.mdc-dialog-scroll-lock {
+    overflow-y: scroll !important;
+}
+
 
 @media (max-width: 767.98px) {
     .main .top-row:not(.auth) {
