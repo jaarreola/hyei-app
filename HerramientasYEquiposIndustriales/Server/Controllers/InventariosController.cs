@@ -232,11 +232,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var Productos = await context.Movimientos.Include(x => x.FacturaMovimiento).Include(x => x.Producto).Where(x =>
                     ((x.EsEntrada == true && filtro.TipoEntrada == 1) || (x.EsSalida == true && filtro.TipoEntrada == -1) || filtro.TipoEntrada == 0) &&
@@ -263,11 +268,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var Facturas = await context.FacturaMovimientos.Where(x =>
                     (x.Factura.Contains(filtro.Factura) && filtro.Factura != null && filtro.Factura != String.Empty) ||
@@ -359,11 +369,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from p in context.Productos
                                join m in context.Movimientos on p.ProductoId equals m.ProductoId into m1
@@ -423,11 +438,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var movimientos = await context.Movimientos.Include(x => x.FacturaMovimiento).Include(x => x.Producto).Where(x =>
                     (x.Producto.NoParte == filtro.NoParte || filtro.NoParte == null || filtro.NoParte == String.Empty) &&
@@ -478,11 +498,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from p in context.Productos
                                join m in context.Movimientos on p.ProductoId equals m.ProductoId into m1
@@ -535,11 +560,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from p in context.Productos
                                join m in context.Movimientos on p.ProductoId equals m.ProductoId
@@ -575,11 +605,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from p in context.Productos
                                join m in context.Movimientos on p.ProductoId equals m.ProductoId
@@ -615,11 +650,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from p in context.Productos
                                join m in context.Movimientos on p.ProductoId equals m.ProductoId

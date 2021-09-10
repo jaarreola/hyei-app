@@ -96,11 +96,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var ordenesTrabajo = await context.OrdenTrabajoDetalle.Where(x =>
                     ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || filtro.FechaInicio == null || filtro.FechaFin == null) &&
