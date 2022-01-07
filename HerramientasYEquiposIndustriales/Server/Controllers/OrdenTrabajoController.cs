@@ -381,11 +381,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 //garantia 1= Local, 2= Fabrica, 3= Sin garantia, 0= Todos
 
@@ -551,11 +556,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 //garantia 1= Local, 2= Fabrica, 3= Sin garantia, 0= Todos
 
@@ -634,11 +644,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from otd in context.OrdenTrabajoDetalle
                                where
@@ -668,11 +683,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from otd in context.OrdenTrabajoDetalle
                                where
@@ -702,11 +722,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var consulta = from otd in context.OrdenTrabajoDetalle
                                where
@@ -737,11 +762,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                int year = DateTime.Now.Year;
                 if (filtro.FechaFin != null)
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var OrdenTrabajoDetalle = await context.OrdenTrabajoDetalle.Where(x =>
                     ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
@@ -760,6 +790,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener la información de la Orden de Trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+
+        [HttpGet("GetUltimaOrdenTrabajoId")]
+        public async Task<ActionResult<int>> GetUltimaOrdenTrabajoId()
+        {
+            try
+            {
+                var configuracion = await context.OrdenTrabajo.OrderByDescending(x => x.FechaRegistro).FirstOrDefaultAsync();
+                if (configuracion == null) { return NotFound(); }
+
+                return configuracion.OrdenTrabajoId;
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el ultimo valor de las Ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
 
 
 

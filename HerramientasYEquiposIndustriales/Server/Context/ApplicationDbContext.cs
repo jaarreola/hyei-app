@@ -45,6 +45,11 @@ namespace HerramientasYEquiposIndustriales.Server.Context
                 .IsUnique();
 
 
+            builder.Entity<Configuraciones>(e =>
+                {
+                    e.HasNoKey();
+                });
+
             //builder.Entity<OrdenTrabajoDetalle>(e =>
             //    {
             //        e.HasNoKey();
@@ -70,5 +75,9 @@ namespace HerramientasYEquiposIndustriales.Server.Context
 
         public DbSet<EstatusOT> EstatusOTs { get; set; }
         public DbSet<EstatusOTFlujo> EstatusOTFlujos { get; set; }
+
+        public DbSet<Configuraciones> Configuraciones { get; set; }
+
+        public DbSet<HistorialPreciosProductos> HistorialPreciosProductos { get; set; }
     }
 }

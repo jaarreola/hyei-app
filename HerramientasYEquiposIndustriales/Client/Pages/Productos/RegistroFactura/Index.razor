@@ -121,7 +121,7 @@
 
 <div>
     <MatDialog @bind-IsOpen="@dialogBuscarProductoIsOpen" CanBeClosed="false" class="mdc-dialog900">
-        <MatDialogTitle><h5>Busqueda Producto</h5></MatDialogTitle>
+        <MatDialogTitle><h5>Búsqueda Producto</h5></MatDialogTitle>
         <MatDialogContent>
             <div class="row">
                 <div class="col-md-3">
@@ -134,7 +134,12 @@
                     <MatTextField FullWidth="true" @bind-Value="@marcaProductoBusqueda" Label="Marca" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
                 </div>
             </div>
-            <br />
+            @if(procesando == true)
+            {
+                <div class="row">
+                    <MatProgressBar Indeterminate="true"></MatProgressBar>  
+                </div>
+            }
             <div class="row">
                 <div class="col-md-12">
                     <MatTable Items="@productos" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeProductos">
@@ -176,8 +181,15 @@
             </div>
         </MatDialogContent>
         <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+            @if(procesando == true)
+            {
+                <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+            else
+            {
+                <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+            }
         </MatDialogActions>
     </MatDialog>
 </div>
@@ -195,8 +207,15 @@
             </div>
         </MatDialogContent>
         <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleadoEdit" class="mdc-button-modal">Aceptar</MatButton>
+            @if(procesando == true)
+            {
+                <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+            else
+            {
+                <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@ValidaEmpleadoEdit" class="mdc-button-modal">Aceptar</MatButton>
+            }
         </MatDialogActions>
     </MatDialog>
 </div>
@@ -220,8 +239,13 @@
                 <div class="col-md-3">
                     <MatDatePicker @bind-Value="@fechaFin" HelperText="Fecha Final de busqueda" Label="Fecha Final" OnKeyPress="@KeyPressFactura" OnFocusOut="@LostFocusFactura"></MatDatePicker>
                 </div>
+                @if(procesando == true)
+                {
+                    <div class="col-md-12">
+                        <MatProgressBar Indeterminate="true"></MatProgressBar>  
+                    </div>
+                }
             </div>
-            <br />
             <div class="row">
                 <div class="col-md-12">
                     <MatTable Items="@facturas" OnRowDbClick="@OnDbClickedFactura" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalFacturas">
@@ -312,8 +336,15 @@
             </div>
         </MatDialogContent>
         <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+            @if(procesando == true)
+            {
+                <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+            else
+            {
+                <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@ValidaEmpleadoSaveProduct" class="mdc-button-modal">Aceptar</MatButton>
+            }
         </MatDialogActions>
     </MatDialog>
 </div>
@@ -384,6 +415,7 @@
     private bool noAfectaInventario = false;
     private int porcentajeVenta = 20;
 
+    private bool procesando = false;
 
 
     protected async override Task OnInitializedAsync()
@@ -624,12 +656,14 @@
 
     private async Task BuscarFacturas()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         var queryStrings = GenerarQueryStringsFactura();
         var responseHttp = await repository.Get<List<FacturaMovimientoDTO>>("api/Inventarios/BuscaFacturas?" + queryStrings);
         facturas = responseHttp.Response;
         totalFacturas = facturas == null ? 0 : facturas.Count;
         await Task.Delay(50);
+        procesando = false;
     }
 
 
@@ -648,11 +682,13 @@
 
     private async Task BuscarProductos()
     {
+        procesando = true;
         var queryStrings = GenerarQueryStringsProducto();
         var responseHttp = await repository.Get<List<ProductoDTO>>("api/Productos/BuscaProductosFilter?" + queryStrings);
         productos = responseHttp.Response;
         pageSizeProductos = productos.Count;
         await Task.Delay(50);
+        procesando = false;
     }
 
     private void CancelaDialogSeleccionaProducto()
@@ -744,6 +780,7 @@
 
     private async Task ValidaEmpleadoSave()
     {
+        procesando = true;
         var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -790,11 +827,14 @@
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+        
+        procesando = false;
     }
 
 
     private async Task ValidaEmpleadoEdit()
     {
+        procesando = true;
         var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -847,6 +887,8 @@
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+        
+        procesando = false;
     }
 
 
@@ -887,6 +929,7 @@
 
     private async Task ValidaEmpleadoSaveProduct()
     {
+        procesando = true;
         var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -907,6 +950,8 @@
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+
+        procesando = false;
     }
 
     private async Task CrearProducto()

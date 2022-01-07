@@ -35,6 +35,11 @@
                 </div>
             </div>
 
+            @if(procesando == true)
+            {
+	            <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+
             <div class="row">
                 <MatTable Items="@entradas" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
@@ -83,6 +88,11 @@
                 </div>
             </div>
 
+            @if(procesando == true)
+            {
+	            <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+
             <div class="row">
                 <MatTable Items="@salidas" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
@@ -103,6 +113,60 @@
         </MatExpansionPanelDetails>
     </MatExpansionPanel>
 </MatAccordion>
+
+<br />
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandidoEntradas1">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h6>MAS COMPRADAS</h6></MatExpansionPanelHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioEntrada1" HelperText="Fecha Inicial de busqueda" Label="Fecha Inicial"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinEntrada1" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@noParteEntrada1" Label="No Parte"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreEntrada1" Label="Nombre"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatButton Raised="true" Icon="search" OnClick="@BuscaEntradas1" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+
+            @if(procesando == true)
+            {
+	            <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+
+            <div class="row">
+                <MatTable Items="@entradas1" AllowSelection="true" class="mat-elevation-z10">
+                    <MatTableHeader>
+                        <th style="width:300px;">No Parte</th>
+                        <th style="width:600px;">Nombre</th>
+                        <th style="width:100px;">Cantidad</th>
+                        <th style="width:100px;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td style="width:300px;"><strong>@context.NoParte</strong></td>
+                        <td style="width:600px;">@context.Nombre</td>
+                        <td style="width:100px;">@FormatoDecimal(@context.Entradas.ToString())</td>
+                        <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+
 
 <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
     <MatDialogTitle><h5>@tipoDetalle</h5></MatDialogTitle>
@@ -153,20 +217,26 @@
     private String nombreEntrada = String.Empty;
     private String noParteSalida = String.Empty;
     private String nombreSalida = String.Empty;
+    private String noParteEntrada1 = String.Empty;
+    private String nombreEntrada1 = String.Empty;
 
     private DateTime? fechaInicioEntrada;
     private DateTime? fechaFinEntrada;
     private DateTime? fechaInicioSalida;
     private DateTime? fechaFinSalida;
+    private DateTime? fechaInicioEntrada1;
+    private DateTime? fechaFinEntrada1;
 
     private String totalEntradas;
     private String totalSalidas;
 
     private bool expandidoEntradas = false;
     private bool expandidoSalidas = false;
+    private bool expandidoEntradas1 = false;
 
     private List<CostoInventarioDTO> entradas = new List<CostoInventarioDTO>();
     private List<CostoInventarioDTO> salidas = new List<CostoInventarioDTO>();
+    private List<CostoInventarioDTO> entradas1 = new List<CostoInventarioDTO>();
 
     private String noParte = String.Empty;
     private String nombre = String.Empty;
@@ -184,10 +254,11 @@
     private String totalDetalle;
     private String totalCantidad;
 
-
+    private bool procesando = false;
 
     private async Task BuscaEntradas()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
         noParte = noParteEntrada;
@@ -202,10 +273,33 @@
         totalEntradas = entradas.Count > 0 ? "Total de entradas: " + entradas.Count.ToString() : "";
         expandidoEntradas = true;
         expandidoSalidas = false;
+        expandidoEntradas1 = false;
+        procesando = false;
+    }
+
+    private async Task BuscaEntradas1()
+    {
+        procesando = true;
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        noParte = noParteEntrada1;
+        nombre = nombreEntrada1;
+
+        fechaInicio = fechaInicioEntrada1;
+        fechaFin = fechaFinEntrada1;
+
+        var queryStrings = GenerarQueryStringsOT();
+        var responseHttp = await repository.Get<List<CostoInventarioDTO>>("api/Inventarios/GetMasCompradasByFilter?" + queryStrings);
+        entradas1 = responseHttp.Response;
+        expandidoEntradas = false;
+        expandidoSalidas = false;
+        expandidoEntradas1 = true;
+        procesando = false;
     }
 
     private async Task BuscaSalidas()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
         noParte = noParteSalida;
@@ -220,6 +314,8 @@
         totalSalidas = salidas.Count > 0 ? "Total de salidas: " + salidas.Count.ToString() : "";
         expandidoSalidas = true;
         expandidoEntradas = false;
+        expandidoEntradas1 = false;
+        procesando = false;
     }
 
 

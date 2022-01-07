@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace HerramientasYEquiposIndustriales.Server.Controllers
 {
@@ -158,22 +159,43 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<ProductoDTO>> PostProducto(ProductoDTO ProductoCreacionDTO)
+        public ActionResult<ProductoDTO> PostProducto(ProductoDTO ProductoCreacionDTO)
         {
             try
             {
                 var Producto = mapper.Map<Producto>(ProductoCreacionDTO);
                 Producto.FechaRegistro = DateTime.Now;
+                ProductoDTO dto = new ProductoDTO();
 
-                context.Productos.Add(Producto);
-                await context.SaveChangesAsync();
+                using (var scope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+                {
+                    context.Productos.Add(Producto);
+                    context.SaveChanges();
 
-                var dto = mapper.Map<ProductoDTO>(Producto);
+                    dto = mapper.Map<ProductoDTO>(Producto);
 
+                    if (Producto.CostoCompra != 0)
+                    {
+                        HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
+                        {
+                            ProductoId = Producto.ProductoId,
+                            CostoCompra = Producto.CostoCompra,
+                            CostoVenta = Producto.CostoVenta,
+                            FechaRegistro = Producto.FechaRegistro,
+                            EmpleadoCreacion = Producto.EmpleadoCreacion
+                        };
+                        context.HistorialPreciosProductos.Add(nuevoPrecio);
+                        context.SaveChanges();
+                    }
+
+                    scope.Complete();
+                }
                 return new CreatedAtRouteResult("ObtenerProducto", new { id = Producto.ProductoId }, dto);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al crear el Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -182,28 +204,49 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ProductoDTO>> PutProducto(int id, [FromBody] ProductoDTO ProductoModificacionDTO)
+        public ActionResult<ProductoDTO> PutProducto(int id, [FromBody] ProductoDTO ProductoModificacionDTO)
         {
             try
             {
-                if (!ProductoExists(id)) { return NotFound(); }
+                using (var scope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+                {
+                    if (!ProductoExists(id)) { return NotFound(); }
 
-                var Producto = mapper.Map<Producto>(ProductoModificacionDTO);
+                    var Producto = mapper.Map<Producto>(ProductoModificacionDTO);
 
-                Producto.ProductoId = id;
-                Producto.FechaUltimaModificacion = DateTime.Now;
+                    Producto.ProductoId = id;
+                    Producto.FechaUltimaModificacion = DateTime.Now;
 
-                context.Entry(Producto).State = EntityState.Modified;
-                context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
-                context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
-                context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
+                    context.Entry(Producto).State = EntityState.Modified;
+                    context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                    context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
+                    context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
 
-                await context.SaveChangesAsync();
+                    context.SaveChanges();
 
+                    var ultimoPrecio = context.HistorialPreciosProductos.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductoId == Producto.ProductoId);
+                        
+                    if (Producto.CostoCompra != ultimoPrecio.CostoCompra)
+                    {
+                        HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
+                        {
+                            ProductoId = Producto.ProductoId,
+                            CostoCompra = Producto.CostoCompra,
+                            CostoVenta = Producto.CostoVenta,
+                            FechaRegistro = Producto.FechaUltimaModificacion,
+                            EmpleadoCreacion = Producto.EmpleadoModificacion
+                        };
+                        context.HistorialPreciosProductos.Add(nuevoPrecio);
+                        context.SaveChanges();
+                    }
+                    scope.Complete();
+                }
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al actualizar la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -318,6 +361,27 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetHistorialPrecioProducto/{productoId}")]
+        public async Task<ActionResult<List<HistorialPreciosProductosDTO>>> GetHistorialPrecioProducto(int productoId)
+        {
+            try
+            {
+                var historial = await context.HistorialPreciosProductos.Where(x => x.ProductoId == productoId).OrderByDescending(x => x.FechaRegistro).ToListAsync();
+                if (historial == null)
+                    historial = new List<HistorialPreciosProductos>();
+
+                return mapper.Map<List<HistorialPreciosProductosDTO>>(historial);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del historial de precios. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
     }

@@ -7,6 +7,7 @@
 @inject IToastService toastService
 @inject IMatDialogService MatDialogService
 
+@inject IJSRuntime Js
 
 <h5>Consulta de Ordenes de Trabajo</h5>
 <div class="row">
@@ -80,8 +81,13 @@
     </div>
 </div>
 
+@if(procesando == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+
 <div class="row">
-    <div class="col-md-3" style="padding:15px 0px 0px 0px">
+    <div class="col-md-4" style="padding:15px 0px 0px 0px">
         Ordenes de trabajo: <strong>@otTotales</strong>
     </div>
     <div class="col-md-3" style="padding:15px 0px 0px 0px">
@@ -221,6 +227,9 @@
                             <div class="col-md-4">
                                 <MatHeadline6>Total Cotización: @totalCotizacion</MatHeadline6>
                             </div>
+                            <div class="col-md-2">
+				                <MatIconButton OnClick="@ImprimirCotizacion" Icon="receipt"></MatIconButton>
+			                </div>
                         </div>
                     </div>
                 </div>
@@ -314,6 +323,10 @@
     private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
     private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
 
+    private string ipRutaReporteCotizacion;
+
+    private bool procesando = false;
+
 
     protected async override Task OnInitializedAsync()
     {
@@ -343,6 +356,7 @@
 
     private async Task BuscaOTs()
     {
+        procesando = true;
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         var queryStrings = GenerarQueryStringsOT();
         var responseHttp = await repository.Get<List<OrdenTrabajoDetalleConsultaDTO>>("api/OrdenTrabajo/GetOTs?" + queryStrings);
@@ -355,6 +369,7 @@
 
         acumuladoReparacion = FormatoMoneda(acumulado.ToString());
         expandido = false;
+        procesando = false;
     }
 
 
@@ -425,6 +440,28 @@
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         return FormatoMoneda((value * cantidad).ToString());
     }
+
+
+    private async Task CargaRutaCotizacion()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteCotizacion");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteCotizacion = configuracion.Valor;
+	}
+
+    private async Task ImprimirCotizacion()
+	{
+		if (cotizacionDetalle.Count > 0)
+			if (await OpenConfirmacion("Desea imrpimir esta cotizacion?") == 1)
+			{
+                await CargaRutaCotizacion();
+				String url = "http://" + ipRutaReporteCotizacion + "/Reportes/GetCotizacionByCotizacion?cotizacionId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+                //String url = "http://" + ipRutaReporteCotizacion + "/Reporte/Cotizacion/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+				//await Js.InvokeAsync<object>("open", url, "_blank");
+				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+			}
+	}
 
 
     private async Task<int> OpenConfirmacion(string pregunta)

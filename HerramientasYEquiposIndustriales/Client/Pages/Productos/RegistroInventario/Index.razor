@@ -56,6 +56,12 @@
         </div>
     </div>
 </div>
+@if(procesando == true)
+{
+    <div class="col-md-11">
+        <MatProgressBar Indeterminate="true"></MatProgressBar>  
+    </div>
+}
 
 <div class="row">
     <div class="col-md-8" style="padding:15px 0px 0px 0px">
@@ -261,8 +267,15 @@
             </div>
         </MatDialogContent>
         <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+            @if(procesando == true)
+            {
+                <MatProgressBar Indeterminate="true"></MatProgressBar>
+            }
+            else
+            {
+                <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+                <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+            }   
         </MatDialogActions>
     </MatDialog>
 </div>
@@ -375,9 +388,12 @@
     private String descripcionFacturaRegistro;
     private int pageSizeFactura;
 
+    private bool procesando = false;
 
     private async Task BuscaMovimientos()
     {
+        procesando = true;
+
         CultureInfo.CurrentCulture = new CultureInfo("en-US");
         var queryStrings = GenerarQueryStringsMovimiento();
         var responseHttp = await repository.Get<List<MovimientoDTO>>("api/Inventarios/ObtenerMovimientosFilter?" + queryStrings);
@@ -396,6 +412,7 @@
             totalRegistros = 0;
             totalExistencias = "0";
         }
+        procesando = false;
     }
 
 
@@ -696,6 +713,7 @@
 
     private async Task ValidaEmpleadoSave()
     {
+        procesando = true;
         var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
 
         JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
@@ -729,6 +747,8 @@
         }
         else
             toastService.ShowError("Numero de empleado no valido", "Error");
+
+        procesando = false;
     }
 
 

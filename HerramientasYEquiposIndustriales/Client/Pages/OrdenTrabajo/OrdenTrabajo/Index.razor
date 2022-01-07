@@ -6,714 +6,762 @@
 @inject IToastService toastService
 @inject IMatDialogService MatDialogService
 
+@inject IJSRuntime Js
 
 <h4>Generación de la Orden de Trabajo</h4>
 
 <div>
-    <div class="row">
-        <div class="col-md-12">
-            <MatAccordion>
-                <MatExpansionPanel @bind-Expanded="@_expandido">
-                    <MatExpansionPanelSummary>
-                        <MatExpansionPanelHeader><h6>Cliente</h6></MatExpansionPanelHeader>
-                    </MatExpansionPanelSummary>
-                    <MatExpansionPanelDetails>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Nombre" HelperText="Nombre del cliente" Label="Nombre" OnFocusOut="@lostFocus" class="mdc-textField"></MatTextField>
-                            </div>
-                            <div class="col-md-3">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Apellido" HelperText="Apellido del cliente" OnFocusOut="@lostFocus" Label="Apellido"></MatTextField>
-                            </div>
-                            <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Telefono" HelperText="Telefono del cliente" OnFocusOut="@lostFocus" Label="Telefono"></MatTextField>
-                            </div>
-                            <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Correo" HelperText="Correo del cliente" Label="Correo"></MatTextField>
-                            </div>
-                            <div class="col-md-2">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.RFC" HelperText="RFC del cliente" Label="RFC"></MatTextField>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-7">
-                                <MatTextField FullWidth="true" @bind-Value="@_cliente.Direccion" HelperText="Direccion del cliente" Label="Dirección"></MatTextField>
-                            </div>
-                            <div class="col-md-3">
-                                <span style="color:red; font-weight:bold;">@esProblema</span>
-                            </div>
-                            <div class="col-md-2">
-                                <MatButton Raised="true" Icon="search" OnClick="@OpenDialogBuscarCliente" class="mdc-button-background">Buscar</MatButton>
-                            </div>
-                        </div>
-                    </MatExpansionPanelDetails>
-                </MatExpansionPanel>
-            </MatAccordion>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col-md-12">
+			<MatAccordion>
+				<MatExpansionPanel @bind-Expanded="@_expandido">
+					<MatExpansionPanelSummary>
+						<MatExpansionPanelHeader><h6>Cliente</h6></MatExpansionPanelHeader>
+					</MatExpansionPanelSummary>
+					<MatExpansionPanelDetails>
+						<div class="row">
+							<div class="col-md-3">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.Nombre" HelperText="Nombre del cliente" Label="Nombre" OnFocusOut="@lostFocus" class="mdc-textField"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.Apellido" HelperText="Apellido del cliente" OnFocusOut="@lostFocus" Label="Apellido"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.Telefono" HelperText="Telefono del cliente" OnFocusOut="@lostFocus" Label="Telefono"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.Correo" HelperText="Correo del cliente" Label="Correo"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.RFC" HelperText="RFC del cliente" Label="RFC"></MatTextField>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-7">
+								<MatTextField FullWidth="true" @bind-Value="@_cliente.Direccion" HelperText="Direccion del cliente" Label="Dirección"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<span style="color:red; font-weight:bold;">@esProblema</span>
+							</div>
+							<div class="col-md-2">
+								<MatButton Raised="true" Icon="search" OnClick="@OpenDialogBuscarCliente" class="mdc-button-background">Buscar</MatButton>
+							</div>
+						</div>
+					</MatExpansionPanelDetails>
+				</MatExpansionPanel>
+			</MatAccordion>
+		</div>
+	</div>
 </div>
 <br />
 <div>
-    <div class="row">
-        <div class="col-md-6">
-            <h5>Herramientas</h5>
-        </div>
-        <div class="col-md-4">
-            <MatButton Raised="true" Icon="search" OnClick="@OpenDialogAgregaHerramienta" class="mdc-button-background">Agregar Herramienta</MatButton>
-        </div>
-        <div class="col-md-2">
-            <MatButton Raised="true" Icon="save" OnClick="@GuardaOrdenesTrabajo" Disabled="@desactivaGuardar" class="mdc-button-background">GUARDAR</MatButton>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col-md-6">
+			<h5>Herramientas</h5>
+		</div>
+		<div class="col-md-4">
+			<MatButton Raised="true" Icon="search" OnClick="@OpenDialogAgregaHerramienta" class="mdc-button-background">Agregar Herramienta</MatButton>
+		</div>
+		<div class="col-md-2">
+			<MatButton Raised="true" Icon="save" OnClick="@GuardaOrdenesTrabajo" Disabled="@desactivaGuardar" class="mdc-button-background">GUARDAR</MatButton>
+		</div>
+	</div>
 
-    <MatTable Items="@_ordenesTrabajoDetalle" class="mat-elevation-z10 mdc-table1" ShowPaging="@_mostrarPaginacionHerramientas">
-        <MatTableHeader>
-            <th style="width:10%;">No Orden</th>
-            <th style="width:30%;">Nombre</th>
-            <th style="width:15%;">Marca</th>
-            <th style="width:15%;">Modelo</th>
-            <th style="width:20%;">No Serie</th>
-            <th style="width:10%;"></th>
-            <th></th>
-        </MatTableHeader>
-        <MatTableRow>
-            <td>@context.NumeroOrdenTrabajo</td>
-            <td>@context.NombreHerramienta</td>
-            <td>@context.Marca</td>
-            <td>@context.Modelo</td>
-            <td>@context.NumeroSerie</td>
-            <td><MatIconButton OnClick="@(_=>OpenDialogEditHerramienta(@context))" Icon="edit"></MatIconButton></td>
-            <td><MatIconButton OnClick="@(_=>EliminaHerramientaGrid(@context))" Icon="delete"></MatIconButton></td>
-        </MatTableRow>
-    </MatTable>
+	<MatTable Items="@_ordenesTrabajoDetalle" class="mat-elevation-z10 mdc-table1" ShowPaging="@_mostrarPaginacionHerramientas">
+		<MatTableHeader>
+			<th style="width:10%;">No Orden</th>
+			<th style="width:30%;">Nombre</th>
+			<th style="width:15%;">Marca</th>
+			<th style="width:15%;">Modelo</th>
+			<th style="width:20%;">No Serie</th>
+			<th style="width:10%;"></th>
+			<th></th>
+		</MatTableHeader>
+		<MatTableRow>
+			<td>@context.NumeroOrdenTrabajo</td>
+			<td>@context.NombreHerramienta</td>
+			<td>@context.Marca</td>
+			<td>@context.Modelo</td>
+			<td>@context.NumeroSerie</td>
+			<td><MatIconButton OnClick="@(_=>OpenDialogEditHerramienta(@context))" Icon="edit"></MatIconButton></td>
+			<td><MatIconButton OnClick="@(_=>EliminaHerramientaGrid(@context))" Icon="delete"></MatIconButton></td>
+		</MatTableRow>
+	</MatTable>
 </div>
 
 
 <div>
-    <MatDialog @bind-IsOpen="@_dialogBuscarClienteIsOpen" CanBeClosed="false" class="mdc-dialog800">
-        <MatDialogTitle><h5>Busqueda Cliente</h5></MatDialogTitle>
-        <MatDialogContent>
-            <div class="row">
-                <div class="col-md-6">
-                    <MatTextField FullWidth="true" @bind-Value="@_nombreClienteBuscar" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
-                </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@_rfcClienteBuscar" Label="RFC" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
-                </div>
-                <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@_telefonoClienteBuscar" Label="Telefono" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
-                </div>
-            </div>
-            <br />
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTable Items="@_clientes" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
-                        <MatTableHeader>
-                            <th style="width:30%;">Nombre</th>
-                            <th style="width:30%;">Direccion</th>
-                            <th style="width:10%;">Telefono</th>
-                            <th style="width:10%;">RFC</th>
-                            <th style="width:20%;">Correo</th>
-                            <th style="width:20%;">Problema</th>
-                        </MatTableHeader>
-                        <MatTableRow>
-                            <td>@context.Nombre @context.Apellido</td>
-                            <td>@context.Direccion</td>
-                            <td>@context.Telefono</td>
-                            <td>@context.RFC</td>
-                            <td>@context.Correo</td>
-                            <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
-                        </MatTableRow>
-                    </MatTable>
-                </div>
-            </div>
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogSeleccionaCliente" class="mdc-button-modal">Cancel</MatButton>
-        </MatDialogActions>
-    </MatDialog>
+	<MatDialog @bind-IsOpen="@_dialogBuscarClienteIsOpen" CanBeClosed="false" class="mdc-dialog800">
+		<MatDialogTitle><h5>Busqueda Cliente</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-6">
+					<MatTextField FullWidth="true" @bind-Value="@_nombreClienteBuscar" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+				</div>
+				<div class="col-md-3">
+					<MatTextField FullWidth="true" @bind-Value="@_rfcClienteBuscar" Label="RFC" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+				</div>
+				<div class="col-md-3">
+					<MatTextField FullWidth="true" @bind-Value="@_telefonoClienteBuscar" Label="Telefono" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+				</div>
+			</div>
+			<br />
+			@if(guardandoOt == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			}
+			<div class="row">
+				<div class="col-md-12">
+					<MatTable Items="@_clientes" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false">
+						<MatTableHeader>
+							<th style="width:30%;">Nombre</th>
+							<th style="width:30%;">Direccion</th>
+							<th style="width:10%;">Telefono</th>
+							<th style="width:10%;">RFC</th>
+							<th style="width:20%;">Correo</th>
+							<th style="width:20%;">Problema</th>
+						</MatTableHeader>
+						<MatTableRow>
+							<td>@context.Nombre @context.Apellido</td>
+							<td>@context.Direccion</td>
+							<td>@context.Telefono</td>
+							<td>@context.RFC</td>
+							<td>@context.Correo</td>
+							<td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
+						</MatTableRow>
+					</MatTable>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			<MatButton OnClick="@CancelaDialogSeleccionaCliente" class="mdc-button-modal">Cancel</MatButton>
+		</MatDialogActions>
+	</MatDialog>
 </div>
 
 
 
 <div>
-    <EditForm Model="@_ordenTrabajoDetalle">
-        <MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false" class="mdc-dialog900">
-            <MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
-            <MatDialogContent>
-                <div class="row">
-                    <div class="col-md-5">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NombreHerramienta" Label="Nombre" HelperText="Nombre de la herramienta"></MatTextField>
-                    </div>
-                    <div class="col-md-2">
-                        <MatSelectValue @bind-Value="@_ordenTrabajoDetalle.Marca" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
-                            <ItemTemplate Context="Marca">
-                                @Marca?.Descripcion
-                            </ItemTemplate>
-                        </MatSelectValue>
-                    </div>
-                    <div class="col-md-1">
-                        <MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
-                    </div>
-                    <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Modelo" Label="Modelo" HelperText="Modelo de la herramienta"></MatTextField>
-                    </div>
-                    <div class="col-md-2">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NumeroSerie" Label="No Serie" HelperText="No serie de la herramienta"></MatTextField>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Comentarios" Label="Comentarios / Observaciones" TextArea="true"></MatTextField>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaFabrica">Viene por garantía de fabrica</MatCheckbox>
-                    </div>
-                    <div class="col-md-6">
-                        <MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaLocal">Viene por garantía local</MatCheckbox>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.GarantiaFabricaDetalle" Label="Garantía Fabrica Detalle" TextArea="true" Disabled="!_ordenTrabajoDetalle.GarantiaFabrica"></MatTextField>
-                    </div>
-                    <div class="col-md-6">
-                        <MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.GarantiaLocalDetalle" Label="Garantía Local Detalle" TextArea="true" Disabled="!_ordenTrabajoDetalle.GarantiaLocal"></MatTextField>
-                    </div>
-                </div>
-            </MatDialogContent>
-            <MatDialogActions>
-                <MatButton OnClick="@CancelaDialogOrdenTrabajo" class="mdc-button-modal">Cancel</MatButton>
-                <MatButton OnClick="@AgregarHerramientaGrid" class="mdc-button-modal">@_textoOpcionBoton</MatButton>
-            </MatDialogActions>
-        </MatDialog>
-    </EditForm>
+	<EditForm Model="@_ordenTrabajoDetalle">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<div class="col-md-5">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NombreHerramienta" Label="Nombre" HelperText="Nombre de la herramienta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatSelectValue @bind-Value="@_ordenTrabajoDetalle.Marca" Items="@MarcasBusqueda" ValueSelector="@(i=>i.Descripcion)" Label="Marca">
+							<ItemTemplate Context="Marca">
+								@Marca?.Descripcion
+							</ItemTemplate>
+						</MatSelectValue>
+					</div>
+					<div class="col-md-1">
+						<MatIconButton OnClick="@OpenDialogMarca" Icon="library_add"></MatIconButton>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Modelo" Label="Modelo" HelperText="Modelo de la herramienta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.NumeroSerie" Label="No Serie" HelperText="No serie de la herramienta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.Comentarios" Label="Comentarios / Observaciones" TextArea="true"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaFabrica">Viene por garantía de fabrica</MatCheckbox>
+					</div>
+					<div class="col-md-6">
+						<MatCheckbox @bind-Value="@_ordenTrabajoDetalle.GarantiaLocal">Viene por garantía local</MatCheckbox>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.GarantiaFabricaDetalle" Label="Garantía Fabrica Detalle" TextArea="true" Disabled="!_ordenTrabajoDetalle.GarantiaFabrica"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@_ordenTrabajoDetalle.GarantiaLocalDetalle" Label="Garantía Local Detalle" TextArea="true" Disabled="!_ordenTrabajoDetalle.GarantiaLocal"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialogOrdenTrabajo" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@AgregarHerramientaGrid" class="mdc-button-modal">@_textoOpcionBoton</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
 </div>
 
 
 <div>
-    <MatDialog @bind-IsOpen="@_dialogValidaEmpleado" CanBeClosed="false">
-        <MatDialogTitle><h5>Valida Usuario</h5></MatDialogTitle>
-        <MatDialogContent>
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTextField FullWidth="true" @bind-Value="@_numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
-                </div>
-            </div>
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal" Disabled="@desactivaEmpleadoGuardar">Aceptar</MatButton>
-        </MatDialogActions>
-    </MatDialog>
+	<MatDialog @bind-IsOpen="@_dialogValidaEmpleado" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Usuario</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@_numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			@if(guardandoOt == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+				<br />
+			}
+			else
+			{
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+			}
+		</MatDialogActions>
+	</MatDialog>
 </div>
 
 
 <EditForm Model="@NuevaMarca">
-    <DataAnnotationsValidator />
-    <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
-        <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
-        <MatDialogContent>
-            <div class="row">
-                &nbsp;
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
-                </div>
-            </div>
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
-            <MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
-        </MatDialogActions>
-    </MatDialog>
+	<DataAnnotationsValidator />
+	<MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
+		<MatDialogTitle><h5>Marca</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				&nbsp;
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			<MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
+		</MatDialogActions>
+	</MatDialog>
 </EditForm>
 
 
 
-@code{
-    //FILTROS BUSQUEDA
-    private string _nombreClienteBuscar = string.Empty;
-    private string _rfcClienteBuscar = string.Empty;
-    private string _telefonoClienteBuscar = string.Empty;
-
-    private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
-    private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
-
-    private bool dialogMarcaIsOpen = false;
-
-    //VARIABLES
-    private List<OrdenTrabajoDetalleDTO> _ordenesTrabajoDetalle = new List<OrdenTrabajoDetalleDTO>();
-    private OrdenTrabajoDetalleDTO _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
-    private OrdenTrabajoDetalleDTO _ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO();
-    private List<OrdenTrabajoDTO> _ordenesTrabajo = new List<OrdenTrabajoDTO>();
-    private OrdenTrabajoDTO _ordenTrabajo = new OrdenTrabajoDTO();
-    private EmpleadoDTO _empleado = new EmpleadoDTO();
-    private List<ClienteDTO> _clientes = new List<ClienteDTO>();
-    private ClienteDTO _cliente = new ClienteDTO();
-    private int _consecutivoOT;
-    private string _nextNumeroOT = string.Empty;
-    private string _textoOpcionBoton = string.Empty;
-
-    private bool _expandido = true;
-    private bool _dialogAgregaHerramientaIsOpen = false;
-    private bool _dialogBuscarClienteIsOpen = false;
-    Dictionary<string, string> _queryStringsDict = new Dictionary<string, string>();
-
-    private bool _mostrarPaginacionHerramientas = false;
-    private bool _dialogValidaEmpleado = false;
-    private String _numeroEmpleado;
-
-    private String esProblema = String.Empty;
-
-    private String nombre;
-    private String apellido;
-    private String telefono;
-
-
-    private bool desactivaGuardar = false;
-    private bool desactivaEmpleadoGuardar = false;
-
-
-    protected async override Task OnInitializedAsync()
-    {
-        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
-
-        await CargaComboMarcas();
-    }
-
-
-    private async Task CargaComboMarcas()
-    {
-        var responseHttp = await repository.Get<List<MarcaHerramientaDTO>>("api/Marcas/GetMarcasHerramientas");
-        MarcasBusqueda = responseHttp.Response;
-    }
-
-    private void OpenDialogMarca()
-    {
-        //if (!Expandido) { Expandido = false; }
-        dialogMarcaIsOpen = true;
-    }
-
-    private async Task CancelaDialogMarca()
-    {
-        dialogMarcaIsOpen = false;
-        NuevaMarca = new MarcaHerramientaDTO();
-
-        await Task.Delay(50);
-    }
-
-    private async Task GuardarMarca()
-    {
-        if (NuevaMarca.MarcaHerramientaId == 0)
-            await CrearMarca();
-    }
-
-    private async Task CrearMarca()
-    {
-        var httpResponse = await repository.Post("api/Marcas/SaveMarcaHerramienta", NuevaMarca);
-
-        if (httpResponse.Error)
-        {
-            if (httpResponse.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                toastService.ShowWarning("Ya existe esa marca.", "Atención");
-                return;
-            }
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-        }
-        else
-        {
-            dialogMarcaIsOpen = false;
-            await CargaComboMarcas();
-            await Task.Delay(50);
-            toastService.ShowSuccess("Registro completo", "Guardado");
-            NuevaMarca = new MarcaHerramientaDTO();
-        }
-    }
-
-
-
-    private async Task BuscarCliente()
-    {
-        var queryStrings = GenerarQueryStringsCliente();
-        var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesOTFilter?" + queryStrings);
-        _clientes = responseHttp.Response;
-    }
-
-    private async Task<bool> EsClienteProblema()
-    {
-        nombre = _cliente.Nombre == null ? String.Empty : _cliente.Nombre;
-        apellido = _cliente.Apellido == null ? String.Empty : _cliente.Apellido;
-        telefono = _cliente.Telefono == null ? String.Empty : _cliente.Telefono;
-
-        var queryStrings = GenerarQueryStringsClienteProblema();
-        var responseHttp = await repository.Get<ClienteDTO>("api/Clientes/EsClienteProblemaFilter?" + queryStrings);
-        var _clienteProblema = responseHttp.Response;
-
-        if (_clienteProblema != null)
-            return true;
-        else
-            return false;
-    }
-
-    private async Task lostFocus(FocusEventArgs e)
-    {
-        await ValidaClienteProblema();
-    }
-
-    private async Task ValidaClienteProblema()
-    {
-        if ((_cliente.Nombre != null || _cliente.Apellido != null) && _cliente.Telefono != null)
-            if (await EsClienteProblema())
-                esProblema = "Cliente Problema";
-            else
-                esProblema = String.Empty;
-    }
-
-
-    private string GenerarQueryStringsCliente()
-    {
-        if (_queryStringsDict == null)
-            _queryStringsDict = new Dictionary<string, string>();
-
-        _queryStringsDict["Nombre"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
-        _queryStringsDict["Apellido"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
-        _queryStringsDict["RFC"] = _rfcClienteBuscar != null ? _rfcClienteBuscar : String.Empty;
-        _queryStringsDict["Telefono"] = _telefonoClienteBuscar != null ? _telefonoClienteBuscar : String.Empty;
-        _queryStringsDict["Todos"] = "true";
-
-        var valoresPorDefecto = new List<string>() { "false", "", "0" };
-
-        return string.Join("&", _queryStringsDict
-            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
-            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
-    }
-
-    private string GenerarQueryStringsClienteProblema()
-    {
-        if (_queryStringsDict == null)
-            _queryStringsDict = new Dictionary<string, string>();
-
-        _queryStringsDict["Nombre"] = nombre;
-        _queryStringsDict["Apellido"] = apellido;
-        _queryStringsDict["Telefono"] = telefono;
-
-        var valoresPorDefecto = new List<string>() { "false", "", "0" };
-
-        return string.Join("&", _queryStringsDict
-            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
-            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
-    }
-
-
-    private void OpenDialogBuscarCliente()
-    {
-        if (!_expandido) { _expandido = false; }
-        _dialogBuscarClienteIsOpen = true;
-    }
-
-    private void OpenDialogAgregaHerramienta()
-    {
-        if (!_expandido) { _expandido = false; }
-        _textoOpcionBoton = "Agregar";
-        _ordenTrabajoDetalle.GarantiaLocal = false;
-        _ordenTrabajoDetalle.GarantiaFabrica = false;
-
-        _dialogAgregaHerramientaIsOpen = true;
-    }
-
-
-    private void OpenDialogEditHerramienta(OrdenTrabajoDetalleDTO ordenTrabajoDetalle)
-    {
-        if (!_expandido) { _expandido = false; }
-        _ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO()
-        {
-            NumeroOrdenTrabajo = ordenTrabajoDetalle.NumeroOrdenTrabajo,
-            NombreHerramienta = ordenTrabajoDetalle.NombreHerramienta,
-            Marca = ordenTrabajoDetalle.Marca,
-            Modelo = ordenTrabajoDetalle.Modelo,
-            NumeroSerie = ordenTrabajoDetalle.NumeroSerie,
-            GarantiaFabrica = ordenTrabajoDetalle.GarantiaFabrica,
-            GarantiaFabricaDetalle = ordenTrabajoDetalle.GarantiaFabricaDetalle,
-            GarantiaLocal = ordenTrabajoDetalle.GarantiaLocal,
-            GarantiaLocalDetalle = ordenTrabajoDetalle.GarantiaLocalDetalle,
-            TiempoGarantia = ordenTrabajoDetalle.TiempoGarantia
-        };
-
-        _ordenTrabajoDetalle = ordenTrabajoDetalle;
-
-        _textoOpcionBoton = "Guardar";
-        _dialogAgregaHerramientaIsOpen = true;
-    }
-
-    private async Task EliminaHerramientaGrid(OrdenTrabajoDetalleDTO ordenTrabajoDetalle)
-    {
-        if (!_expandido) { _expandido = false; }
-
-        if (await OpenConfirmacion("Desea eliminar este registro?") == 1)
-            _ordenesTrabajoDetalle.Remove(ordenTrabajoDetalle);
-
-        MuestraOcultarPaginadorHerramientas();
-    }
-
-
-    private async Task<bool> GuardaOrdenesTrabajo()
-    {
-        if (desactivaGuardar == true)
-            return false;
-
-        await Task.Delay(50);
-        if (_cliente.ClienteId == 0)
-        {
-            if (_cliente.Nombre == null && _cliente.Apellido == null && _cliente.Telefono == null && _cliente.Correo == null && _cliente.RFC == null && _cliente.Direccion == null)
-            {
-                toastService.ShowWarning("Debe capturar un cliente", "Atención");
-                return false;
-            }
-        }
-
-        //validamos que todas tengan numero de orden de trabajo
-        if (_ordenesTrabajoDetalle.Count > 0)
-        {
-            foreach (OrdenTrabajoDetalleDTO ot in _ordenesTrabajoDetalle)
-            {
-                if (ot.NumeroOrdenTrabajo == null)
-                {
-                    toastService.ShowWarning("La orden de trabajo para '{ot.Nombre}' no cuenta con Numero de OT", "Atención");
-                    return false;
-                }
-            }
-            desactivaGuardar = true;
-            _dialogValidaEmpleado = true;
-            return true;
-        }
-        else
-        {
-            toastService.ShowWarning("Debe de agregar alguna herramienta.", "Atención");
-            return false;
-        }
-    }
-
-
-    private async Task AgregarHerramientaGrid()
-    {
-
-        if (_ordenTrabajoDetalle.NombreHerramienta == null || _ordenTrabajoDetalle.NombreHerramienta == String.Empty)
-        {
-            toastService.ShowWarning("Debe capturar los datos de la herramienta", "Atención");
-            return;
-        }
-
-        if (_ordenTrabajoDetalle.GarantiaFabrica && _ordenTrabajoDetalle.GarantiaLocal)
-        {
-            await OpenMessage("Solo puede seleccionar un tipo de garantía.");
-            return;
-        }
-
-        if (_ordenTrabajoDetalle.GarantiaFabrica && (_ordenTrabajoDetalle.GarantiaFabricaDetalle ?? String.Empty) == String.Empty)
-        {
-            await OpenMessage("Debe capturar el detalle de la garantía de Fabrica.");
-            return;
-        }
-
-        if (_ordenTrabajoDetalle.GarantiaLocal && (_ordenTrabajoDetalle.GarantiaLocalDetalle ?? String.Empty) == String.Empty)
-        {
-            await OpenMessage("Debe capturar el detalle de la garantía de Local.");
-            return;
-        }
-
-        if (_ordenTrabajoDetalle.NumeroOrdenTrabajo == null)
-        {
-            //validamos que todas tengan numero de orden de trabajo
-            if (_ordenesTrabajoDetalle.Count > 0)
-                _nextNumeroOT = $"{DateTime.Now.Year}-{(_consecutivoOT).ToString("D4")}";
-            else
-            {
-                var httpResponceNoEmpleado = await repository.GetOnly("api/OrdenTrabajo/GetUltimoConsecutivoNumeroOT");
-                _consecutivoOT = Convert.ToInt32(httpResponceNoEmpleado.Content.ReadAsStringAsync().Result) + 1;
-                _nextNumeroOT = $"{DateTime.Now.Year}-{_consecutivoOT.ToString("D4")}";
-            }
-            _consecutivoOT += 1;
-
-            _ordenTrabajoDetalle.NumeroOrdenTrabajo = _nextNumeroOT;
-            _ordenesTrabajoDetalle.Add(_ordenTrabajoDetalle);
-        }
-        _dialogAgregaHerramientaIsOpen = false;
-        await Task.Delay(100);
-
-        _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
-        CargaGridHerramientas();
-        MuestraOcultarPaginadorHerramientas();
-    }
-
-
-    private async Task CancelaDialogOrdenTrabajo()
-    {
-        _dialogAgregaHerramientaIsOpen = false;
-        await Task.Delay(100);
-
-        _ordenTrabajoDetalle.NumeroOrdenTrabajo = _ordenTrabajoDetalleEditar.NumeroOrdenTrabajo;
-        _ordenTrabajoDetalle.NombreHerramienta = _ordenTrabajoDetalleEditar.NombreHerramienta;
-        _ordenTrabajoDetalle.Marca = _ordenTrabajoDetalleEditar.Marca;
-        _ordenTrabajoDetalle.Modelo = _ordenTrabajoDetalleEditar.Modelo;
-        _ordenTrabajoDetalle.NumeroSerie = _ordenTrabajoDetalleEditar.NumeroSerie;
-        _ordenTrabajoDetalle.GarantiaFabrica = _ordenTrabajoDetalleEditar.GarantiaFabrica;
-        _ordenTrabajoDetalle.GarantiaFabricaDetalle = _ordenTrabajoDetalleEditar.GarantiaFabricaDetalle;
-        _ordenTrabajoDetalle.GarantiaLocal = _ordenTrabajoDetalleEditar.GarantiaLocal;
-        _ordenTrabajoDetalle.GarantiaLocalDetalle = _ordenTrabajoDetalleEditar.GarantiaLocalDetalle;
-        _ordenTrabajoDetalle.TiempoGarantia = _ordenTrabajoDetalleEditar.TiempoGarantia;
-
-        _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
-        CargaGridHerramientas();
-    }
-
-    private void CancelaDialogSeleccionaCliente()
-    {
-        _dialogBuscarClienteIsOpen = false;
-    }
-
-
-    private async Task CrearCliente()
-    {
-        var httpResponse = await repository.Post("api/Clientes", _cliente);
-
-        if (httpResponse.Error)
-            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-    }
-
-
-    private async Task KeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-            await BuscarCliente();
-    }
-
-    private async Task LostFocus(FocusEventArgs e)
-    {
-        await BuscarCliente();
-    }
-
-
-    private async Task<int> OpenConfirmacion(string pregunta)
-    {
-        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
-        int r = 0;
-        switch (result)
-        {
-            case "Si":
-                r = 1;
-                break;
-            case "No":
-                r = 0;
-                break;
-        }
-        return r;
-    }
-
-    async Task OnDbClicked(object item)
-    {
-        var _clienteSeleccionado = item as ClienteDTO;
-        if (_clienteSeleccionado != null)
-        {
-            _dialogBuscarClienteIsOpen = false;
-            _cliente = _clienteSeleccionado;
-
-            await ValidaClienteProblema();
-        }
-    }
-
-
-    void MuestraOcultarPaginadorHerramientas()
-    {
-        if (_ordenesTrabajoDetalle.Count > 5)
-            _mostrarPaginacionHerramientas = true;
-        else
-            _mostrarPaginacionHerramientas = false;
-    }
-
-
-    void CargaGridHerramientas()
-    {
-        var x = _ordenesTrabajoDetalle;
-        _ordenesTrabajoDetalle = x;
-    }
-
-    private void CancelaDialogValidaEmpleado()
-    {
-        _numeroEmpleado = String.Empty;
-        _dialogValidaEmpleado = false;
-        desactivaGuardar = false;
-    }
-
-    private async Task ValidaEmpleado()
-    {
-        if (desactivaEmpleadoGuardar == true) { return; }
-
-        var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", _numeroEmpleado);
-
-        JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
-        EmpleadoDTO _empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
-
-        if (_empleado.EmpleadoId != 0)
-        {
-            desactivaEmpleadoGuardar = true;
-
-            //se manda guardar toda la lista
-            List<Object> _enviar = new List<Object>();
-            _enviar.Add(_cliente);
-
-            _ordenTrabajo.EmpleadoCreacion = _empleado.EmpleadoId;
-            _enviar.Add(_ordenTrabajo);
-            _enviar.Add(_ordenesTrabajoDetalle);
-            var httpResponse = await repository.Post("api/OrdenTrabajo/SaveOrdenTrabajo", _enviar);
-
-            if (httpResponse.Error)
-                toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
-            else
-            {
-                _dialogValidaEmpleado = false;
-                //limpiamos los campos despues de guardar
-                _nombreClienteBuscar = string.Empty;
-                _rfcClienteBuscar = string.Empty;
-                _telefonoClienteBuscar = string.Empty;
-
-                _ordenesTrabajoDetalle = new List<OrdenTrabajoDetalleDTO>();
-                _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
-                _ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO();
-                _ordenesTrabajo = new List<OrdenTrabajoDTO>();
-                _ordenTrabajo = new OrdenTrabajoDTO();
-                _empleado = new EmpleadoDTO();
-                _clientes = new List<ClienteDTO>();
-                _cliente = new ClienteDTO();
-                _consecutivoOT = 0;
-                toastService.ShowSuccess("Registro completo", "Guardado");
-
-                desactivaGuardar = false;
-            }
-        }
-        else
-            toastService.ShowError("Numero de empleado no valido", "Error");
-
-        desactivaEmpleadoGuardar = false;
-    }
-
-
-    private async Task<int> OpenMessage(string pregunta)
-    {
-        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
-        int r = 0;
-        switch (result)
-        {
-            case "Si":
-                r = 1;
-                break;
-        }
-        return r;
-    }
+@code {
+	//FILTROS BUSQUEDA
+	private string _nombreClienteBuscar = string.Empty;
+	private string _rfcClienteBuscar = string.Empty;
+	private string _telefonoClienteBuscar = string.Empty;
+
+	private List<MarcaHerramientaDTO> MarcasBusqueda = new List<MarcaHerramientaDTO>();
+	private MarcaHerramientaDTO NuevaMarca = new MarcaHerramientaDTO();
+
+	private bool dialogMarcaIsOpen = false;
+
+	//VARIABLES
+	private List<OrdenTrabajoDetalleDTO> _ordenesTrabajoDetalle = new List<OrdenTrabajoDetalleDTO>();
+	private OrdenTrabajoDetalleDTO _ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
+	private OrdenTrabajoDetalleDTO _ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO();
+	private List<OrdenTrabajoDTO> _ordenesTrabajo = new List<OrdenTrabajoDTO>();
+	private OrdenTrabajoDTO _ordenTrabajo = new OrdenTrabajoDTO();
+	private EmpleadoDTO _empleado = new EmpleadoDTO();
+	private List<ClienteDTO> _clientes = new List<ClienteDTO>();
+	private ClienteDTO _cliente = new ClienteDTO();
+	private int _consecutivoOT;
+	private string _nextNumeroOT = string.Empty;
+	private string _textoOpcionBoton = string.Empty;
+
+	private bool _expandido = true;
+	private bool _dialogAgregaHerramientaIsOpen = false;
+	private bool _dialogBuscarClienteIsOpen = false;
+	Dictionary<string, string> _queryStringsDict = new Dictionary<string, string>();
+
+	private bool _mostrarPaginacionHerramientas = false;
+	private bool _dialogValidaEmpleado = false;
+	private String _numeroEmpleado;
+
+	private String esProblema = String.Empty;
+
+	private String nombre;
+	private String apellido;
+	private String telefono;
+
+
+	private bool desactivaGuardar = false;
+	
+	private string ipRutaReportes = string.Empty;
+
+	private bool guardandoOt = false;
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		await CargaComboMarcas();
+		await CargaRutaReportes();
+	}
+
+
+	private async Task CargaRutaReportes()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReportes");
+		var configuracion = responseHttp.Response;
+		ipRutaReportes = configuracion.Valor;
+	}
+
+
+	private async Task CargaComboMarcas()
+	{
+		var responseHttp = await repository.Get<List<MarcaHerramientaDTO>>("api/Marcas/GetMarcasHerramientas");
+		MarcasBusqueda = responseHttp.Response;
+	}
+
+	private void OpenDialogMarca()
+	{
+		//if (!Expandido) { Expandido = false; }
+		dialogMarcaIsOpen = true;
+	}
+
+	private async Task CancelaDialogMarca()
+	{
+		dialogMarcaIsOpen = false;
+		NuevaMarca = new MarcaHerramientaDTO();
+
+		await Task.Delay(50);
+	}
+
+	private async Task GuardarMarca()
+	{
+		if (NuevaMarca.MarcaHerramientaId == 0)
+			await CrearMarca();
+	}
+
+	private async Task CrearMarca()
+	{
+		var httpResponse = await repository.Post("api/Marcas/SaveMarcaHerramienta", NuevaMarca);
+
+		if (httpResponse.Error)
+		{
+			if (httpResponse.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				toastService.ShowWarning("Ya existe esa marca.", "Atención");
+				return;
+			}
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		}
+		else
+		{
+			dialogMarcaIsOpen = false;
+			await CargaComboMarcas();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+			NuevaMarca = new MarcaHerramientaDTO();
+		}
+	}
+
+
+
+	private async Task BuscarCliente()
+	{
+		guardandoOt = true;
+		var queryStrings = GenerarQueryStringsCliente();
+		var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesOTFilter?" + queryStrings);
+		_clientes = responseHttp.Response;
+		guardandoOt = false;
+	}
+
+	private async Task<bool> EsClienteProblema()
+	{
+		nombre = _cliente.Nombre == null ? String.Empty : _cliente.Nombre;
+		apellido = _cliente.Apellido == null ? String.Empty : _cliente.Apellido;
+		telefono = _cliente.Telefono == null ? String.Empty : _cliente.Telefono;
+
+		var queryStrings = GenerarQueryStringsClienteProblema();
+		var responseHttp = await repository.Get<ClienteDTO>("api/Clientes/EsClienteProblemaFilter?" + queryStrings);
+		var _clienteProblema = responseHttp.Response;
+
+		if (_clienteProblema != null)
+			return true;
+		else
+			return false;
+	}
+
+	private async Task lostFocus(FocusEventArgs e)
+	{
+		await ValidaClienteProblema();
+	}
+
+	private async Task ValidaClienteProblema()
+	{
+		if ((_cliente.Nombre != null || _cliente.Apellido != null) && _cliente.Telefono != null)
+			if (await EsClienteProblema())
+				esProblema = "Cliente Problema";
+			else
+				esProblema = String.Empty;
+	}
+
+
+	private string GenerarQueryStringsCliente()
+	{
+		if (_queryStringsDict == null)
+			_queryStringsDict = new Dictionary<string, string>();
+
+		_queryStringsDict["Nombre"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
+		_queryStringsDict["Apellido"] = _nombreClienteBuscar != null ? _nombreClienteBuscar : String.Empty;
+		_queryStringsDict["RFC"] = _rfcClienteBuscar != null ? _rfcClienteBuscar : String.Empty;
+		_queryStringsDict["Telefono"] = _telefonoClienteBuscar != null ? _telefonoClienteBuscar : String.Empty;
+		_queryStringsDict["Todos"] = "true";
+
+		var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+		return string.Join("&", _queryStringsDict
+			.Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+			.Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+	}
+
+	private string GenerarQueryStringsClienteProblema()
+	{
+		if (_queryStringsDict == null)
+			_queryStringsDict = new Dictionary<string, string>();
+
+		_queryStringsDict["Nombre"] = nombre;
+		_queryStringsDict["Apellido"] = apellido;
+		_queryStringsDict["Telefono"] = telefono;
+
+		var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+		return string.Join("&", _queryStringsDict
+			.Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+			.Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+	}
+
+
+	private void OpenDialogBuscarCliente()
+	{
+		if (!_expandido) { _expandido = false; }
+		_dialogBuscarClienteIsOpen = true;
+	}
+
+	private void OpenDialogAgregaHerramienta()
+	{
+		if (!_expandido) { _expandido = false; }
+		_textoOpcionBoton = "Agregar";
+		_ordenTrabajoDetalle.GarantiaLocal = false;
+		_ordenTrabajoDetalle.GarantiaFabrica = false;
+
+		_dialogAgregaHerramientaIsOpen = true;
+	}
+
+
+	private void OpenDialogEditHerramienta(OrdenTrabajoDetalleDTO ordenTrabajoDetalle)
+	{
+		if (!_expandido) { _expandido = false; }
+		_ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO()
+		{
+			NumeroOrdenTrabajo = ordenTrabajoDetalle.NumeroOrdenTrabajo,
+			NombreHerramienta = ordenTrabajoDetalle.NombreHerramienta,
+			Marca = ordenTrabajoDetalle.Marca,
+			Modelo = ordenTrabajoDetalle.Modelo,
+			NumeroSerie = ordenTrabajoDetalle.NumeroSerie,
+			GarantiaFabrica = ordenTrabajoDetalle.GarantiaFabrica,
+			GarantiaFabricaDetalle = ordenTrabajoDetalle.GarantiaFabricaDetalle,
+			GarantiaLocal = ordenTrabajoDetalle.GarantiaLocal,
+			GarantiaLocalDetalle = ordenTrabajoDetalle.GarantiaLocalDetalle,
+			TiempoGarantia = ordenTrabajoDetalle.TiempoGarantia
+		};
+
+		_ordenTrabajoDetalle = ordenTrabajoDetalle;
+
+		_textoOpcionBoton = "Guardar";
+		_dialogAgregaHerramientaIsOpen = true;
+	}
+
+	private async Task EliminaHerramientaGrid(OrdenTrabajoDetalleDTO ordenTrabajoDetalle)
+	{
+		if (!_expandido) { _expandido = false; }
+
+		if (await OpenConfirmacion("Desea eliminar este registro?") == 1)
+			_ordenesTrabajoDetalle.Remove(ordenTrabajoDetalle);
+
+		MuestraOcultarPaginadorHerramientas();
+	}
+
+
+	private async Task<bool> GuardaOrdenesTrabajo()
+	{
+		if (desactivaGuardar == true)
+			return false;
+
+		await Task.Delay(50);
+		if (_cliente.ClienteId == 0)
+		{
+			if (_cliente.Nombre == null && _cliente.Apellido == null && _cliente.Telefono == null && _cliente.Correo == null && _cliente.RFC == null && _cliente.Direccion == null)
+			{
+				toastService.ShowWarning("Debe capturar un cliente", "Atención");
+				return false;
+			}
+		}
+
+		//validamos que todas tengan numero de orden de trabajo
+		if (_ordenesTrabajoDetalle.Count > 0)
+		{
+			foreach (OrdenTrabajoDetalleDTO ot in _ordenesTrabajoDetalle)
+			{
+				if (ot.NumeroOrdenTrabajo == null)
+				{
+					toastService.ShowWarning("La orden de trabajo para '{ot.Nombre}' no cuenta con Numero de OT", "Atención");
+					return false;
+				}
+			}
+			desactivaGuardar = true;
+			_dialogValidaEmpleado = true;
+			return true;
+		}
+		else
+		{
+			toastService.ShowWarning("Debe de agregar alguna herramienta.", "Atención");
+			return false;
+		}
+	}
+
+
+	private async Task AgregarHerramientaGrid()
+	{
+
+		if ((_ordenTrabajoDetalle.NombreHerramienta ?? String.Empty) == String.Empty || (_ordenTrabajoDetalle.Comentarios ?? String.Empty) == String.Empty)
+		{
+			toastService.ShowWarning("Debe capturar los datos de la herramienta", "Atención");
+			return;
+		}
+
+		if (_ordenTrabajoDetalle.GarantiaFabrica && _ordenTrabajoDetalle.GarantiaLocal)
+		{
+			await OpenMessage("Solo puede seleccionar un tipo de garantía.");
+			return;
+		}
+
+		if (_ordenTrabajoDetalle.GarantiaFabrica && (_ordenTrabajoDetalle.GarantiaFabricaDetalle ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el detalle de la garantía de Fabrica.");
+			return;
+		}
+
+		if (_ordenTrabajoDetalle.GarantiaLocal && (_ordenTrabajoDetalle.GarantiaLocalDetalle ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el detalle de la garantía de Local.");
+			return;
+		}
+
+		if (_ordenTrabajoDetalle.NumeroOrdenTrabajo == null)
+		{
+			//validamos que todas tengan numero de orden de trabajo
+			if (_ordenesTrabajoDetalle.Count > 0)
+				_nextNumeroOT = $"{DateTime.Now.Year}-{(_consecutivoOT).ToString("D4")}";
+			else
+			{
+				var httpResponceNoEmpleado = await repository.GetOnly("api/OrdenTrabajo/GetUltimoConsecutivoNumeroOT");
+				_consecutivoOT = Convert.ToInt32(httpResponceNoEmpleado.Content.ReadAsStringAsync().Result) + 1;
+				_nextNumeroOT = $"{DateTime.Now.Year}-{_consecutivoOT.ToString("D4")}";
+			}
+			_consecutivoOT += 1;
+
+			_ordenTrabajoDetalle.NumeroOrdenTrabajo = _nextNumeroOT;
+			_ordenesTrabajoDetalle.Add(_ordenTrabajoDetalle);
+		}
+		_dialogAgregaHerramientaIsOpen = false;
+		await Task.Delay(100);
+
+		_ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
+		CargaGridHerramientas();
+		MuestraOcultarPaginadorHerramientas();
+	}
+
+
+	private async Task CancelaDialogOrdenTrabajo()
+	{
+		_dialogAgregaHerramientaIsOpen = false;
+		await Task.Delay(100);
+
+		_ordenTrabajoDetalle.NumeroOrdenTrabajo = _ordenTrabajoDetalleEditar.NumeroOrdenTrabajo;
+		_ordenTrabajoDetalle.NombreHerramienta = _ordenTrabajoDetalleEditar.NombreHerramienta;
+		_ordenTrabajoDetalle.Marca = _ordenTrabajoDetalleEditar.Marca;
+		_ordenTrabajoDetalle.Modelo = _ordenTrabajoDetalleEditar.Modelo;
+		_ordenTrabajoDetalle.NumeroSerie = _ordenTrabajoDetalleEditar.NumeroSerie;
+		_ordenTrabajoDetalle.GarantiaFabrica = _ordenTrabajoDetalleEditar.GarantiaFabrica;
+		_ordenTrabajoDetalle.GarantiaFabricaDetalle = _ordenTrabajoDetalleEditar.GarantiaFabricaDetalle;
+		_ordenTrabajoDetalle.GarantiaLocal = _ordenTrabajoDetalleEditar.GarantiaLocal;
+		_ordenTrabajoDetalle.GarantiaLocalDetalle = _ordenTrabajoDetalleEditar.GarantiaLocalDetalle;
+		_ordenTrabajoDetalle.TiempoGarantia = _ordenTrabajoDetalleEditar.TiempoGarantia;
+
+		_ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
+		CargaGridHerramientas();
+	}
+
+	private void CancelaDialogSeleccionaCliente()
+	{
+		_dialogBuscarClienteIsOpen = false;
+	}
+
+
+	private async Task CrearCliente()
+	{
+		var httpResponse = await repository.Post("api/Clientes", _cliente);
+
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+	}
+
+
+	private async Task KeyPress(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			await BuscarCliente();
+	}
+
+	private async Task LostFocus(FocusEventArgs e)
+	{
+		await BuscarCliente();
+	}
+
+
+	private async Task<int> OpenConfirmacion(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+			case "No":
+				r = 0;
+				break;
+		}
+		return r;
+	}
+
+	async Task OnDbClicked(object item)
+	{
+		var _clienteSeleccionado = item as ClienteDTO;
+		if (_clienteSeleccionado != null)
+		{
+			_dialogBuscarClienteIsOpen = false;
+			_cliente = _clienteSeleccionado;
+
+			await ValidaClienteProblema();
+		}
+	}
+
+
+	void MuestraOcultarPaginadorHerramientas()
+	{
+		if (_ordenesTrabajoDetalle.Count > 5)
+			_mostrarPaginacionHerramientas = true;
+		else
+			_mostrarPaginacionHerramientas = false;
+	}
+
+
+	void CargaGridHerramientas()
+	{
+		var x = _ordenesTrabajoDetalle;
+		_ordenesTrabajoDetalle = x;
+	}
+
+	private void CancelaDialogValidaEmpleado()
+	{
+		_numeroEmpleado = String.Empty;
+		_dialogValidaEmpleado = false;
+		desactivaGuardar = false;
+	}
+
+	private async Task ValidaEmpleado()
+	{
+		guardandoOt = true;
+		
+		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", _numeroEmpleado);
+
+		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+		var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+		EmpleadoDTO _empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+		if (_empleado.EmpleadoId != 0)
+		{
+			//se manda guardar toda la lista
+			List<Object> _enviar = new List<Object>();
+			_enviar.Add(_cliente);
+
+			_ordenTrabajo.EmpleadoCreacion = _empleado.EmpleadoId;
+			_enviar.Add(_ordenTrabajo);
+			_enviar.Add(_ordenesTrabajoDetalle);
+			var httpResponse = await repository.Post("api/OrdenTrabajo/SaveOrdenTrabajo", _enviar);
+
+			if (httpResponse.Error)
+				toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+			else
+			{
+				_dialogValidaEmpleado = false;
+				//limpiamos los campos despues de guardar
+				_nombreClienteBuscar = string.Empty;
+				_rfcClienteBuscar = string.Empty;
+				_telefonoClienteBuscar = string.Empty;
+
+				_ordenesTrabajoDetalle = new List<OrdenTrabajoDetalleDTO>();
+				_ordenTrabajoDetalle = new OrdenTrabajoDetalleDTO();
+				_ordenTrabajoDetalleEditar = new OrdenTrabajoDetalleDTO();
+				_ordenesTrabajo = new List<OrdenTrabajoDTO>();
+				_ordenTrabajo = new OrdenTrabajoDTO();
+				_empleado = new EmpleadoDTO();
+				_clientes = new List<ClienteDTO>();
+				_cliente = new ClienteDTO();
+				_consecutivoOT = 0;
+				toastService.ShowSuccess("Registro completo", "Guardado");
+
+				desactivaGuardar = false;
+
+				await Task.Delay(1000);
+				await ImprimirUltimoTicket();
+			}
+		}
+		else
+			toastService.ShowError("Numero de empleado no valido", "Error");
+
+		guardandoOt = false;
+	}
+
+
+	private async Task ImprimirUltimoTicket()
+	{
+		try
+		{
+			var responseHttp = await repository.Get<int>("api/OrdenTrabajo/GetUltimaOrdenTrabajoId");
+			var ultimaOrdenTrabajoId = responseHttp.Response;
+
+			String url = "http://" + ipRutaReportes + "/Reportes/GetTicketsByNumeroOrden?numeroOrdenId=" + ultimaOrdenTrabajoId;
+			//String url = "http://" + ipRutaReportes + "/Reporte/Ticket/" + ultimaOrdenTrabajoId;
+			//await Js.InvokeAsync<object>("open", url, "_blank");
+			await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+		}
+		catch (Exception ex)
+		{
+			System.Console.WriteLine(ex.Message);
+		}
+	}
+
+
+	private async Task<int> OpenMessage(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+		}
+		return r;
+	}
 }

@@ -38,6 +38,10 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
 
             CreateMap<EstatusOT, EstatusOTDTO>().ReverseMap();
             CreateMap<EstatusOTFlujo, EstatusOTFlujoDTO>().ReverseMap();
+
+            CreateMap<Configuraciones, ConfiguracionesDTO>().ReverseMap();
+
+            CreateMap<HistorialPreciosProductos, HistorialPreciosProductosDTO>().ReverseMap();
         }
     }
 }
