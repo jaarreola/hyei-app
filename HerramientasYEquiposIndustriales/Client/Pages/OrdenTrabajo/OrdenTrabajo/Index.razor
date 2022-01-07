@@ -143,6 +143,7 @@
 
 <div>
 	<EditForm Model="@_ordenTrabajoDetalle">
+		<DataAnnotationsValidator />
 		<MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false" class="mdc-dialog900">
 			<MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
 			<MatDialogContent>
@@ -530,7 +531,7 @@
 	private async Task AgregarHerramientaGrid()
 	{
 
-		if (_ordenTrabajoDetalle.NombreHerramienta == null || _ordenTrabajoDetalle.NombreHerramienta == String.Empty)
+		if ((_ordenTrabajoDetalle.NombreHerramienta ?? String.Empty) == String.Empty || (_ordenTrabajoDetalle.Comentarios ?? String.Empty) == String.Empty)
 		{
 			toastService.ShowWarning("Debe capturar los datos de la herramienta", "Atención");
 			return;

@@ -77,5 +77,7 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<EstatusOTFlujo> EstatusOTFlujos { get; set; }
 
         public DbSet<Configuraciones> Configuraciones { get; set; }
+
+        public DbSet<HistorialPreciosProductos> HistorialPreciosProductos { get; set; }
     }
 }

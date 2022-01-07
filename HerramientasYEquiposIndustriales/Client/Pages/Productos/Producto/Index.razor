@@ -137,7 +137,7 @@ else
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-md-4">
+					<div class="col-md-3">
 						<MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
 					</div>
 					<div class="col-md-3">
@@ -148,6 +148,9 @@ else
 					</div>
 					<div class="col-md-3">
 						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+					<div class="col-md-1">
+						<MatIconButton OnClick="@MuestraHistorialPrecios" Icon="history"></MatIconButton>
 					</div>
 				</div>
 				<div class="row">
@@ -325,7 +328,6 @@ else
 			@if(procesando == true)
 			{
 				<MatProgressBar Indeterminate="true"></MatProgressBar>
-			
 			}
 			else
 			{
@@ -335,6 +337,33 @@ else
 		</MatDialogActions>
 	</MatDialog>
 </div>
+
+
+@*Modal Historial de Precios*@
+<MatDialog @bind-IsOpen="@dialogHistorialPreciosIsOpen" CanBeClosed="false">
+    <MatDialogTitle><h5>Historial de Precios</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@historialPrecios" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
+                    <MatTableHeader>
+                        <th style="width:35%;">Fecha Registro</th>
+                        <th style="width:35%">Costo Compra</th>
+                        <th style="width:30%">Costo Venta</th>
+                    </MatTableHeader>
+                    <MatTableRow>
+                        <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+						<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CierraHistorialPrecios" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
 
 
 @code  {
@@ -382,6 +411,10 @@ else
 
 	private bool procesando = false;
 
+
+	private bool dialogHistorialPreciosIsOpen = false;
+	private int pageSizeHistorial = 0;
+	private List<HistorialPreciosProductosDTO> historialPrecios = new List<HistorialPreciosProductosDTO>();
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -904,6 +937,22 @@ else
 				break;
 		}
 		return r;
+	}
+
+
+	private async Task MuestraHistorialPrecios()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var responseHttp = await repository.Get<List<HistorialPreciosProductosDTO>>("api/Productos/GetHistorialPrecioProducto/" + Producto.ProductoId);
+        historialPrecios = responseHttp.Response;
+        pageSizeHistorial = historialPrecios.Count;
+
+        dialogHistorialPreciosIsOpen = true;
+    }
+
+	private void CierraHistorialPrecios()
+	{
+		dialogHistorialPreciosIsOpen = false;
 	}
 
 }

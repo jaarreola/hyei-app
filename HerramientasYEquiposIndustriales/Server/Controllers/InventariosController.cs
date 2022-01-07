@@ -269,20 +269,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 int year = DateTime.Now.Year;
+                Boolean buscar = false;
+
                 if (filtro.FechaFin != null)
+                {
                     filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                    buscar = true;
+                }
                 else
                     filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
 
                 if (filtro.FechaInicio != null)
+                {
                     filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                    buscar = true;
+                }
                 else
                     filtro.FechaInicio = new DateTime(year, 1, 1).Date;
 
                 var Facturas = await context.FacturaMovimientos.Where(x =>
                     (x.Factura.Contains(filtro.Factura) && filtro.Factura != null && filtro.Factura != String.Empty) ||
                     (x.Descripcion.Contains(filtro.Descripcion) && filtro.Descripcion != null && filtro.Descripcion != String.Empty) ||
-                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) && filtro.FechaInicio != null && filtro.FechaFin != null)
+                    ((x.FechaRegistro.Value.Date >= filtro.FechaInicio && x.FechaRegistro.Value.Date < filtro.FechaFin) && filtro.FechaInicio != null && filtro.FechaFin != null && buscar)
                 ).ToListAsync();
                 return mapper.Map<List<FacturaMovimientoDTO>>(Facturas);
             }
@@ -586,6 +594,51 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    Nombre = r.Key.Nombre,
                                    EsEntrada = r.Key.EsEntrada,
                                    Entradas = r.Sum(x => (x.m.EsEntrada ? x.m.Cantidad : 0))
+                               };
+
+                return await consulta.OrderByDescending(x => x.Entradas).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetMasCompradasByFilter")]
+        public async Task<ActionResult<IEnumerable<CostoInventarioDTO>>> GetMasCompradasByFilter([FromQuery] CostosInventarioFilter filtro)
+        {
+            try
+            {
+                int year = DateTime.Now.Year;
+                if (filtro.FechaFin != null)
+                    filtro.FechaFin = filtro.FechaFin.Value.Date.AddDays(1);
+                else
+                    filtro.FechaFin = new DateTime(year + 1, 1, 1).Date;
+
+                if (filtro.FechaInicio != null)
+                    filtro.FechaInicio = filtro.FechaInicio.Value.Date;
+                else
+                    filtro.FechaInicio = new DateTime(year, 1, 1).Date;
+
+                var consulta = from p in context.Productos
+                               join m in context.Movimientos on p.ProductoId equals m.ProductoId
+                               where
+                                   ((m.FechaRegistro.Value.Date >= filtro.FechaInicio && m.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   (p.NoParte.Contains(filtro.NoParte) || (filtro.NoParte == null)) &&
+                                   (p.Nombre.Contains(filtro.NombreParte) || (filtro.NombreParte == null)) &&
+                                   m.EsEntrada
+                               group new { m, p } by new { p.ProductoId, p.NoParte, p.Nombre, m.EsEntrada } into r
+                               select new CostoInventarioDTO()
+                               {
+                                   ProductoId = r.Key.ProductoId,
+                                   NoParte = r.Key.NoParte,
+                                   Nombre = r.Key.Nombre,
+                                   EsEntrada = r.Key.EsEntrada,
+                                   Entradas = r.Sum(x => (x.m.EsEntrada ? 1 : 0))
                                };
 
                 return await consulta.OrderByDescending(x => x.Entradas).ToListAsync();

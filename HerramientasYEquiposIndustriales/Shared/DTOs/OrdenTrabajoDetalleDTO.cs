@@ -33,6 +33,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaEntrega { get; set; }
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
+        [Required]
         public String Comentarios { get; set; }
 
         public virtual OrdenTrabajo Ordentrabajo { get; set; }

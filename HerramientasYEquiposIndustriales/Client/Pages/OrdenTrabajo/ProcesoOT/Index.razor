@@ -180,7 +180,7 @@
 						<MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial</MatButton>
 					</div>
 					<div class="col-md-2">
-						<MatIconButton OnClick="@ImprimirTicket" Icon="receipt"></MatIconButton>
+						@*<MatIconButton OnClick="@ImprimirOt" Icon="receipt"></MatIconButton>*@
 					</div>
 					<div class="col-md-2">
 						<MatButton Raised="true" OnClick="@Autorizada" class="mdc-button-background">Autorizar</MatButton>
@@ -193,6 +193,17 @@
 					</div>
 					<div class="col-md-2">
 						@*<MatButton Raised="true" OnClick="@Cancelada" class="mdc-button-background">Cancelar</MatButton>*@
+					</div>
+				</div>
+				<div class="row">
+					&nbsp;
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<MatButton Raised="true" OnClick="@ImprimirOt" class="mdc-button-background">Imprimir OT</MatButton>
+					</div>
+					<div class="col-md-4">
+						<MatButton Raised="true" OnClick="@ImprimirTicket" class="mdc-button-background">Reimprimir Ticket</MatButton>
 					</div>
 				</div>
 			</EditForm>
@@ -324,6 +335,7 @@
 						<th style="width:15%;">Modelo</th>
 						<th style="width:10%;">Costo Compra</th>
 						<th style="width:10%;">Costo Venta</th>
+						<th style="width:10%;">No Afecta</th>
 					</MatTableHeader>
 					<MatTableRow>
 						<td>@context.NoParte</td>
@@ -332,6 +344,7 @@
 						<td>@context.Modelo</td>
 						<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
 						<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+						<td><MatCheckbox @bind-Value="@context.NoAfectaInventario" Disabled="true"></MatCheckbox></td>
 					</MatTableRow>
 				</MatTable>
 			</div>
@@ -737,8 +750,9 @@
 	private int porcentajeVenta = 20;
 
 	private string ipRutaReporteOt = string.Empty;
+	private string ipRutaReporteTicket = string.Empty;
 	private string ipRutaReporteCotizacion = string.Empty;
-
+	
 	private bool guardandoOt = false;
 
 
@@ -760,7 +774,9 @@
 		var configuracion = responseHttp.Response;
 
 		ipRutaReporteOt = configuracion.Valor;
+		ipRutaReporteTicket = configuracion.Valor;
 	}
+
 
 	private async Task CargaRutaCotizacion()
 	{
@@ -839,15 +855,29 @@
 	}
 
 
+	private async Task ImprimirOt()
+	{
+		try
+		{
+			if (await OpenConfirmacion("Desea imprimir esta Orden de trabajo?") == 1)
+			{
+				String url = "http://" + ipRutaReporteOt + "/Reportes/GetEtiquetaByNumeroOrden?ordenTrabajoDetalleId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
+				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+			}
+		}
+		catch  (Exception ex)
+		{
+			System.Console.WriteLine(ex.Message);											
+		}
+	}
+
 	private async Task ImprimirTicket()
 	{
 		try
 		{
 			if (await OpenConfirmacion("Desea reimprimir el ticket de esta Orden de trabajo?") == 1)
 			{
-				String url = "http://" + ipRutaReporteOt + "/Reportes/GetEtiquetaByNumeroOrden?ordenTrabajoDetalleId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
-				//String url = "http://" + ipRutaReporteOt + "/Reporte/Etiqueta/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
-				//await Js.InvokeAsync<object>("open", url, "_blank");
+				String url = "http://" + ipRutaReporteTicket + "/Reportes/GetTicketsByNumeroOrden?numeroOrdenId=" + ordenTrabajoConsulta.OrdenTrabajoId;
 				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 			}
 		}
@@ -866,8 +896,6 @@
 				if (await OpenConfirmacion("Desea imrpimir esta cotizacion?") == 1)
 				{
 					String url = "http://" + ipRutaReporteCotizacion + "/Reportes/GetCotizacionByCotizacion?cotizacionId=" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
-					//String url = "http://" + ipRutaReporteCotizacion + "/Reporte/Cotizacion/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId;
-					//await Js.InvokeAsync<object>("open", url, "_blank");
 					await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 				}
 		}
