@@ -79,5 +79,14 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<Configuraciones> Configuraciones { get; set; }
 
         public DbSet<HistorialPreciosProductos> HistorialPreciosProductos { get; set; }
+
+
+        //RENTA DE EQUIPOS Y PRODUCTOS TIENDA
+        public DbSet<ProductosTienda> ProductosTiendas { get; set; }
+        public DbSet<ProductoTiendaExistencias> ProductoTiendaExistencias { get; set; }
+        public DbSet<Rentas> Rentas { get; set; }
+        public DbSet<ContratosRentas> ContratosRentas{ get; set; }
+        public DbSet<Aval> Avales{ get; set; }
+        public DbSet<MarcasProductosTienda> MarcasProductosTiendas { get; set; }
     }
 }
