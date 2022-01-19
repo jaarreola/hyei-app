@@ -5,7 +5,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
 {
     public class MarcasProductosTiendaDTO
     {
-        public int MarcaProductoTiendaId { get; set; }
+        public int MarcasProductosTiendaId { get; set; }
         public string Descripcion { get; set; }
     }
 }

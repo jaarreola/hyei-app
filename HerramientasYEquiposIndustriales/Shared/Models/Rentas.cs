@@ -5,7 +5,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
 {
     public class Rentas
     {
-        public int RentaId { get; set; }
+        public int RentasId { get; set; }
         public int ProductoTiendaExistenciasId { get; set; }
         public int ClienteId { get; set; }
         public string DocumentosEnGarantia { get; set; }

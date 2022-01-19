@@ -5,7 +5,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
 {
     public class MarcasProductosTienda
     {
-        public int MarcaProductoTiendaId { get; set; }
+        public int MarcasProductosTiendaId { get; set; }
         public string Descripcion { get; set; }
     }
 }

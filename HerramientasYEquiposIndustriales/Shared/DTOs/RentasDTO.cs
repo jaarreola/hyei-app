@@ -8,7 +8,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
 {
     public class RentasDTO
     {
-        public int RentaId { get; set; }
+        public int RentasId { get; set; }
         public int ProductoTiendaExistenciasId { get; set; }
         public int ClienteId { get; set; }
         public string DocumentosEnGarantia { get; set; }

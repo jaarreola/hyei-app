@@ -1,11 +1,18 @@
 <Router AppAssembly="@typeof(Program).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            @*<p>Sorry, there's nothing at this address.</p>*@
-            <p>Disculpa... no hay nada en esta ruta para mostrar!!</p>
-        </LayoutView>
-    </NotFound>
+	<Found Context="routeData">
+		@if (routeData.PageType.FullName.Contains("Renta"))
+		{
+			<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayoutRenta)" />
+		}
+		else
+		{
+			<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+		}
+	</Found>
+	<NotFound>
+		<LayoutView Layout="@typeof(MainLayout)">
+			@*<p>Sorry, there's nothing at this address.</p>*@
+			<p>Disculpa... no hay nada en esta ruta para mostrar!!</p>
+		</LayoutView>
+	</NotFound>
 </Router>
