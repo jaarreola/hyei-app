@@ -227,7 +227,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     var ultimoPrecio = context.HistorialPreciosProductos.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductoId == Producto.ProductoId);
                         
-                    if (Producto.CostoCompra != ultimoPrecio.CostoCompra)
+                    if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
                         {
