@@ -1,4 +1,6 @@
-﻿using System;
+﻿using HerramientasYEquiposIndustriales.Shared.Models;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace HerramientasYEquiposIndustriales.Shared.DTOs
@@ -8,7 +10,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int ProductosTiendaId { get; set; }
         public string Sku { get; set; }
         public string Nombre { get; set; }
-        public string Marca { get; set; }
+        public int MarcasProductosTiendaId { get; set; }
         public string Modelo { get; set; }
         [DataType(DataType.Currency)]
         public float? CostoCompra { get; set; }
@@ -24,5 +26,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaActivo { get; set; }
         public int EmpleadoActivo { get; set; }
 
+
+        public virtual MarcasProductosTienda Marca { get; set; }
+        public virtual List<ProductoTiendaExistencias> Existencias { get; set; }
     }
 }

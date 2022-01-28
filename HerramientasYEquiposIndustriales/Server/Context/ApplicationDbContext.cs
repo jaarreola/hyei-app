@@ -82,11 +82,11 @@ namespace HerramientasYEquiposIndustriales.Server.Context
 
 
         //RENTA DE EQUIPOS Y PRODUCTOS TIENDA
-        public DbSet<ProductosTienda> ProductosTiendas { get; set; }
+        public DbSet<ProductosTienda> ProductosTienda { get; set; }
         public DbSet<ProductoTiendaExistencias> ProductoTiendaExistencias { get; set; }
         public DbSet<Rentas> Rentas { get; set; }
-        public DbSet<ContratosRentas> ContratosRentas{ get; set; }
-        public DbSet<Aval> Avales{ get; set; }
-        public DbSet<MarcasProductosTienda> MarcasProductosTiendas { get; set; }
+        public DbSet<ContratosRentas> ContratosRentas { get; set; }
+        public DbSet<Aval> Aval { get; set; }
+        public DbSet<MarcasProductosTienda> MarcasProductosTienda { get; set; }
     }
 }

@@ -16,6 +16,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public bool ParaVenta { get; set; }
         [DataType(DataType.Currency)]
         public float? PrecioVenta { get; set; }
+        public bool NoDisponibleRenta { get; set; }
         public bool Vendido { get; set; }
         public DateTime? FechaVendido { get; set; }
         public int EmpleadoVendio { get; set; }
