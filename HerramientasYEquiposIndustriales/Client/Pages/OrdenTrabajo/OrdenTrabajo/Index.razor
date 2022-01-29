@@ -537,6 +537,12 @@
 			return;
 		}
 
+		if ((_ordenTrabajoDetalle.Marca ?? String.Empty) == String.Empty || (_ordenTrabajoDetalle.Modelo ?? String.Empty) == String.Empty)
+		{
+			toastService.ShowWarning("Debe capturar Marca y Modelo de la herramienta", "Atención");
+			return;
+		}
+
 		if (_ordenTrabajoDetalle.GarantiaFabrica && _ordenTrabajoDetalle.GarantiaLocal)
 		{
 			await OpenMessage("Solo puede seleccionar un tipo de garantía.");

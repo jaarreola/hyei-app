@@ -537,11 +537,9 @@
 					<MatTextField FullWidth="true" @bind-Value="@producto.Nombre" Label="Nombre"></MatTextField>
 				</div>
 				<div class="col-md-3">
-					<MatSelectItem @bind-Value="@marca" Items="@marcas" Label="Marca">
-						<ItemTemplate Context="Marca">
-							@Marca?.Descripcion
-						</ItemTemplate>
-					</MatSelectItem>
+					<MatSelectValue @bind-Value="@producto.MarcaId" Items="@marcas" ValueSelector=@(i => i.MarcaId) Label="Marca">
+						<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+					</MatSelectValue>
 				</div>
 			</div>
 			<div class="row">
@@ -730,7 +728,7 @@
 
 	//Agregar productos que no existan en la cotizacion
 	private List<MarcaDTO> marcas = new List<MarcaDTO>();
-	private MarcaDTO marca = new MarcaDTO();
+	//private MarcaDTO marca = new MarcaDTO();
 	private bool dialogNewProductIsOpen = false;
 	private String precioMayorPorcentaje = "";
 	private bool dialogValidaEmpleadoSaveProduct = false;
@@ -1430,7 +1428,7 @@
 
 		if (empleado.EmpleadoId != 0)
 		{
-			producto.MarcaId = marca.MarcaId;
+			//producto.MarcaId = marca.MarcaId;
 			producto.NoAfectaInventario = noAfectaInventario;
 			if (producto.ProductoId == 0)
 			{
@@ -1822,6 +1820,18 @@
 		if (producto.NoParte == String.Empty)
 		{
 			await OpenMessage("Debe capturar un numero de parte");
+			return;
+		}
+
+		if (producto.MarcaId == 0)
+		{
+			await OpenMessage("Debe capturar la marca");
+			return;
+		}
+
+		if ((producto.Modelo ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el modelo");
 			return;
 		}
 
