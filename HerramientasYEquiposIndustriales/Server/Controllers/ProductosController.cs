@@ -175,7 +175,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     dto = mapper.Map<ProductoDTO>(Producto);
 
-                    if (Producto.CostoCompra != 0)
+                    if (Producto.CostoCompra != 0 && Producto.CostoCompra != null )
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
                         {

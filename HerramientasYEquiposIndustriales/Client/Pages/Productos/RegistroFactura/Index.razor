@@ -287,11 +287,9 @@
                         <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
                     </div>
                     <div class="col-md-3">
-                        <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-                            <ItemTemplate Context="Marca">
-                                @Marca?.Descripcion
-                            </ItemTemplate>
-                        </MatSelectItem>
+                        <MatSelectValue @bind-Value="@Producto.MarcaId" Items="@Marcas" ValueSelector=@(i => i.MarcaId) Label="Marca">
+							<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
                     </div>
                 </div>
                 <div class="row">
@@ -363,7 +361,7 @@
 
     private List<MarcaDTO> Marcas = new List<MarcaDTO>();
     private ProductoDTO Producto = new ProductoDTO();
-    private MarcaDTO Marca = new MarcaDTO();
+    //private MarcaDTO Marca = new MarcaDTO();
     private bool dialogNewProductIsOpen = false;
     private String precioMayorPorcentaje = "";
     private bool dialogValidaEmpleadoSaveProduct = false;
@@ -900,6 +898,18 @@
             return;
         }
 
+        if (Producto.MarcaId == 0)
+		{
+			await OpenMessage("Debe capturar la marca");
+			return;
+		}
+
+		if ((Producto.Modelo ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el modelo");
+			return;
+		}
+
         if (Producto.ProductoId == 0)
         {
             //validamos si ya existe un producto con ese numero de parte
@@ -938,7 +948,6 @@
 
         if (empleado.EmpleadoId != 0)
         {
-            Producto.MarcaId = Marca.MarcaId;
             Producto.NoAfectaInventario = noAfectaInventario;
             if (Producto.ProductoId == 0)
             {
