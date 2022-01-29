@@ -175,7 +175,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     dto = mapper.Map<ProductoDTO>(Producto);
 
-                    if (Producto.CostoCompra != 0)
+                    if (Producto.CostoCompra != 0 && Producto.CostoCompra != null )
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
                         {
@@ -226,7 +226,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     context.SaveChanges();
 
                     var ultimoPrecio = context.HistorialPreciosProductos.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductoId == Producto.ProductoId);
-
+                        
                     if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()

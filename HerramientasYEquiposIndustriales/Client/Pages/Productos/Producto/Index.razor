@@ -129,11 +129,9 @@ else
 						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
 					</div>
 					<div class="col-md-3">
-						<MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-							<ItemTemplate Context="Marca">
-								@Marca?.Descripcion
-							</ItemTemplate>
-						</MatSelectItem>
+						<MatSelectValue @bind-Value="@Producto.MarcaId" Items="@Marcas" ValueSelector=@(i => i.MarcaId) Label="Marca">
+							<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
 					</div>
 				</div>
 				<div class="row">
@@ -219,11 +217,9 @@ else
 						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
 					</div>
 					<div class="col-md-3">
-						<MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-							<ItemTemplate Context="Marca">
-								@Marca?.Descripcion
-							</ItemTemplate>
-						</MatSelectItem>
+						<MatSelectValue @bind-Value="@Producto.MarcaId" Items="@Marcas" ValueSelector=@(i => i.MarcaId) Label="Marca">
+							<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
 					</div>
 				</div>
 				<div class="row">
@@ -379,7 +375,7 @@ else
 	//VARIABLES
 	private List<ProductoDTO> Productos; //= new List<ProductoDTO>();
 	private ProductoDTO Producto = new ProductoDTO();
-	private MarcaDTO Marca = new MarcaDTO();
+	//private MarcaDTO Marca = new MarcaDTO();
 	private MarcaDTO NuevaMarca = new MarcaDTO();
 	private bool Expandido = true;
 	private bool dialogIsOpen = false;
@@ -490,7 +486,7 @@ else
 			Ubicacion = productoEdicion.Ubicacion,
 			NoAfectaInventario = productoEdicion.NoAfectaInventario
 		};
-		Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
+		//Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
 		noAfectaInventario = Producto.NoAfectaInventario == null ? false : Producto.NoAfectaInventario == false ? false : true;
 
 		if (productoEdicion.EmpleadoCreacion != null)
@@ -575,7 +571,7 @@ else
 
 		if (empleado.EmpleadoId != 0)
 		{
-			Producto.MarcaId = Marca.MarcaId;
+			//Producto.MarcaId = Marca.MarcaId;
 			Producto.NoAfectaInventario = noAfectaInventario;
 			if (Producto.ProductoId == 0)
 			{
@@ -634,6 +630,20 @@ else
 		if ((Producto.Nombre ?? String.Empty) == String.Empty)
 		{
 			await OpenMessage("Debe capturar el nombre");
+			return;
+		}
+
+
+		//Producto.MarcaId = Marca.MarcaId == 0 ? Producto.MarcaId : Marca.MarcaId;
+		if (Producto.MarcaId == 0)
+		{
+			await OpenMessage("Debe capturar la marca");
+			return;
+		}
+
+		if ((Producto.Modelo ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el modelo");
 			return;
 		}
 
@@ -785,7 +795,7 @@ else
 		NombreBusqueda = string.Empty;
 		ModeloBusqueda = string.Empty;
 		MarcaBusqueda = new MarcaDTO();
-		Marca = new MarcaDTO();
+		//Marca = new MarcaDTO();
 		NuevaMarca = new MarcaDTO();
 
 		Producto = new ProductoDTO();
