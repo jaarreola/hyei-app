@@ -13,8 +13,10 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         [Required]
         [StringLength(100)]
         public string Nombre { get; set; }
+        [Required]
         public int MarcaId { get; set; }
         [StringLength(50)]
+        [Required]
         public string Modelo { get; set; }
         [DataType(DataType.Currency)]
         public float? CostoCompra { get; set; }
