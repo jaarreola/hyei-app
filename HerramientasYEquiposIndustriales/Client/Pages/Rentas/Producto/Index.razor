@@ -64,306 +64,299 @@ else
 	}
 
 	<div class="row">
-	 <div class="col-md-4 col-sm-4">
-	  Productos totales: <strong>@totalProductos</strong>
-	 </div>
-	 <div class="col-md-4 col-sm-4">
-	 </div>
+		<div class="col-md-4 col-sm-4">
+			Productos totales: <strong>@totalProductos</strong>
+		</div>
+		<div class="col-md-4 col-sm-4">
+		</div>
 	</div>
 
 	<div>
-	 <MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
-	  <MatTableHeader>
-	   <th style="width:13%;">SKU</th>
-	   <th style="width:28%;">Nombre</th>
-	   <th style="width:15%;">Marca</th>
-	   <th style="width:10%;">Modelo</th>
-	   <th style="width:8%;">Costo Venta</th>
-	   <th style="width:8%;">Existencias</th>
-	   <th style="width:8%;">Disponibles</th>
-	   <th style="width:8%;">Rentadas</th>
-	   <th style="width:8%;">Registro</th>
-	   <th style="width:5%;"></th>
-	   <th style="width:5%;"></th>
-	  </MatTableHeader>
-	  <MatTableRow>
-		@if (context.FechaBaja == null)
-		{
-		<td style="font-weight:bold">@context.Sku</td>
-		}
-		@if (context.FechaBaja != null)
-		{
-		<td style="color:Red">@context.Sku</td>
-		}
-		<td>@context.Nombre</td>
-		<td>@context.Marca.Descripcion</td>
-		<td>@context.Modelo</td>
-		<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+		<MatTable Items="@Productos" class="mat-elevation-z5" AllowSelection="true">
+			<MatTableHeader>
+				<th style="width:13%;">SKU</th>
+				<th style="width:28%;">Nombre</th>
+				<th style="width:15%;">Marca</th>
+				<th style="width:10%;">Modelo</th>
+				<th style="width:8%;">Costo Venta</th>
+				<th style="width:8%;">Existencias</th>
+				<th style="width:8%;">Registro</th>
+				<th style="width:5%;"></th>
+				<th style="width:5%;"></th>
+			</MatTableHeader>
+			<MatTableRow>
+				@if (context.FechaBaja == null)
+				{
+					<td style="font-weight:bold">@context.Sku</td>
+				}
+				@if (context.FechaBaja != null)
+				{
+					<td style="color:Red">@context.Sku</td>
+				}
+				<td>@context.Nombre</td>
+				<td>@context.Marca.Descripcion</td>
+				<td>@context.Modelo</td>
+				<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
 
-		<td>@context.Existencias.Count</td>
-		<td>@(context.Existencias.Where(x => x.NoDisponibleRenta = false)).Count</td>
-		<td>@(context.Existencias.Where(x => x.NoDisponibleRenta = true)).Count</td>
+				<td>@context.Existencias.Count</td>
+		
+				<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+				<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
 
-		<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
-		<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
-
-		@if (context.FechaBaja == null)
-		{
-		<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>
-		}
-		@if (context.FechaBaja != null)
-		{
-		<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>
-		}
-	  </MatTableRow>
-	 </MatTable>
-	 <div class="col-md-4 col-sm-4">
-		<MatButton OnClick="@ImprimirInventario" Icon="receipt">Reporte de Inventario</MatButton>
-	 </div>
+				@if (context.FechaBaja == null)
+				{
+				<td><MatIconButton OnClick="@(_=>BajaArticulo(@context))" Icon="cancel"></MatIconButton></td>
+				}
+				@if (context.FechaBaja != null)
+				{
+				<td><MatIconButton OnClick="@(_=>AltaArticulo(@context))" Icon="add"></MatIconButton></td>
+				}
+			</MatTableRow>
+		</MatTable>
+		<div class="col-md-4 col-sm-4">
+			<MatButton OnClick="@ImprimirInventario" Icon="receipt">Reporte de Inventario</MatButton>
+		</div>
     </div>
 }
 
 <div>
- <EditForm Model="@Producto">
-  <DataAnnotationsValidator />
-  <MatDialog @bind-IsOpen="@dialogEditIsOpen" CanBeClosed="false" class="mdc-dialog900">
-   <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
-   <MatDialogContent>
-	<div class="row">
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Sku" Label="Código de barras"></MatTextField>
-	 </div>
-	 <div class="col-md-6">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-	   <ItemTemplate Context="Marca">@Marca?.Descripcion</ItemTemplate>
-	  </MatSelectItem>
-	 </div>
-	</div>
-	<div class="row">
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-	 </div>
-	 <div class="col-md-2">
-	  <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
-	 </div>
-	 <div class="col-md-1">
-	  <MatIconButton OnClick="@MuestraHistorialPrecios" Icon="history"></MatIconButton>
-	 </div>
-	</div>
-	<div class="row">
-	 <div class="col-md-12">
-      <MatTextField FullWidth="true" @bind-Value="@Producto.Caracteristicas" Label="Detalle" TextArea="true"></MatTextField>
-     </div>
-    </div>
-	<div class="row">
-	 <div class="col-md-1">
-	  <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductosTiendaId))" Icon="delete" hidden="true"></MatIconButton>
-	 </div>
-	</div>
-	<div class="row">
-	 <div class="col-md-3">
-	  <MatDatePicker @bind-Value="@Producto.FechaRegistro" Label="Fecha Creación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-	 </div>
-	 <div class="col-md-3">
-	  <MatDatePicker @bind-Value="@Producto.FechaModificacion" Label="Fecha Modificación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-	 </div>
-	 <div class="col-md-3">
-	  <MatDatePicker @bind-Value="@Producto.FechaBaja" Label="Fecha Baja" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-	 </div>
-	 <div class="col-md-3">
-	  <MatDatePicker @bind-Value="@Producto.FechaActivo" Label="Fecha Reactivación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
-	 </div>
-	</div>
-	<div class="row">
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoCreacion" Label="Empleado Creación" ReadOnly="true"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModificacion" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoBaja" Label="Empleado Baja" ReadOnly="true"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoActivo" Label="Empleado Activación" ReadOnly="true"></MatTextField>
-	 </div>
-	</div>
-   </MatDialogContent>
-   <MatDialogActions>
-	<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-	<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
-   </MatDialogActions>
-  </MatDialog>
- </EditForm>
+	<EditForm Model="@Producto">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogEditIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Sku" Label="Código de barras"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatSelectValue @bind-Value="@Producto.MarcasProductosTiendaId" Items="@Marcas" ValueSelector=@(i => i.MarcasProductosTiendaId) Label="Marca">
+							<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+					<div class="col-md-1">
+						<MatIconButton OnClick="@MuestraHistorialPrecios" Icon="history"></MatIconButton>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Caracteristicas" Label="Detalle" TextArea="true"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-1">
+						<MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductosTiendaId))" Icon="delete" hidden="true"></MatIconButton>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaRegistro" Label="Fecha Creación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaModificacion" Label="Fecha Modificación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaBaja" Label="Fecha Baja" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+					<div class="col-md-3">
+						<MatDatePicker @bind-Value="@Producto.FechaActivo" Label="Fecha Reactivación" ReadOnly="true" DisableCalendar="true"></MatDatePicker>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoCreacion" Label="Empleado Creación" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoModificacion" Label="Empleado Modificación" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoBaja" Label="Empleado Baja" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@nombreEmpleadoActivo" Label="Empleado Activación" ReadOnly="true"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
 </div>
 
 
 <div>
- <EditForm Model="@Producto">
-  <DataAnnotationsValidator />
-  <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
-   <MatDialogTitle><h5>Producto</h5></MatDialogTitle>
-   <MatDialogContent>
-	<div class="row">
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Sku" Label="Código de barras"></MatTextField>
-	 </div>
-	 <div class="col-md-6">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatSelectItem @bind-Value="@Marca" Items="@Marcas" Label="Marca">
-	   <ItemTemplate Context="Marca">
-		   @Marca?.Descripcion
-	   </ItemTemplate>
-	  </MatSelectItem>
-	 </div>
-	</div>
-	<div class="row">
-	 <div class="col-md-4">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-	 </div>
-	 <div class="col-md-2">
-	  <MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-	 </div>
-	 <div class="col-md-3">
-	  <MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
-	 </div>
-	</div>
-	<div class="row h-300">
-	 <div class="col-md-12">
-      <MatTextField FullWidth="true" @bind-Value="@Producto.Caracteristicas" Label="Detalle" TextArea="true"></MatTextField>
-     </div>
-    </div>
-	<div class="row">
-	 <div class="col-md-1">
-	  <MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductosTiendaId))" Icon="delete" hidden="true"></MatIconButton>
-	 </div>
-	</div>
-   </MatDialogContent>
-   <MatDialogActions>
-	<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
-	<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
-   </MatDialogActions>
-  </MatDialog>
- </EditForm>
-</div>
-
-
-
-<div>
- <EditForm Model="@NuevaMarca">
-  <DataAnnotationsValidator />
-  <MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
-   <MatDialogTitle><h5>Marca</h5></MatDialogTitle>
-   <MatDialogContent>
-	<div class="row">
-	 &nbsp;
-	</div>
-	<div class="row">
-	 <div class="col-md-12">
-	  <MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
-	 </div>
-	</div>
-   </MatDialogContent>
-   <MatDialogActions>
-	<MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
-	<MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
-   </MatDialogActions>
-  </MatDialog>
- </EditForm>
+	<EditForm Model="@Producto">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Sku" Label="Código de barras"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Nombre" Label="Nombre"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatSelectValue @bind-Value="@Producto.MarcasProductosTiendaId" Items="@Marcas" ValueSelector=@(i => i.MarcasProductosTiendaId) Label="Marca">
+							<ItemTemplate Context="Marcas">@Marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Modelo" Label="Modelo"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+				</div>
+				<div class="row h-300">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Caracteristicas" Label="Detalle" TextArea="true"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-1">
+						<MatIconButton OnClick="@(_=>EliminarArticulo(@Producto.ProductosTiendaId))" Icon="delete" hidden="true"></MatIconButton>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarProducto" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
 </div>
 
 
 
 <div>
- <MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
-  <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
-  <MatDialogContent>
-   <div class="row">
-	<div class="col-md-12">
-	 <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
-	</div>
-   </div>
-  </MatDialogContent>
-  <MatDialogActions>
+	<EditForm Model="@NuevaMarca">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogMarcaIsOpen" CanBeClosed="false">
+			<MatDialogTitle><h5>Marca</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					&nbsp;
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@NuevaMarca.Descripcion" Label="Nombre" HelperText="Nombre de la marca"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+			<MatButton OnClick="@CancelaDialogMarca" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="GuardarMarca" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
+</div>
+
+
+
+<div>
+	<MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
 			@if (procesando == true)
 			{
-	   <MatProgressBar Indeterminate="true"></MatProgressBar>
-
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
 			}
 			else
 			{
-	   <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-	   <MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
 			}
-  </MatDialogActions>
- </MatDialog>
+		</MatDialogActions>
+	</MatDialog>
 </div>
 
 
 
 <div>
- <MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
-  <MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
-  <MatDialogContent>
-   <div class="row">
-	<div class="col-md-12">
-	 <MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
-	</div>
-   </div>
-  </MatDialogContent>
-  <MatDialogActions>
+	<MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
 			@if (procesando == true)
 			{
-	   <MatProgressBar Indeterminate="true"></MatProgressBar>
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
 			}
 			else
 			{
-	   <MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
-	   <MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
 			}
-  </MatDialogActions>
- </MatDialog>
+		</MatDialogActions>
+	</MatDialog>
 </div>
 
 
 @*Modal Historial de Precios*@
-<MatDialog @bind-IsOpen="@dialogHistorialPreciosIsOpen" CanBeClosed="false">
- <MatDialogTitle><h5>Historial de Precios</h5></MatDialogTitle>
- <MatDialogContent>
-  <div class="row">
-   <div class="col-md-12">
-	<MatTable Items="@historialPrecios" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
-	 <MatTableHeader>
-	  <th style="width:35%;">Fecha Registro</th>
-	  <th style="width:35%">Costo Compra</th>
-	  <th style="width:30%">Costo Venta</th>
-	 </MatTableHeader>
-	 <MatTableRow>
-	  <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
-	  <td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
-	  <td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
-	 </MatTableRow>
-	</MatTable>
-   </div>
-  </div>
- </MatDialogContent>
- <MatDialogActions>
-  <MatButton OnClick="@CierraHistorialPrecios" class="mdc-button-modal">Cerrar</MatButton>
- </MatDialogActions>
+<MatDialog @bind-IsOpen="@dialogHistorialPreciosIsOpen" CanBeClosed="false" class="mdc-dialog700">
+	<MatDialogTitle><h5>Historial de Precios</h5></MatDialogTitle>
+	<MatDialogContent>
+		<div class="row">
+			<div class="col-md-12">
+				<MatTable Items="@historialPrecios" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
+					<MatTableHeader>
+						<th style="width:41%;">Fecha Registro</th>
+						<th style="width:41%">Costo Compra</th>
+						<th style="width:45%">Costo Venta</th>
+					</MatTableHeader>
+					<MatTableRow>
+						<td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+						<td>@FormatoMoneda(@context.CostoCompra.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
+					</MatTableRow>
+				</MatTable>
+			</div>
+		</div>
+	</MatDialogContent>
+	<MatDialogActions>
+		<MatButton OnClick="@CierraHistorialPrecios" class="mdc-button-modal">Cerrar</MatButton>
+	</MatDialogActions>
 </MatDialog>
 
 
@@ -382,7 +375,7 @@ else
 	//VARIABLES
 	private List<ProductosTiendaDTO> Productos; //= new List<ProductosTiendaDTO>();
 	private ProductosTiendaDTO Producto = new ProductosTiendaDTO();
-	private MarcasProductosTiendaDTO Marca = new MarcasProductosTiendaDTO();
+	//private MarcasProductosTiendaDTO Marca = new MarcasProductosTiendaDTO();
 	private MarcasProductosTiendaDTO NuevaMarca = new MarcasProductosTiendaDTO();
 	private bool Expandido = true;
 	private bool dialogIsOpen = false;
@@ -431,6 +424,9 @@ else
 
 	private void OpenDialog()
 	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
 		if (!Expandido) { Expandido = false; }
 		dialogIsOpen = true;
 	}
@@ -484,26 +480,27 @@ else
 			FechaRegistro = productoEdicion.FechaRegistro,
 			FechaModificacion = productoEdicion.FechaModificacion,
 			FechaBaja = productoEdicion.FechaBaja,
-			FechaActivo = productoEdicion.FechaActivo
+			FechaActivo = productoEdicion.FechaActivo,
+			Caracteristicas = productoEdicion.Caracteristicas
 		};
-		Marca = new MarcasProductosTiendaDTO() { MarcasProductosTiendaId = productoEdicion.Marca.MarcasProductosTiendaId, Descripcion = productoEdicion.Marca.Descripcion };
+		//Marca = new MarcasProductosTiendaDTO() { MarcasProductosTiendaId = productoEdicion.Marca.MarcasProductosTiendaId, Descripcion = productoEdicion.Marca.Descripcion };
 
-		if (productoEdicion.EmpleadoCreacion != 0)
+		if (productoEdicion.EmpleadoCreacion != null && productoEdicion.EmpleadoCreacion != 0)
 			nombreEmpleadoCreacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoCreacion)).Response.Nombre;
 		else
 			nombreEmpleadoCreacion = String.Empty;
 
-		if (productoEdicion.EmpleadoModificacion != null)
+		if (productoEdicion.EmpleadoModificacion != null && productoEdicion.EmpleadoModificacion != 0)
 			nombreEmpleadoModificacion = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoModificacion)).Response.Nombre;
 		else
 			nombreEmpleadoModificacion = String.Empty;
 
-		if (productoEdicion.EmpleadoBaja != null)
+		if (productoEdicion.EmpleadoBaja != null && productoEdicion.EmpleadoBaja != 0)
 			nombreEmpleadoBaja = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoBaja)).Response.Nombre;
 		else
 			nombreEmpleadoBaja = String.Empty;
 
-		if (productoEdicion.EmpleadoActivo != null)
+		if (productoEdicion.EmpleadoActivo != null && productoEdicion.EmpleadoActivo != 0)
 			nombreEmpleadoActivo = (await repository.Get<EmpleadoDTO>("api/Empleados/" + productoEdicion.EmpleadoActivo)).Response.Nombre;
 		else
 			nombreEmpleadoActivo = String.Empty;
@@ -525,10 +522,17 @@ else
 
 	private async Task CargaProductos()
 	{
-		var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");
-		Productos = responseHttp.Response;
-
-		totalProductos = Productos.Count > 0 ? Productos.Count : 0;
+		try
+		{
+			var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");
+			Productos = responseHttp.Response;
+			totalProductos = Productos.Count > 0 ? Productos.Count : 0;
+		}
+		catch (Exception ex)
+		{
+            System.Console.WriteLine(ex.Message);
+			toastService.ShowError(ex.Message, "Error");
+		}
 	}
 
 
@@ -570,7 +574,7 @@ else
 
 		if (empleado.EmpleadoId != 0)
 		{
-			Producto.MarcasProductosTiendaId = Marca.MarcasProductosTiendaId;
+			//Producto.MarcasProductosTiendaId = Marca.MarcasProductosTiendaId;
 			if (Producto.ProductosTiendaId == 0)
 			{
 				Producto.EmpleadoCreacion = empleado.EmpleadoId;
@@ -791,7 +795,7 @@ else
 		NombreBusqueda = string.Empty;
 		ModeloBusqueda = string.Empty;
 		MarcaBusqueda = new MarcasProductosTiendaDTO();
-		Marca = new MarcasProductosTiendaDTO();
+		//Marca = new MarcasProductosTiendaDTO();
 		NuevaMarca = new MarcasProductosTiendaDTO();
 
 		Producto = new ProductosTiendaDTO();
@@ -818,8 +822,6 @@ else
 			if (await OpenConfirmacion("Desea imrpimir el inventario de artículos?") == 1)
 			{
 				String url = "http://" + ipRutaReportes + "/Reportes/GetInventario";
-				//String url = "http://" + ipRutaReportes + "/Reporte/Inventario";
-				//await Js.InvokeAsync<object>("open", url, "_blank");
 				await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
 			}
 		}
@@ -835,7 +837,7 @@ else
 		if (queryStringsDict == null)
 			queryStringsDict = new Dictionary<string, string>();
 
-		queryStringsDict["Sku"] = SkuBusqueda != null ? SkuBusqueda : String.Empty;
+		queryStringsDict["NoParte"] = SkuBusqueda != null ? SkuBusqueda : String.Empty;
 		queryStringsDict["Nombre"] = NombreBusqueda != null ? NombreBusqueda : String.Empty;
 		queryStringsDict["Modelo"] = ModeloBusqueda != null ? ModeloBusqueda : String.Empty;
 		queryStringsDict["MarcasProductosTiendaId"] = MarcaBusqueda.MarcasProductosTiendaId.ToString();
@@ -875,7 +877,8 @@ else
 
 	private float? GeneraCostoVenta(float? costoCompra)
 	{
-		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
 		costoCompra = costoCompra ?? 0;
 		if (porcentajeVenta >= 100)
@@ -884,11 +887,8 @@ else
 			porcentajeVenta = 0;
 
 		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
-		//porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
-		//return ((porcentaje * costoCompra) + costoCompra);
 		if (costoCompra > 0)
 			return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
-		//return (float?)(Math.Truncate((decimal)(costoCompra / porcentaje)) / 100);
 		else
 			return 0;
 
@@ -949,7 +949,7 @@ else
 	private async Task MuestraHistorialPrecios()
 	{
 		CultureInfo.CurrentCulture = new CultureInfo("en-US");
-		var responseHttp = await repository.Get<List<HistorialPreciosProductosDTO>>("api/ProductosTienda/GetHistorialPrecioProducto/" + Producto.ProductosTiendaId);
+		var responseHttp = await repository.Get<List<HistorialPreciosProductosDTO>>("api/ProductosTienda/GetHistorialPrecioProductoTienda/" + Producto.ProductosTiendaId);
 		historialPrecios = responseHttp.Response;
 		pageSizeHistorial = historialPrecios.Count;
 

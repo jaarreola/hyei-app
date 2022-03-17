@@ -25,5 +25,6 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public bool? EsProblema { get; set; }
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+        public bool? PuedeRentar { get; set; }
     }
 }

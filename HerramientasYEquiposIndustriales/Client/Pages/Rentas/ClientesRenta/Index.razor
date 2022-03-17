@@ -1,0 +1,862 @@
+﻿@page "/Rentas/ClientesRenta"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+<div>
+    <div class="row">
+        <div class="col-md-10 col-sm-4">
+            <MatAccordion>
+                <MatExpansionPanel @bind-Expanded="@expandido">
+                    <MatExpansionPanelSummary>
+                        <MatExpansionPanelHeader><h3>Clientes Renta</h3></MatExpansionPanelHeader>
+                    </MatExpansionPanelSummary>
+                    <MatExpansionPanelDetails>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <MatTextField FullWidth="true" @bind-Value="@nombreClienteBusqueda" HelperText="Nombre del cliente" Label="Nombre"></MatTextField>
+                            </div>
+                            <div class="col-md-3">
+                                <MatTextField FullWidth="true" @bind-Value="@apellidoClienteBusqueda" HelperText="Apellido del cliente" Label="Apellido"></MatTextField>
+                            </div>
+                            <div class="col-md-3">
+                                <MatTextField FullWidth="true" @bind-Value="@direccionClienteBusqueda" HelperText="Dirección del cliente" Label="Direcíón"></MatTextField>
+                            </div>
+                            <div class="col-md-3">
+                                <MatTextField FullWidth="true" @bind-Value="@rfcClienteBusqueda" HelperText="RFC del cliente" Label="RFC"></MatTextField>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+							    <MatRadioGroup @bind-Value="@tipoCliente" TValue="int">
+								    <MatRadioButton Value="1" TValue="int">Es Frecuente</MatRadioButton>
+								    <MatRadioButton Value="2" TValue="int">Es Problema</MatRadioButton>
+								    <MatRadioButton Value="0" TValue="int">Todos</MatRadioButton>
+							    </MatRadioGroup>
+						    </div>
+                            <div class="col-md-3">
+							    <MatRadioGroup @bind-Value="@puedeRentar" TValue="int">
+								    <MatRadioButton Value="1" TValue="int">Puede Rentar</MatRadioButton>
+								    <MatRadioButton Value="2" TValue="int">No Puede Rentar</MatRadioButton>
+								    <MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+							    </MatRadioGroup>
+						    </div>
+                            <div class="col-md-3">
+							    <MatRadioGroup @bind-Value="@activo" TValue="int">
+								    <MatRadioButton Value="1" TValue="int">Vigentes</MatRadioButton>
+								    <MatRadioButton Value="2" TValue="int">Vencidos</MatRadioButton>
+								    <MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+							    </MatRadioGroup>
+						    </div>
+                            <div class="col-md-1">
+                            </div>
+                            <div class="col-md-2">
+                                <MatButton Raised="true" Icon="search" OnClick="@Buscar">Buscar</MatButton>
+                            </div>
+                        </div>
+                    </MatExpansionPanelDetails>
+                </MatExpansionPanel>
+            </MatAccordion>
+        </div>
+        <div class="col-md-2 col-sm-4">
+            <MatButton Raised="true" Icon="assignment_turned_in" OnClick="@Requisitos">Requisitos</MatButton>
+            <br />
+            <MatIconButton OnClick="@OpenDialog" Icon="add_box"></MatIconButton>
+        </div>
+    </div>
+</div>
+
+@if(clientes == null)
+{
+	<br />
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+	<h5 class="mat-subtitle1">Cargando Clientes</h5>
+}
+else
+{
+    @if(procesando == true)
+	{
+		<div class="col-md-11">
+            <MatProgressBar Indeterminate="true"></MatProgressBar>  
+        </div>
+	}
+    <div class="col-md-8" style="padding:15px 0px 0px 0px">
+        Clientes totales: <strong>@totalClientes</strong>
+    </div>
+
+    <div>
+        <MatTable Items="@clientes" class="mat-elevation-z5">
+            <MatTableHeader>
+                <th style="width:4%;">Código</th>
+                <th style="width:20%;">Nombre</th>
+                <th style="width:20%;">Direccion</th>
+                <th style="width:10%;">Telefono</th>
+                <th style="width:10%;">Correo</th>
+                <th style="width:5%;">RFC</th>
+                <th style="width:5%;">Vigencia</th>
+                <th style="width:4%;">Frecuente</th>
+                <th style="width:5%;">Es Problema</th>
+                <th style="width:5%;">Aval</th>
+                <th style="width:5%;"></th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td>@context.ClienteId.ToString("00000")</td>
+                <td>@context.Nombre @context.Apellido</td>
+                <td>@context.Direccion</td>
+                <td>@context.Telefono</td>
+                <td>@context.Correo</td>
+                <td>@context.RFC</td>
+                @if (context.FechaVencimientoParaRenta == null)
+                { 
+                    <td style="color:red; font-weight:bold">SIN VIGENCIAS</td> 
+                }
+                else if (context.FechaVencimientoParaRenta >= DateTime.Today && context.FechaVencimientoParaRenta < DateTime.Today.AddMonths(1))
+                { 
+                    <td style="color:orange; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+                }
+                else if (context.FechaVencimientoParaRenta < DateTime.Today)
+                { 
+                    <td style="color:red; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+                }
+                else if (context.FechaVencimientoParaRenta >= DateTime.Today)
+                { 
+                    <td style="color:green; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+                }
+                <td><MatCheckbox @bind-Value="@context.EsFrecuente" Disabled="true"></MatCheckbox></td>
+                <td><MatCheckbox @bind-Value="@context.EsProblema" Disabled="true"></MatCheckbox></td>
+                <td><MatIconButton OnClick="@(_=>OpenDialogListaAvales(@context))" Icon="face"></MatIconButton></td>
+                <td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
+            </MatTableRow>
+        </MatTable>
+    </div>
+}
+
+<div>
+    <EditForm Model="@cliente">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog800">
+            <MatDialogTitle><h5>Cliente</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatButton Raised="true" Icon="search" OnClick="@OpenDialogSeleccionaClienteSinRenta" Disabled="@desactivarBuscarCliente">Buscar cliente existente</MatButton>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.Apellido" Label="Apellido"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.Direccion" Label="Dirección"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.Telefono" Label="Teléfono"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.Correo" Label="Correo"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@cliente.RFC" Label="RFC"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatCheckbox @bind-Value="@cliente.EsFrecuente">Cliente frecuente</MatCheckbox>
+                    </div>
+                    <div class="col-md-4">
+                        <MatCheckbox @bind-Value="@cliente.EsProblema">Cliente Problema</MatCheckbox>
+                    </div>
+                    <div class="col-md-4">
+                        <MatCheckbox @bind-Value="@cliente.PuedeRentar" Style="font-weight:bold">Puede Rentar</MatCheckbox>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                       <MatButton Raised="true" Icon="av_timer" OnClick="@ExtenderVigenciaAnual" Disabled="@desactivarExtenderVigencia">Extender vigencia por 1 año</MatButton>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                @if(procesando == true)
+	            {
+		            <MatProgressBar Indeterminate="true"></MatProgressBar>
+	            }
+                else
+                {
+                    <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+                    <MatButton OnClick="@GuardarCliente" class="mdc-button-modal">Guardar</MatButton>
+                }
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogRequisitosIsopen" CanBeClosed="false" class="mdc-dialog800">
+        <MatDialogTitle><h5>Requisitos Mebresia Renta</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                &nbsp;
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <MatListGroup>
+                        <MatListGroupSubHeader>CLIENTE</MatListGroupSubHeader>
+                        <MatList>
+                            <MatListItem>* Identificacion oficial con fotografia y copia</MatListItem>
+                            <MatListItem>* CURP</MatListItem>
+                            <MatListItem>* Comprobante domicilio y copia</MatListItem>
+                            <MatListItem>* Telefono / Celular</MatListItem>
+                            <MatListItem>* Correo Electronico</MatListItem>
+                            <MatListItem>* Aval</MatListItem>
+                        </MatList>
+                    </MatListGroup>
+                </div>
+                <div class="col-md-6">
+                    <MatListGroup>
+                        <MatListGroupSubHeader>AVAL</MatListGroupSubHeader>
+                        <MatList>
+                            <MatListItem>* Identificacion oficial con fotografia y copia</MatListItem>
+                            <MatListItem>* CURP</MatListItem>
+                            <MatListItem>* Comprobante domicilio y copia</MatListItem>
+                            <MatListItem>* Telefono / Celular</MatListItem>
+                        </MatList>
+                    </MatListGroup>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogBuscarClienteSinRenta" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Busqueda Clientes Existentes</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreCLienteSinRentaBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@direccionClienteSinRentaBusqueda" Label="Dirección" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@rfcClienteSinRentaBusqueda" Label="RFC" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@telefonoClienteSinRentaBusqueda" Label="Teléfono" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@clientesSinRenta" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeClientesSinRenta">
+                        <MatTableHeader>
+                            <th style="width:40%;">Nombre</th>
+                            <th style="width:40%;">Direccion</th>
+                            <th style="width:20%;">RFC</th>
+                            <th style="width:20%;">Telefono</th>
+                            <th style="width:20%;">Correro</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.Nombre  @context.Apellido</td>
+                            <td>@context.Direccion</td>
+                            <td>@context.RFC</td>
+                            <td>@context.Telefono</td>
+                            <td>@context.Correo</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogSeleccionaClienteSinRenta" class="mdc-button-modal">Cancel</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogListaAvales" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>@cliente.ClienteId.ToString("00000") - @cliente.Nombre @cliente.Apellido - Avales</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatIconButton OnClick="@OpenDialogAval" Icon="add_box"></MatIconButton>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@avales" class="mat-elevation-z5" ShowPaging="false" PageSize="@pageSizeAvales">
+                        <MatTableHeader>
+                            <th style="width:30%;">Nombre</th>
+                            <th style="width:35%;">Dirección</th>
+                            <th style="width:25%;">Teléfono 1</th>
+                            <th style="width:35%;">Teléfono 2</th>
+                            <th style="width:10%;">Vencido</th>
+                            <th style="width:5%;"></th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.Nombre</td>
+                            <td>@context.Direccion</td>
+                            <td>@context.Telefono1</td>
+                            <td>@context.Telefono2</td>
+                            <td><MatCheckbox @bind-Value="@context.Vencido" Disabled="true"></MatCheckbox></td>
+                            <td><MatIconButton OnClick="@(_=>OpenDialogEditAval(@context))" Icon="edit"></MatIconButton></td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogListaAvales" class="mdc-button-modal">Cancel</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<div>
+    <EditForm Model="@aval">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogAvalIsOpen" CanBeClosed="false" class="mdc-dialog800">
+            <MatDialogTitle><h5>Aval</h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="row">
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@aval.Nombre" Label="Nombre"></MatTextField>
+                    </div>
+                    <div class="col-md-6">
+                        <MatTextField FullWidth="true" @bind-Value="@aval.Direccion" Label="Dirección"></MatTextField>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@aval.Telefono1" Label="Telefono 1"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatTextField FullWidth="true" @bind-Value="@aval.Telefono2" Label="Telefono 2"></MatTextField>
+                    </div>
+                    <div class="col-md-4">
+                        <MatCheckbox @bind-Value="@aval.Vencido" Style="font-weight:bold">Vencido</MatCheckbox>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                @if(procesando == true)
+	            {
+		            <MatProgressBar Indeterminate="true"></MatProgressBar>
+	            }
+                else
+                {
+                    <MatButton OnClick="@CancelaDialogAval" class="mdc-button-modal">Cancel</MatButton>
+                    <MatButton OnClick="@GuardarAval" class="mdc-button-modal">Guardar</MatButton>
+                }
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+@code{
+    //FILTROS BUSQUEDA
+    private string nombreClienteBusqueda = string.Empty;
+    private string apellidoClienteBusqueda = string.Empty;
+    private string direccionClienteBusqueda = string.Empty;
+    private string rfcClienteBusqueda = string.Empty;
+    private int tipoCliente = 0;
+    private int puedeRentar = 0;
+    private int activo = 0;
+    private bool? valorPuedeRentar;
+
+    private List<ClienteDTO> clientesSinRenta;
+    private ClienteDTO clienteSinRenta;
+    private bool dialogBuscarClienteSinRenta;
+    private string nombreCLienteSinRentaBusqueda;
+    private string direccionClienteSinRentaBusqueda;
+    private string rfcClienteSinRentaBusqueda;
+    private string telefonoClienteSinRentaBusqueda;
+    private int pageSizeClientesSinRenta = 0;
+    private bool desactivarBuscarCliente;
+
+
+    private List<AvalDTO> avales = new List<AvalDTO>();
+    private AvalDTO aval = new AvalDTO();
+    private bool dialogListaAvales = false;
+    private bool dialogAvalIsOpen = false;
+    private int pageSizeAvales = 0;
+    private bool desactivarExtenderVigencia;
+
+
+    //VARIABLES
+    private List<ClienteDTO> clientes; //new List<ClienteDTO>();
+    private ClienteDTO cliente = new ClienteDTO();
+    private bool expandido = true;
+    private bool dialogIsOpen = false;
+    private bool dialogRequisitosIsopen = false;
+    Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+    private int totalClientes = 0;
+
+    private bool procesando = false;
+
+    protected async override Task OnInitializedAsync()
+    {
+        await Buscar();
+    }
+
+    //private void OnChangeValueTodos(bool value)
+    //{
+    //    if (TodosBusqueda = value)
+    //        ClienteFecuente = false;
+    //}
+    //
+    //private void OnChangeValueClienteFrecuente(bool value)
+    //{
+    //    if (ClienteFecuente = value)
+    //        TodosBusqueda = false;
+    //}
+    //
+    //private void OnChangeValueEsProblema(bool value)
+    //{
+    //    ClienteProblema = value;
+    //}
+
+    private async Task OpenDialog()
+    {
+        if (!expandido) { expandido = false; }
+        cliente = new ClienteDTO();
+        desactivarBuscarCliente = false;
+        desactivarExtenderVigencia = true;
+        cliente.PuedeRentar = true;
+        dialogIsOpen = true;
+
+        await Task.Delay(50);
+    }
+
+    private async Task CancelaDialog()
+    {
+        await Task.Delay(50);
+        dialogIsOpen = false;
+        dialogRequisitosIsopen = false;
+        //await Buscar();
+        //Clear();
+    }
+
+
+    private async Task OpenDialogSeleccionaClienteSinRenta()
+    {
+        await Task.Delay(50);
+        dialogBuscarClienteSinRenta = true;
+    }
+
+    private async Task CancelaDialogSeleccionaClienteSinRenta()
+    {
+        await Task.Delay(50);
+        dialogBuscarClienteSinRenta = false;
+    }
+
+
+    private async Task CancelaDialogAval()
+    {
+        await Task.Delay(50);
+        dialogAvalIsOpen = false;
+    }
+
+
+    private async Task CancelaDialogListaAvales()
+    {
+        await Task.Delay(50);
+        dialogListaAvales = false;
+    }
+    
+
+
+    private async Task OpenDialogEdit(ClienteDTO clienteEdicion)
+    {
+        if (!expandido) { expandido = false; }
+        desactivarBuscarCliente = true;
+        desactivarExtenderVigencia = false;
+        cliente = new ClienteDTO()
+        {
+            ClienteId = clienteEdicion.ClienteId,
+            Nombre = clienteEdicion.Nombre,
+            Apellido = clienteEdicion.Apellido,
+            Telefono = clienteEdicion.Telefono,
+            Correo = clienteEdicion.Correo,
+            Direccion = clienteEdicion.Direccion,
+            RFC = clienteEdicion.RFC,
+            EsFrecuente = clienteEdicion.EsFrecuente,
+            FechaRegistro = clienteEdicion.FechaRegistro,
+            FechaUltimaModificacion = clienteEdicion.FechaUltimaModificacion,
+            EsProblema = clienteEdicion.EsProblema,
+            PuedeRentar = clienteEdicion.PuedeRentar,
+            FechaVencimientoParaRenta = clienteEdicion.FechaVencimientoParaRenta
+        };
+        valorPuedeRentar = clienteEdicion.PuedeRentar;
+        dialogIsOpen = true;
+
+        await Task.Delay(50);
+    }
+
+
+    private async Task GuardarCliente()
+    {
+        if ((cliente.Nombre ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el nombre");
+            return;
+        }
+        
+        if((cliente.ClienteId == 0 && cliente.PuedeRentar == true) || (cliente.ClienteId != 0 && valorPuedeRentar != cliente.PuedeRentar && cliente.PuedeRentar == true))
+        {
+            if (await OpenConfirmacion("Al poder rentar, el cliente debió de presentar alguno o los siguientes documentos: \n\n Identificacion oficial, \n\n Comprobante de domicilio") == 0)
+               return; 
+        }
+        
+        procesando = true;
+
+        if (cliente.ClienteId == 0)
+            await CrearCliente();
+        else
+            await ActualizarCliente();
+
+        await Buscar();
+        procesando = false;
+    }
+
+    private async Task CrearCliente()
+    {
+        if (cliente.EsFrecuente != true)
+            cliente.EsFrecuente = false;
+
+        var httpResponse = await repository.Post("api/Clientes", cliente);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            toastService.ShowSuccess("Registro completo", "Guardado");
+
+            if (await OpenConfirmacion("Desea capturar los datos del Aval??") == 1)
+            {
+                JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+                var responseString = await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync();
+                cliente = JsonSerializer.Deserialize<ClienteDTO>(responseString, JsonSerializerOptions);
+
+                aval = new AvalDTO();
+                aval.ClienteId = cliente.ClienteId; //cliente.ClienteId;
+                dialogAvalIsOpen = true;
+            }
+            else
+                await CancelaDialog();
+        }
+    }
+
+    private async Task ActualizarCliente()
+    {
+        var httpResponse = await repository.Put("api/Clientes/" + cliente.ClienteId, cliente);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            toastService.ShowSuccess("Registro actualizado completo", "Guardado");
+            await CancelaDialog();
+        }
+    }
+
+
+    private async Task GuardarAval()
+    {
+        if ((aval.Nombre ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar el nombre del Aval");
+            return;
+        }
+
+        if ((aval.Direccion ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar la dirección del Aval");
+            return;
+        }
+
+        if ((aval.Telefono1 ?? String.Empty) == String.Empty && (aval.Telefono2 ?? String.Empty) == String.Empty)
+        {
+            await OpenMessage("Debe capturar por lo menos 1 telefono de contacto para el Aval");
+            return;
+        }
+        
+        procesando = true;
+        aval.ClienteId = cliente.ClienteId;
+
+        if (aval.AvalId == 0)
+            await CrearAval();
+        else
+            await ActualizarAval();
+
+        await BuscarAvales();
+        procesando = false;
+    }
+
+
+    private async Task CrearAval()
+    {
+        var httpResponse = await repository.Post("api/Avales", aval);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            await CancelaDialogAval();
+            await CancelaDialog();
+            await ExtenderVigenciaAnual(); 
+            toastService.ShowSuccess("Registro completo", "Guardado");
+        }
+    }
+
+    private async Task ActualizarAval()
+    {
+        var httpResponse = await repository.Put("api/Avales/" + aval.AvalId, aval);
+
+        if (httpResponse.Error)
+            toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+        else
+        {
+            toastService.ShowSuccess("Registro actualizado completo", "Guardado");
+            await CancelaDialog();
+        }
+    }
+
+
+
+    private async Task Requisitos()
+    {
+        await Task.Delay(50);
+        dialogRequisitosIsopen = true;
+    }
+
+
+    private async Task Buscar()
+    {
+        procesando = true;
+        var queryStrings = GenerarQueryStrings();
+        var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesRentaFilter?" + queryStrings);
+        clientes = responseHttp.Response;
+
+        if (clientes.Count > 0)
+            totalClientes = clientes.Count;
+        procesando = false;
+    }
+
+
+
+    private async Task ExtenderVigenciaAnual()
+    {
+        if(!(await repository.Get<bool>("api/Avales/TieneAvalesCorrectosByClienteId/" + cliente.ClienteId)).Response)
+        {
+            await OpenMessage("No cuenta con un Aval para generar vigencia.");
+            return;
+        }
+
+        //if(cliente.FechaVencimientoParaRenta == null || (cliente.FechaVencimientoParaRenta >= DateTime.Today && cliente.FechaVencimientoParaRenta < DateTime.Today.AddMonths(1)))
+        if(cliente.FechaVencimientoParaRenta == null || (cliente.FechaVencimientoParaRenta <= DateTime.Today.AddMonths(1)))
+        {
+            if (await OpenConfirmacion("Desea extender o agregar la vigencia del cliente " + cliente.Nombre + " " + cliente.Apellido + " por 1 año?") == 1)
+            {
+                procesando = true;
+                var queryStrings = GenerarQueryStrings();
+                var responseHttp = await repository.Get<VigenciaClientesRentaDTO>("api/Clientes/ExtenderVigenciaRentaByClienteId/" + cliente.ClienteId);
+                await Buscar();
+                await OpenMessage("La vigencia para el cliente " + cliente.Nombre + " es hasta: " + responseHttp.Response.FechaFin?.ToString("dd/MM/yyyy"));
+                cliente.FechaVencimientoParaRenta = responseHttp.Response.FechaFin;
+                procesando = false;
+            }
+        }
+        else
+            await OpenMessage("Aun tiene vigencia por mas de 1 mes.");
+    }
+        
+
+
+    private void Clear()
+    {
+        cliente = new ClienteDTO();
+    }
+
+
+    private async Task KeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await BuscarClientesSinRenta();
+        else
+            await Task.Delay(50);
+    }
+
+    private async Task LostFocus(FocusEventArgs e)
+    {
+        await BuscarClientesSinRenta();
+    }
+
+
+    private async Task BuscarClientesSinRenta()
+    {
+        if( (nombreCLienteSinRentaBusqueda ?? string.Empty) != string.Empty || (direccionClienteSinRentaBusqueda ?? string.Empty) != string.Empty || (rfcClienteSinRentaBusqueda ?? string.Empty) != string.Empty || (telefonoClienteSinRentaBusqueda ?? string.Empty) != string.Empty)
+        {
+            procesando = true;
+            var queryStrings = GenerarQueryStringsSinRenta();
+            var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesSinRentaFilter?" + queryStrings);
+            clientesSinRenta = responseHttp.Response;
+
+            if (clientesSinRenta.Count > 0)
+                pageSizeClientesSinRenta = clientesSinRenta.Count;
+            procesando = false;
+        }
+    }
+
+
+
+    private async Task BuscarAvales()
+    {
+        if(cliente.ClienteId != 0)
+        {
+            procesando = true;
+            var responseHttp = await repository.Get<List<AvalDTO>>("api/Avales/ObtenerAvalesByClienteId/" + cliente.ClienteId);
+            avales = responseHttp.Response;
+
+            if (avales.Count > 0)
+                pageSizeAvales = avales.Count;
+            procesando = false;
+        }
+    }
+
+
+
+    private void OnDbClicked(object item)
+    {
+        clienteSinRenta = item as ClienteDTO;
+        if (clienteSinRenta != null)
+        {
+            dialogBuscarClienteSinRenta = false;
+            cliente = clienteSinRenta;
+            valorPuedeRentar = clienteSinRenta.PuedeRentar;
+            cliente.PuedeRentar = true;
+        }
+    }
+
+
+    private async Task OpenDialogListaAvales(ClienteDTO clienteEdicion)
+    {
+        if (!expandido) { expandido = false; }
+
+        cliente = clienteEdicion;
+        await BuscarAvales();
+        dialogListaAvales = true;
+        await Task.Delay(50);
+    }
+
+
+    private async Task OpenDialogEditAval(AvalDTO avalEditar)
+    {
+        if (!expandido) { expandido = false; }
+
+        aval = avalEditar;
+        dialogAvalIsOpen = true;
+        await Task.Delay(50);
+    }
+
+
+    private async Task OpenDialogAval()
+    {
+        aval = new AvalDTO();
+        dialogAvalIsOpen = true;
+        await Task.Delay(50);
+    }
+
+
+    private string GenerarQueryStrings()
+    {
+        if (queryStringsDict == null)
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["Nombre"] = nombreClienteBusqueda != null ? nombreClienteBusqueda : String.Empty;
+        queryStringsDict["Apellido"] = apellidoClienteBusqueda != null ? apellidoClienteBusqueda : String.Empty;
+        queryStringsDict["Direccion"] = direccionClienteBusqueda != null ? direccionClienteBusqueda : String.Empty;
+        queryStringsDict["RFC"] = rfcClienteBusqueda != null ? rfcClienteBusqueda : String.Empty;
+
+        queryStringsDict["EsFrecuente"] = tipoCliente == 1 ? "true" : "false"; //ClienteFecuente.ToString();
+        queryStringsDict["Todos"] = tipoCliente == 0 ? "true" : "false";
+        queryStringsDict["EsProblema"] = tipoCliente == 2 ? "true" : "false";
+
+        queryStringsDict["Activo"] = activo.ToString();
+        queryStringsDict["PuedeRentar"] = puedeRentar.ToString();
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private string GenerarQueryStringsSinRenta()
+    {
+        if (queryStringsDict == null)
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["Nombre"] = nombreCLienteSinRentaBusqueda ?? String.Empty;
+        queryStringsDict["Direccion"] = direccionClienteSinRentaBusqueda ?? String.Empty;
+        queryStringsDict["RFC"] = rfcClienteSinRentaBusqueda ?? String.Empty;
+        queryStringsDict["Telefono"] = telefonoClienteSinRentaBusqueda ?? String.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+    private async Task<int> OpenMessage(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+        }
+        return r;
+    }
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+}

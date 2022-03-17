@@ -25,5 +25,10 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public bool? EsProblema { get; set; }
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+        public bool? PuedeRentar { get; set; }
+
+        //DATOS PARA MOSTRAR EN GRID
+        public bool ClienteVigenteParaRenta { get; set; }
+        public DateTime? FechaVencimientoParaRenta { get; set; }
     }
 }

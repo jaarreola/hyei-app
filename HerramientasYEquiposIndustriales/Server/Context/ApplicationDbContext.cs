@@ -88,5 +88,7 @@ namespace HerramientasYEquiposIndustriales.Server.Context
         public DbSet<ContratosRentas> ContratosRentas { get; set; }
         public DbSet<Aval> Aval { get; set; }
         public DbSet<MarcasProductosTienda> MarcasProductosTienda { get; set; }
+        public DbSet<HistorialPreciosProductosTienda> HistorialPreciosProductosTienda { get; set; }
+        public DbSet<VigenciaClientesRenta> VigenciaClientesRenta { get; set; }
     }
 }

@@ -51,6 +51,10 @@ namespace HerramientasYEquiposIndustriales.Server.Helpers
             CreateMap<ContratosRentas, ContratosRentasDTO>().ReverseMap();
             CreateMap<Aval, AvalDTO>().ReverseMap();
             CreateMap<MarcasProductosTienda, MarcasProductosTiendaDTO>().ReverseMap();
+
+            CreateMap<HistorialPreciosProductosTienda, HistorialPreciosProductosTiendaDTO>().ReverseMap();
+
+            CreateMap<VigenciaClientesRenta, VigenciaClientesRentaDTO>().ReverseMap();
         }
     }
 }

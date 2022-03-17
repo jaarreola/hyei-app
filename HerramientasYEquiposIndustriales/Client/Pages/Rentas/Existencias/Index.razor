@@ -1,0 +1,767 @@
+﻿@page "/Rentas/Existencias"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+@inject IJSRuntime Js
+
+<div class="row">
+	<div class="col-md-12 col-sm-4">
+		<MatAccordion>
+			<MatExpansionPanel @bind-Expanded="@expandidoBusqueda">
+				<MatExpansionPanelSummary>
+					<MatExpansionPanelHeader><h3>Existencias</h3></MatExpansionPanelHeader>
+				</MatExpansionPanelSummary>
+				<MatExpansionPanelDetails>
+					<div class="row">
+						<div class="col-md-1">
+							<MatIconButton OnClick="@OpenDialogNuevoProductoTienda" Icon="library_add"></MatIconButton>
+						</div>
+						<div class="col-md-2">
+							<MatTextField FullWidth="true" @bind-Value="@skuBusqueda" Label="SKU"></MatTextField>
+						</div>
+						<div class="col-md-7">
+							<MatSelectValue @bind-Value="@productoTiendaIdBusqueda" Items="@productosTiendaBusqueda" ValueSelector=@(i => i.ProductosTiendaId) Label="Producto">
+								<ItemTemplate Context="productosTiendaBusqueda">@productosTiendaBusqueda?.Nombre</ItemTemplate>
+							</MatSelectValue>
+						</div>
+						<div class="col-md-2">
+							<MatButton Raised="true" Icon="search" OnClick="@BuscaExistencias">Buscar</MatButton>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-3">
+							<MatRadioGroup @bind-Value="@tipoExistencia" TValue="int">
+								<MatRadioButton Value="1" TValue="int">Nuevo</MatRadioButton>
+								<MatRadioButton Value="2" TValue="int">Usado</MatRadioButton>
+								<MatRadioButton Value="0" TValue="int">Ambos      </MatRadioButton>
+							</MatRadioGroup>
+						</div>
+						<div class="col-md-3">
+							<MatRadioGroup @bind-Value="@tipoNegocio" TValue="int">
+								<MatRadioButton Value="1" TValue="int">Para Renta</MatRadioButton>
+								<MatRadioButton Value="2" TValue="int">Para Venta</MatRadioButton>
+								<MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+							</MatRadioGroup>
+						</div>
+						<div class="col-md-3">
+							<MatRadioGroup @bind-Value="@tipoDispocicion" TValue="int">
+								<MatRadioButton Value="1" TValue="int">Rentados</MatRadioButton>
+								<MatRadioButton Value="2" TValue="int">Disponibles</MatRadioButton>
+								<MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+							</MatRadioGroup>
+						</div>
+						<div class="col-md-3">
+							<MatRadioGroup @bind-Value="@tipoVenta" TValue="int">
+								<MatRadioButton Value="1" TValue="int">Vendido</MatRadioButton>
+								<MatRadioButton Value="2" TValue="int">No vendido</MatRadioButton>
+								<MatRadioButton Value="0" TValue="int">Ambos</MatRadioButton>
+							</MatRadioGroup>
+						</div>
+					</div>
+				</MatExpansionPanelDetails>
+			</MatExpansionPanel>
+		</MatAccordion>
+	</div>
+</div>
+
+@if (existencias == null)
+{
+	<br />
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+	<h5 class="mat-subtitle1">Cargando Existencias</h5>
+}
+else
+{
+	@if (procesando == true)
+	{
+		<MatProgressBar Indeterminate="true"></MatProgressBar>
+	}
+
+	<div class="row">
+		<div class="col-md-4 col-sm-4">
+			Registros totales: <strong>@FormatoDecimal(totalExistencias.ToString())</strong>
+		</div>
+	</div>
+
+	<div>
+		<MatTable Items="@existencias" class="mat-elevation-z5" AllowSelection="true">
+			<MatTableHeader>
+				<th style="width:10%;">SKU</th>
+				<th style="width:20%;">Nombre</th>
+				<th style="width:10%;">Marca</th>
+				<th style="width:10%;">Modelo</th>
+				<th style="width:5%;">Stock</th>
+				<th style="width:5%;">Disponibles</th>
+				<th style="width:5%;">Rentados</th>
+				<th style="width:5%;">Vendidos</th>
+				<th style="width:5%;">Nuevos</th>
+				<th style="width:5%;">Usados</th>
+				<th style="width:5%;">Para Renta</th>
+				<th style="width:5%;">Para Venta</th>
+				<th style="width:5%;"></th>
+				<th style="width:5%;"></th>
+			</MatTableHeader>
+			<MatTableRow>
+				<td style="font-weight:bold">@context.Sku</td>
+				<td>@context.Nombre</td>
+				<td>@context.Marca</td>
+				<td>@context.Modelo</td>
+				<td>@context.NoVendidos</td>
+				<td>@context.Disponibles</td>
+				<td>@context.Rentados</td>
+				<td>@context.Vendidos</td>
+				<td>@context.Nuevos</td>
+				<td>@context.Usados</td>
+				<td>@context.ParaRenta</td>
+				<td>@context.ParaVenta</td>
+				<td><MatIconButton OnClick="@(_=>VerExistencias(@context))" Icon="visibility"></MatIconButton></td>
+				<td><MatIconButton OnClick="@(_=>AgregaExistencia(@context))" Icon="add"></MatIconButton></td>
+			</MatTableRow>
+		</MatTable>
+    </div>
+}
+
+
+<div>
+	<EditForm Model="@productoTienda">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogNuevoProductoIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Producto</h5></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.Sku" Label="Código de barras"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.Nombre" Label="Nombre"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatSelectValue @bind-Value="@productoTienda.MarcasProductosTiendaId" Items="@marcas" ValueSelector=@(i => i.MarcasProductosTiendaId) Label="Marca">
+							<ItemTemplate Context="marcas">@marcas?.Descripcion</ItemTemplate>
+						</MatSelectValue>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.Modelo" Label="Modelo"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.CostoVenta" Label="Costo de Venta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@productoTienda.Caracteristicas" Label="Detalle" TextArea="true"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarProductoTienda" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
+</div>
+
+
+
+<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>@productoSeleccionado.Sku - @productoSeleccionado.Nombre</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@listaExistencias" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalExistencias2">
+                    <MatTableHeader>
+                        <th style="width:15%;">Folio</th>
+                        <th style="width:10%;">Usado</th>
+                        <th style="width:10%;">Para Renta</th>
+                        <th style="width:10%;">Precio Renta</th>
+                        <th style="width:10%;">Para Venta</th>
+                        <th style="width:10%;">Precio Venta</th>
+						<th style="width:10%;">Rentado</th>
+						<th style="width:10%;">Vendido</th>
+						<th style="width:10%;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+						@if (context.Vendido)
+                        {
+							<td style="color:red; font-weight:bold">@context.FolioProductoTienda</td>
+						}
+						else if (context.Rentado)
+                        {
+							<td style="color:orange; font-weight:bold">@context.FolioProductoTienda</td>
+						}
+                        else if (!context.Rentado)
+                        {
+							<td style="color:green; font-weight:bold">@context.FolioProductoTienda</td>
+						}
+                        <td><MatCheckbox @bind-Value="@context.Usado" Disabled="true"></MatCheckbox></td>
+						<td><MatCheckbox @bind-Value="@context.ParaRenta" Disabled="true"></MatCheckbox></td>
+						<td>@FormatoMoneda(@context.PrecioRenta.ToString())</td>
+						<td><MatCheckbox @bind-Value="@context.ParaVenta" Disabled="true"></MatCheckbox></td>
+						<td>@FormatoMoneda(@context.PrecioVenta.ToString())</td>
+						<td><MatCheckbox @bind-Value="@context.Rentado" Disabled="true"></MatCheckbox></td>
+						<td><MatCheckbox @bind-Value="@context.Vendido" Disabled="true"></MatCheckbox></td>
+						<td><MatIconButton OnClick="@(_=>EditaExistencia(@context))" Icon="edit"></MatIconButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+<div>
+	<EditForm Model="@existenciaNueva">
+		<DataAnnotationsValidator />
+		<MatDialog @bind-IsOpen="@dialogExistenciaIsOpen" CanBeClosed="false" class="mdc-dialog900">
+			<MatDialogTitle><h5>Existencia</h5><MatCheckbox @bind-Value="@existenciaNueva.Usado" Label="Usado"></MatCheckbox></MatDialogTitle>
+			<MatDialogContent>
+				<div class="row">
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@productoSeleccionado.Sku" Label="Producto" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-6">
+						<MatTextField FullWidth="true" @bind-Value="@productoSeleccionado.Nombre" Label="Nombre" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@productoSeleccionado.Marca" Label="Nombre" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@productoSeleccionado.Modelo" Label="Nombre" ReadOnly="true"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.FolioProductoTienda" Label="No producto" ReadOnly="true"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatCheckbox @bind-Value="@existenciaNueva.ParaRenta" Label="Para Renta"></MatCheckbox>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.PrecioRenta" Label="Costo de Renta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatCheckbox @bind-Value="@existenciaNueva.ParaVenta" Label="Para Venta"></MatCheckbox>
+					</div>
+					<div class="col-md-3">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.PrecioVenta" Label="Costo de Renta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.Comentarios" Label="Comentarios del artículo" TextArea="true"></MatTextField>
+					</div>
+				</div>
+			</MatDialogContent>
+			<MatDialogActions>
+				<MatButton OnClick="@CancelaDialogExistencia" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@GuardarExistencia" class="mdc-button-modal">Guardar</MatButton>
+			</MatDialogActions>
+		</MatDialog>
+	</EditForm>
+</div>
+
+
+
+
+<div>
+	<MatDialog @bind-IsOpen="@dialogValidaEmpleadoSave" CanBeClosed="false">
+		<MatDialogTitle><h5>Valida Empleado</h5></MatDialogTitle>
+		<MatDialogContent>
+			<div class="row">
+				<div class="col-md-12">
+					<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+				</div>
+			</div>
+		</MatDialogContent>
+		<MatDialogActions>
+			@if (procesando == true)
+			{
+				<MatProgressBar Indeterminate="true"></MatProgressBar>
+			}
+			else
+			{
+				<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+				<MatButton OnClick="@ValidaEmpleadoSave" class="mdc-button-modal">Aceptar</MatButton>
+			}
+		</MatDialogActions>
+	</MatDialog>
+</div>
+
+
+
+@code {
+	//FILTROS BUSQUEDA
+	private List<ProductosTiendaDTO> productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+	private string skuBusqueda = string.Empty;
+	private int productoTiendaIdBusqueda = 0;
+	private int tipoExistencia = 0;  //Nuevo = 1, Usado = 2, Ambos = 0
+	private int tipoNegocio = 0;  //Para renta = 1, Para venta = 2, Ambos = 0
+	private int tipoDispocicion = 0;  //Rentados = 1, Disponibles = 2, Ambos = 0
+	private int tipoVenta = 0;  //Vendidos = 1, No Vendidos = 2, Ambos = 0
+
+	private string ipRutaReportes = string.Empty;
+	private bool procesando = false;
+	private bool expandidoBusqueda = true;
+	private bool dialogNuevoProductoIsOpen = false;
+	private bool dialogValidaEmpleadoSave = false;
+	private bool dialogExistenciaIsOpen = false;
+	private bool dialogListaExistenciasIsOpen = false;
+	private int porcentajeVenta = 20;
+	private string precioMayorPorcentaje = string.Empty;
+	private string numeroEmpleado = String.Empty;
+	private string guarda;
+	private EmpleadoDTO empleado = new EmpleadoDTO();
+
+
+	//VARIABLE QUERY STRING
+    Dictionary<string, string> queryStringsBusqueda = new Dictionary<string, string>();
+
+	private List<ExistenciasBusquedaDTO> existencias;
+	private ExistenciasBusquedaDTO productoSeleccionado = new ExistenciasBusquedaDTO();
+	private ProductoTiendaExistenciasDTO existenciaNueva = new ProductoTiendaExistenciasDTO();
+	private List<ProductoTiendaExistenciasDTO> listaExistencias;
+	private int totalExistencias = 0;
+	private int totalExistencias2 = 0;
+
+	//PRODUCTO TIENDA
+	private ProductosTiendaDTO productoTienda = new ProductosTiendaDTO();
+
+	//MARCAS PRODUCTOS RENTA
+	private List<MarcasProductosTiendaDTO> marcas = new List<MarcasProductosTiendaDTO>();
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		await CargaComboProductos();
+		await BuscaExistencias();
+		await CargaComboMarcas();
+		await CargaRutaReportes();
+		await Task.Delay(50);
+	}
+
+
+	private async Task CargaComboProductos()
+	{
+		try
+        {
+            var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");		
+			productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+			productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty, Existencias = new List<ProductoTiendaExistencias>() });
+			productosTiendaBusqueda.AddRange(responseHttp.Response);
+        }
+        catch (Exception ex)
+		{
+            System.Console.WriteLine(ex.Message);
+			toastService.ShowError(ex.Message, "Error");
+		}
+	}
+
+
+	private async Task CargaComboMarcas()
+	{
+		var responseHttp = await repository.Get<List<MarcasProductosTiendaDTO>>("api/MarcasTienda");
+		marcas = new List<MarcasProductosTiendaDTO>();
+		marcas.Add(new MarcasProductosTiendaDTO() { Descripcion = "" });
+		marcas.AddRange(responseHttp.Response);
+	}
+
+
+	private async Task BuscaExistencias()
+    {
+        procesando = true;
+        var queryStrings = GenerarQueryStringsBusqueda();
+        var responseHttp = await repository.Get<List<ExistenciasBusquedaDTO>>("api/ProductoTiendaExistencias/GetExistenciasByFilter?" + queryStrings);
+        if (responseHttp.Response == null)
+            existencias = new List<ExistenciasBusquedaDTO>();
+        else
+            existencias = responseHttp.Response;
+        totalExistencias = existencias.Count;
+        procesando = false;
+    }
+
+
+	private async Task GuardarProductoTienda()
+	{
+		if ((productoTienda.Sku ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar un Código de barras");
+			return;
+		}
+		if ((productoTienda.Nombre ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el nombre");
+			return;
+		}
+		if (productoTienda.MarcasProductosTiendaId == 0)
+		{
+			await OpenMessage("Debe capturar la Marca");
+			return;
+		}
+		if ((productoTienda.Modelo ?? String.Empty) == String.Empty)
+		{
+			await OpenMessage("Debe capturar el modelo");
+			return;
+		}
+		if (productoTienda.ProductosTiendaId == 0)
+		{
+			//validamos si ya existe un producto con ese Sku (codigo de barras)
+			var httpResponseExiste = await repository.Get<ProductosTiendaDTO>("api/ProductosTienda/GetProductoPorSku/" + productoTienda.Sku);
+			if (!httpResponseExiste.Error)
+			{
+				await OpenMessage("Ya existe un producto con ese Código de barras");
+				return;
+			}
+		}
+		if ((productoTienda.CostoVenta != null ? productoTienda.CostoVenta : 0) != 0 && (productoTienda.CostoCompra != null ? productoTienda.CostoCompra : 0) == 0)
+		{
+			await OpenMessage("Primero debe ingresar el costo de compra.");
+			return;
+		}
+		if ((productoTienda.CostoVenta != null ? productoTienda.CostoVenta : 0) != 0)
+			if (!CostoVentaCorrecto(productoTienda.CostoCompra, productoTienda.CostoVenta))
+			{
+				await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+				return;
+			}
+
+		guarda = "producto";
+		dialogValidaEmpleadoSave = true;
+	}
+
+
+	private async Task GuardarExistencia()
+	{
+		if (existenciaNueva.FolioProductoTienda == 0)
+		{
+			await OpenMessage("La existencia debe de tener un folio");
+			return;
+		}
+		if (existenciaNueva.ProductoTiendaId == 0)
+		{
+			await OpenMessage("La existencia debe pertenecer a un producto");
+			return;
+		}
+		guarda = "existencia";
+		dialogValidaEmpleadoSave = true;
+	}
+
+
+	private async Task ValidaEmpleadoSave()
+	{
+		procesando = true;
+		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+		var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+		empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+		if (empleado.EmpleadoId != 0)
+		{
+			switch(guarda)
+			{
+				case "producto":
+					if (productoTienda.ProductosTiendaId == 0)
+					{
+						productoTienda.EmpleadoCreacion = empleado.EmpleadoId;
+						await CrearProductoTienda();
+						await CargaComboProductos();
+					}
+					break;
+				case "existencia":
+					if (existenciaNueva.ProductoTiendaExistenciasId == 0)
+					{
+						existenciaNueva.EmpleadoRegistro = empleado.EmpleadoId;
+						await CreaExistencia();
+					}
+					else if(existenciaNueva.ProductoTiendaExistenciasId > 0)
+					{
+						existenciaNueva.EmpleadoModificacion = empleado.EmpleadoId;
+						await ActualizaExistencia();
+					}
+				break;
+			}
+			CancelaDialogValidaEmpleado();
+		}
+		else
+			toastService.ShowError("Numero de empleado no valido", "Error");
+
+		procesando = false;
+	}
+
+
+	private async Task CrearProductoTienda()
+	{
+		var httpResponse = await repository.Post("api/ProductosTienda", productoTienda);
+		if (httpResponse.Error)
+		{
+			if (productoTienda.MarcasProductosTiendaId == 0)
+				toastService.ShowError("Debe seleccionar una marca", "Error");
+			else
+				toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		}
+		else
+		{
+			Clear();
+			dialogNuevoProductoIsOpen = false;
+			await BuscaExistencias();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Registro completo", "Guardado");
+		}
+	}
+
+
+
+	private async Task CreaExistencia()
+	{
+		var httpResponse = await repository.Post("api/ProductoTiendaExistencias", existenciaNueva);
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			Clear();
+			dialogExistenciaIsOpen = false;
+			await BuscaExistencias();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Existencia agregada", "Guardado");
+		}
+	}
+
+
+	private async Task ActualizaExistencia()
+	{
+		var httpResponse = await repository.Put("api/ProductoTiendaExistencias/ActualizaExistencia/", existenciaNueva);
+		if (httpResponse.Error)
+			toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+		else
+		{
+			Clear();
+			dialogExistenciaIsOpen = false;
+			await BuscaExistencias();
+			await Task.Delay(50);
+			toastService.ShowSuccess("Existencia actualizada", "Guardado");
+		}
+	}
+
+
+	private void CancelaDialogValidaEmpleado()
+	{
+		numeroEmpleado = String.Empty;
+		empleado = new EmpleadoDTO();
+		dialogValidaEmpleadoSave = false;
+	}
+
+
+
+	private async Task CargaRutaReportes()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReportes");
+		var configuracion = responseHttp.Response;
+		ipRutaReportes = configuracion.Valor;
+	}
+
+
+	private void OpenDialogNuevoProductoTienda()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		if (!expandidoBusqueda) { expandidoBusqueda = false; }
+		dialogNuevoProductoIsOpen = true;
+	}
+
+
+	private async Task AgregaExistencia(ExistenciasBusquedaDTO productoTienda)
+	{
+		productoSeleccionado = productoTienda;
+		
+		if (!expandidoBusqueda) { expandidoBusqueda = false; }
+		existenciaNueva = new ProductoTiendaExistenciasDTO()
+		{
+			ProductoTiendaId = productoSeleccionado.ProductosTiendaId
+		};
+		var httpResponceSigFolio = await repository.GetOnly("api/ProductoTiendaExistencias/SiguienteFolioByProductoTienda/" + productoSeleccionado.ProductosTiendaId);
+        var nuevoFolio = httpResponceSigFolio.Content.ReadAsStringAsync().Result;
+		existenciaNueva.FolioProductoTienda = Int32.Parse(nuevoFolio);
+		dialogExistenciaIsOpen = true;
+	}
+
+
+	private async Task EditaExistencia(ProductoTiendaExistenciasDTO existenciaEditar)
+	{
+		if (!expandidoBusqueda) { expandidoBusqueda = false; }
+		existenciaNueva = existenciaEditar;
+		dialogExistenciaIsOpen = true;
+		await Task.Delay(50);
+	}
+
+
+	private async Task VerExistencias(ExistenciasBusquedaDTO productoTienda)
+	{
+		if(productoTienda.Nuevos > 0 || productoTienda.Usados > 0)
+		{
+			productoSeleccionado = productoTienda;		
+			if (!expandidoBusqueda) { expandidoBusqueda = false; }
+		
+			var responseHttp = await repository.Get<List<ProductoTiendaExistenciasDTO>>("api/ProductoTiendaExistencias/GetExistenciasByProductoTienda/" + productoTienda.ProductosTiendaId);
+			if (responseHttp.Response != null)
+			{
+				listaExistencias = responseHttp.Response;
+				totalExistencias2 = listaExistencias.Count;
+				dialogListaExistenciasIsOpen = true;
+			}
+		}
+	}
+
+
+	private async Task ajustaCostoVenta()
+	{
+		if (productoTienda != null)
+			productoTienda.CostoVenta = GeneraCostoVenta(productoTienda.CostoCompra);
+
+		await Task.Delay(50);
+	}
+
+
+	private float? GeneraCostoVenta(float? costoCompra)
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		costoCompra = costoCompra ?? 0;
+		if (porcentajeVenta >= 100)
+			porcentajeVenta = 99;
+		if (porcentajeVenta < 0)
+			porcentajeVenta = 0;
+
+		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		if (costoCompra > 0)
+			return (float?)Math.Round((decimal)(costoCompra / porcentaje), 2);
+		else
+			return 0;
+	}
+
+
+	private bool CostoVentaCorrecto(float? costoCompra, float? costoVenta)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+		costoCompra = costoCompra ?? 0;
+		costoVenta = costoVenta ?? 0;
+		bool result = true;
+
+		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
+		if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
+			result = false;
+
+		return result;
+	}
+
+
+	private async Task CancelaDialog()
+	{
+		dialogNuevoProductoIsOpen = false;
+		dialogExistenciaIsOpen = false;
+		dialogListaExistenciasIsOpen = false;
+		Clear();
+		await Task.Delay(50);
+	}
+
+
+	private async Task CancelaDialogExistencia()
+	{
+		dialogExistenciaIsOpen = false;
+		Clear();
+		await Task.Delay(50);
+	}
+
+
+	private void Clear()
+	{
+		productoTienda = new ProductosTiendaDTO();
+	}
+
+
+	private async Task<int> OpenMessage(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+		}
+		return r;
+	}
+
+
+	private String FormatoMoneda(String value)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+		if (value != string.Empty)
+			return string.Format("{0:C2}", Convert.ToDecimal(value));
+		else
+			return "";
+	}
+
+	private String FormatoDecimal(String value)
+	{
+		CultureInfo.CurrentCulture = new CultureInfo("en-US");
+		try
+		{
+			if (value != string.Empty)
+				return String.Format("{0:0.00}", value);
+			else
+				return "0";
+		}
+		catch (Exception ex)
+		{
+            System.Console.WriteLine(ex.Message);
+			toastService.ShowError(ex.Message, "Error");
+			return "0";
+		}
+	}
+
+
+	private string GenerarQueryStringsBusqueda()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (queryStringsBusqueda == null)
+            queryStringsBusqueda = new Dictionary<string, string>();
+
+		queryStringsBusqueda["Sku"] = skuBusqueda;
+        queryStringsBusqueda["ProductoTiendaId"] = productoTiendaIdBusqueda.ToString();
+        queryStringsBusqueda["TipoExistencia"] = tipoExistencia.ToString();
+        queryStringsBusqueda["TipoNegocio"] = tipoNegocio.ToString();
+        queryStringsBusqueda["TipoDispocicion"] = tipoDispocicion.ToString();
+		queryStringsBusqueda["TipoVenta"] = tipoVenta.ToString();
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsBusqueda
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+}

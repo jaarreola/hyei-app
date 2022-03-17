@@ -33,8 +33,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).ToListAsync();
-                //var Productos = await context.ProductosTienda.Include(x => x.Marca).ToListAsync();
+                //var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).ToListAsync();
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
             catch (Exception ex)
@@ -59,8 +59,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 return dto;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -95,7 +96,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).Where(x =>
                     (x.Sku.Contains(filtrosProducto.NoParte) || filtrosProducto.NoParte == null) &&
                     (x.Nombre.Contains(filtrosProducto.Nombre) || filtrosProducto.Nombre == null) &&
                     (x.Modelo.Contains(filtrosProducto.Modelo) || filtrosProducto.Modelo == null) &&
@@ -103,8 +104,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 ).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -128,7 +130,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             catch (Exception ex)
             {
                 System.Console.WriteLine(ex.Message);
-
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -180,16 +181,16 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     if (Producto.CostoCompra != 0)
                     {
                         //AJUSTAR PARA EL HISTORIAL DE PRECIOS DEL PRODUCTO
-                        //HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
-                        //{
-                        //    ProductosTiendaId = Producto.ProductosTiendaId,
-                        //    CostoCompra = Producto.CostoCompra,
-                        //    CostoVenta = Producto.CostoVenta,
-                        //    FechaRegistro = Producto.FechaRegistro,
-                        //    EmpleadoCreacion = Producto.EmpleadoCreacion
-                        //};
-                        //context.HistorialPreciosProductosTiendas.Add(nuevoPrecio);
-                        //context.SaveChanges();
+                        HistorialPreciosProductosTienda nuevoPrecio = new HistorialPreciosProductosTienda()
+                        {
+                            ProductosTiendaId = Producto.ProductosTiendaId,
+                            CostoCompra = Producto.CostoCompra,
+                            CostoVenta = Producto.CostoVenta,
+                            FechaRegistro = Producto.FechaRegistro,
+                            EmpleadoCreacion = Producto.EmpleadoCreacion
+                        };
+                        context.HistorialPreciosProductosTienda.Add(nuevoPrecio);
+                        context.SaveChanges();
                     }
 
                     scope.Complete();
@@ -223,27 +224,28 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     context.Entry(Producto).State = EntityState.Modified;
                     context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                    context.Entry(Producto).Property(x => x.EmpleadoCreacion).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
 
                     context.SaveChanges();
 
                     //HISTORIAL DE PRECIOS
-                    //var ultimoPrecio = context.HistorialPreciosProductosTiendas.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductosTiendaId == Producto.ProductosTiendaId);
+                    var ultimoPrecio = context.HistorialPreciosProductosTienda.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductosTiendaId == Producto.ProductosTiendaId);
 
-                    //if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
-                    //{
-                    //    HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
-                    //    {
-                    //        ProductosTiendaId = Producto.ProductosTiendaId,
-                    //        CostoCompra = Producto.CostoCompra,
-                    //        CostoVenta = Producto.CostoVenta,
-                    //        FechaRegistro = Producto.FechaUltimaModificacion,
-                    //        EmpleadoCreacion = Producto.EmpleadoModificacion
-                    //    };
-                    //    context.HistorialPreciosProductosTiendas.Add(nuevoPrecio);
-                    //    context.SaveChanges();
-                    //}
+                    if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
+                    {
+                        HistorialPreciosProductosTienda nuevoPrecio = new HistorialPreciosProductosTienda()
+                        {
+                            ProductosTiendaId = Producto.ProductosTiendaId,
+                            CostoCompra = Producto.CostoCompra,
+                            CostoVenta = Producto.CostoVenta,
+                            FechaRegistro = Producto.FechaModificacion,
+                            EmpleadoCreacion = Producto.EmpleadoModificacion
+                        };
+                        context.HistorialPreciosProductosTienda.Add(nuevoPrecio);
+                        context.SaveChanges();
+                    }
                     scope.Complete();
                 }
                 return NoContent();
@@ -273,18 +275,19 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 context.Entry(Producto).State = EntityState.Modified;
                 context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                context.Entry(Producto).Property(x => x.EmpleadoCreacion).IsModified = false;
 
                 if (Producto.FechaBaja == null)
                 {
                     Producto.FechaActivo = null;
-                    Producto.EmpleadoActivo = 0;
+                    Producto.EmpleadoActivo = null;
                     Producto.FechaBaja = fecha;
                     Producto.EmpleadoBaja = Producto.EmpleadoModificacion;
                 }
                 else if (Producto.FechaBaja != null)
                 {
                     Producto.FechaBaja = null;
-                    Producto.EmpleadoBaja = 0;
+                    Producto.EmpleadoBaja = null;
                     Producto.FechaActivo = fecha;
                     Producto.EmpleadoActivo = Producto.EmpleadoModificacion;
                 }
@@ -293,8 +296,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al actualizar la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -316,8 +320,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al eliminar el Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -369,24 +374,24 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
-        //[HttpGet("GetHistorialPrecioProducto/{ProductosTiendaId}")]
-        //public async Task<ActionResult<List<HistorialPreciosProductosDTO>>> GetHistorialPrecioProducto(int ProductosTiendaId)
-        //{
-        //    try
-        //    {
-        //        var historial = await context.HistorialPreciosProductosTiendas.Where(x => x.ProductosTiendaId == ProductosTiendaId).OrderByDescending(x => x.FechaRegistro).ToListAsync();
-        //        if (historial == null)
-        //            historial = new List<HistorialPreciosProductos>();
+        [HttpGet("GetHistorialPrecioProductoTienda/{ProductosTiendaId}")]
+        public async Task<ActionResult<List<HistorialPreciosProductosTiendaDTO>>> GetHistorialPrecioProductoTienda(int ProductosTiendaId)
+        {
+            try
+            {
+                var historial = await context.HistorialPreciosProductosTienda.Where(x => x.ProductosTiendaId == ProductosTiendaId).OrderByDescending(x => x.FechaRegistro).ToListAsync();
+                if (historial == null)
+                    historial = new List<HistorialPreciosProductosTienda>();
 
-        //        return mapper.Map<List<HistorialPreciosProductosDTO>>(historial);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        System.Console.WriteLine(ex.Message);
-        //        return StatusCode(StatusCodes.Status500InternalServerError,
-        //            $"{CommonConstant.MSG_ERROR_INICIO} " +
-        //            $"al obtener la información del historial de precios. \n{CommonConstant.MSG_ERROR_FIN}");
-        //    }
-        //}
+                return mapper.Map<List<HistorialPreciosProductosTiendaDTO>>(historial);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del historial de precios. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
     }
 }

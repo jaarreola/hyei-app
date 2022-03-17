@@ -220,6 +220,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     context.Entry(Producto).State = EntityState.Modified;
                     context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                    context.Entry(Producto).Property(x => x.EmpleadoCreacion).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
 
@@ -269,6 +270,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 context.Entry(Producto).State = EntityState.Modified;
                 context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
+                context.Entry(Producto).Property(x => x.EmpleadoCreacion).IsModified = false;
 
                 if (Producto.FechaBaja == null)
                 {

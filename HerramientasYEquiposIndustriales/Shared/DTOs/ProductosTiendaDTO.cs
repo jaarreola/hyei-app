@@ -18,16 +18,16 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public float? CostoVenta { get; set; }
         public string Caracteristicas { get; set; }
         public DateTime? FechaRegistro { get; set; }
-        public int EmpleadoCreacion { get; set; }
+        public int? EmpleadoCreacion { get; set; }
         public DateTime? FechaModificacion { get; set; }
-        public int EmpleadoModificacion { get; set; }
+        public int? EmpleadoModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }
-        public int EmpleadoBaja { get; set; }
+        public int? EmpleadoBaja { get; set; }
         public DateTime? FechaActivo { get; set; }
-        public int EmpleadoActivo { get; set; }
+        public int? EmpleadoActivo { get; set; }
 
 
-        public virtual MarcasProductosTienda Marca { get; set; }
-        public virtual List<ProductoTiendaExistencias> Existencias { get; set; }
+        public virtual MarcasProductosTienda? Marca { get; set; }
+        public virtual List<ProductoTiendaExistencias>? Existencias { get; set; }
     }
 }
