@@ -50,8 +50,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var puestos = await context.Puestos.ToListAsync();
                 return mapper.Map<List<PuestoComboDTO>>(puestos);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message.ToString());
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener el listado de puestos. \n{CommonConstant.MSG_ERROR_FIN}");

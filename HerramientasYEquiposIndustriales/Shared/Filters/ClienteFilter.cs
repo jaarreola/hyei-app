@@ -15,5 +15,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
         public bool EsFrecuente { get; set; }
         public bool EsProblema { get; set; }
         public bool Todos { get; set; }
+        public int PuedeRentar { get; set; }
+        public int Activo { get; set; }
     }
 }

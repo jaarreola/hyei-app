@@ -17,64 +17,67 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductosController : ControllerBase
+    public class ProductosTiendaController : ControllerBase
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
 
-        public ProductosController(ApplicationDbContext context, IMapper mapper)
+        public ProductosTiendaController(ApplicationDbContext context, IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductos()
+        public async Task<ActionResult<IEnumerable<ProductosTiendaDTO>>> GetProductos()
         {
             try
             {
-                var Productos = await context.Productos.Include(x => x.Marca).ToListAsync();
-                return mapper.Map<List<ProductoDTO>>(Productos);
+                //var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).ToListAsync();
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).ToListAsync();
+                return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener el listado de Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener el listado de ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
-        [HttpGet("{id}", Name = "ObtenerProducto")]
-        public async Task<ActionResult<ProductoDTO>> GetProducto(int id)
+        [HttpGet("{id}", Name = "ObtenerProductoTienda")]
+        public async Task<ActionResult<ProductosTiendaDTO>> GetProducto(int id)
         {
             try
             {
-                var Producto = await context.Productos.Include(x => x.Marca).FirstOrDefaultAsync(x => x.ProductoId == id);
+                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.ProductosTiendaId == id);
 
                 if (Producto == null) return NotFound();
 
-                var dto = mapper.Map<ProductoDTO>(Producto);
+                var dto = mapper.Map<ProductosTiendaDTO>(Producto);
 
                 return dto;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
-        [HttpGet("GetProductoPorNoParte/{noParte}")]
-        public async Task<ActionResult<ProductoDTO>> GetProductoPorNoParte(String noParte)
+        [HttpGet("GetProductoPorSku/{Sku}")]
+        public async Task<ActionResult<ProductosTiendaDTO>> GetProductoPorSku(String Sku)
         {
             try
             {
-                var producto = await context.Productos.FirstOrDefaultAsync(x => x.NoParte == noParte);
+                var producto = await context.ProductosTienda.FirstOrDefaultAsync(x => x.Sku == Sku);
 
                 if (producto == null) { return NotFound(); }
 
-                var dto = mapper.Map<ProductoDTO>(producto);
+                var dto = mapper.Map<ProductosTiendaDTO>(producto);
 
                 return dto;
             }
@@ -89,61 +92,61 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpGet("ObtenerProductosFilter")]
-        public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductoFilter([FromQuery] ProductoFilter filtrosProducto)
+        public async Task<ActionResult<IEnumerable<ProductosTiendaDTO>>> GetProductoFilter([FromQuery] ProductoFilter filtrosProducto)
         {
             try
             {
-                var Productos = await context.Productos.Include(x => x.Marca).Where(x =>
-                    (x.NoParte.Contains(filtrosProducto.NoParte) || filtrosProducto.NoParte == null) &&
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).Where(x =>
+                    (x.Sku.Contains(filtrosProducto.NoParte) || filtrosProducto.NoParte == null) &&
                     (x.Nombre.Contains(filtrosProducto.Nombre) || filtrosProducto.Nombre == null) &&
                     (x.Modelo.Contains(filtrosProducto.Modelo) || filtrosProducto.Modelo == null) &&
-                    (x.MarcaId == filtrosProducto.MarcaId || filtrosProducto.MarcaId == null)
+                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId || filtrosProducto.MarcaId == null)
                 ).ToListAsync();
-                return mapper.Map<List<ProductoDTO>>(Productos);
+                return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
 
         //
         [HttpGet("BuscaProductosFilter")]
-        public async Task<ActionResult<IEnumerable<ProductoDTO>>> BuscaProductosFilter([FromQuery] ProductoFilter filtrosProducto)
+        public async Task<ActionResult<IEnumerable<ProductosTiendaDTO>>> BuscaProductosFilter([FromQuery] ProductoFilter filtrosProducto)
         {
             try
             {
-                var Productos = await context.Productos.Include(x => x.Marca).Where(x =>
-                    (x.NoParte.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
+                    (x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
                     (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
                     (x.Marca.Descripcion.Contains(filtrosProducto.Marca) && filtrosProducto.Marca != null)
                 ).ToListAsync();
-                return mapper.Map<List<ProductoDTO>>(Productos);
+                return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
             catch (Exception ex)
             {
                 System.Console.WriteLine(ex.Message);
-
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
 
         [HttpGet("BuscaProductoPorNumeroParte")]
-        public async Task<ActionResult<ProductoDTO>> BuscaProductoPorNumeroParte([FromQuery] ProductoFilter filtrosProducto)
+        public async Task<ActionResult<ProductosTiendaDTO>> BuscaProductoPorNumeroParte([FromQuery] ProductoFilter filtrosProducto)
         {
             try
             {
-                var Producto = await context.Productos.Include(x => x.Marca).FirstOrDefaultAsync(x => x.NoParte == filtrosProducto.NoParte);
+                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.Sku == filtrosProducto.NoParte);
                 if (Producto == null)
-                    return new ProductoDTO();
+                    return new ProductosTiendaDTO();
                 else
-                    return mapper.Map<ProductoDTO>(Producto);
+                    return mapper.Map<ProductosTiendaDTO>(Producto);
             }
             catch (Exception ex)
             {
@@ -159,39 +162,40 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPost]
-        public ActionResult<ProductoDTO> PostProducto(ProductoDTO ProductoCreacionDTO)
+        public ActionResult<ProductosTiendaDTO> PostProducto(ProductosTiendaDTO ProductoCreacionDTO)
         {
             try
             {
-                var Producto = mapper.Map<Producto>(ProductoCreacionDTO);
+                var Producto = mapper.Map<ProductosTienda>(ProductoCreacionDTO);
                 Producto.FechaRegistro = DateTime.Now;
-                ProductoDTO dto = new ProductoDTO();
+                ProductosTiendaDTO dto = new ProductosTiendaDTO();
 
                 using (var scope = new TransactionScope(TransactionScopeOption.Required,
                     new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
                 {
-                    context.Productos.Add(Producto);
+                    context.ProductosTienda.Add(Producto);
                     context.SaveChanges();
 
-                    dto = mapper.Map<ProductoDTO>(Producto);
+                    dto = mapper.Map<ProductosTiendaDTO>(Producto);
 
-                    if (Producto.CostoCompra != 0 && Producto.CostoCompra != null )
+                    if (Producto.CostoCompra != 0)
                     {
-                        HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
+                        //AJUSTAR PARA EL HISTORIAL DE PRECIOS DEL PRODUCTO
+                        HistorialPreciosProductosTienda nuevoPrecio = new HistorialPreciosProductosTienda()
                         {
-                            ProductoId = Producto.ProductoId,
+                            ProductosTiendaId = Producto.ProductosTiendaId,
                             CostoCompra = Producto.CostoCompra,
                             CostoVenta = Producto.CostoVenta,
                             FechaRegistro = Producto.FechaRegistro,
                             EmpleadoCreacion = Producto.EmpleadoCreacion
                         };
-                        context.HistorialPreciosProductos.Add(nuevoPrecio);
+                        context.HistorialPreciosProductosTienda.Add(nuevoPrecio);
                         context.SaveChanges();
                     }
 
                     scope.Complete();
                 }
-                return new CreatedAtRouteResult("ObtenerProducto", new { id = Producto.ProductoId }, dto);
+                return new CreatedAtRouteResult("ObtenerProducto", new { id = Producto.ProductosTiendaId }, dto);
             }
             catch (Exception ex)
             {
@@ -204,7 +208,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPut("{id}")]
-        public ActionResult<ProductoDTO> PutProducto(int id, [FromBody] ProductoDTO ProductoModificacionDTO)
+        public ActionResult<ProductosTiendaDTO> PutProducto(int id, [FromBody] ProductosTiendaDTO ProductoModificacionDTO)
         {
             try
             {
@@ -213,10 +217,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 {
                     if (!ProductoExists(id)) { return NotFound(); }
 
-                    var Producto = mapper.Map<Producto>(ProductoModificacionDTO);
+                    var Producto = mapper.Map<ProductosTienda>(ProductoModificacionDTO);
 
-                    Producto.ProductoId = id;
-                    Producto.FechaUltimaModificacion = DateTime.Now;
+                    Producto.ProductosTiendaId = id;
+                    Producto.FechaModificacion = DateTime.Now;
 
                     context.Entry(Producto).State = EntityState.Modified;
                     context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
@@ -226,19 +230,20 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     context.SaveChanges();
 
-                    var ultimoPrecio = context.HistorialPreciosProductos.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductoId == Producto.ProductoId);
-                        
+                    //HISTORIAL DE PRECIOS
+                    var ultimoPrecio = context.HistorialPreciosProductosTienda.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductosTiendaId == Producto.ProductosTiendaId);
+
                     if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
                     {
-                        HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
+                        HistorialPreciosProductosTienda nuevoPrecio = new HistorialPreciosProductosTienda()
                         {
-                            ProductoId = Producto.ProductoId,
+                            ProductosTiendaId = Producto.ProductosTiendaId,
                             CostoCompra = Producto.CostoCompra,
                             CostoVenta = Producto.CostoVenta,
-                            FechaRegistro = Producto.FechaUltimaModificacion,
+                            FechaRegistro = Producto.FechaModificacion,
                             EmpleadoCreacion = Producto.EmpleadoModificacion
                         };
-                        context.HistorialPreciosProductos.Add(nuevoPrecio);
+                        context.HistorialPreciosProductosTienda.Add(nuevoPrecio);
                         context.SaveChanges();
                     }
                     scope.Complete();
@@ -256,17 +261,17 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPut("ActivarDesactivarProducto/{id}")]
-        public async Task<ActionResult<ProductoDTO>> ActivarDesactivarProducto(int id, [FromBody] ProductoDTO ProductoModificacionDTO)
+        public async Task<ActionResult<ProductosTiendaDTO>> ActivarDesactivarProducto(int id, [FromBody] ProductosTiendaDTO ProductoModificacionDTO)
         {
             try
             {
                 if (!ProductoExists(id)) { return NotFound(); }
 
-                var Producto = mapper.Map<Producto>(ProductoModificacionDTO);
+                var Producto = mapper.Map<ProductosTienda>(ProductoModificacionDTO);
                 var fecha = DateTime.Now;
 
-                Producto.ProductoId = id;
-                Producto.FechaUltimaModificacion = DateTime.Now;
+                Producto.ProductosTiendaId = id;
+                Producto.FechaModificacion = DateTime.Now;
 
                 context.Entry(Producto).State = EntityState.Modified;
                 context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
@@ -291,8 +296,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al actualizar la información del Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -302,20 +308,21 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Producto>> DeleteProducto(int id)
+        public async Task<ActionResult<ProductosTienda>> DeleteProducto(int id)
         {
             try
             {
                 if (!ProductoExists(id)) { return NotFound(); }
 
-                context.Productos.Remove(new Producto() { ProductoId = id });
+                context.ProductosTienda.Remove(new ProductosTienda() { ProductosTiendaId = id });
 
                 await context.SaveChangesAsync();
 
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al eliminar el Producto. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -324,59 +331,59 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
         private bool ProductoExists(int id)
         {
-            return context.Productos.Any(x => x.ProductoId == id);
+            return context.ProductosTienda.Any(x => x.ProductosTiendaId == id);
         }
 
 
-        [HttpGet("ObtenerProductoByNoParte")]
-        public async Task<ActionResult<ProductoDTO>> ObtenerProductoByNoParte([FromQuery] ProductoFilter filtrosProducto)
+        [HttpGet("ObtenerProductoBySku")]
+        public async Task<ActionResult<ProductosTiendaDTO>> ObtenerProductoBySku([FromQuery] ProductoFilter filtrosProducto)
         {
             try
             {
-                var Productos = await context.Productos.Include(x => x.Marca).Where(x => x.NoParte.Contains(filtrosProducto.NoParte)).ToListAsync();
-                return mapper.Map<ProductoDTO>(Productos);
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x => x.Sku.Contains(filtrosProducto.NoParte)).ToListAsync();
+                return mapper.Map<ProductosTiendaDTO>(Productos);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
 
         [HttpGet("ObtenerProductoByFilter")]
-        public async Task<ActionResult<IEnumerable<ProductoDTO>>> ObtenerProductoByFilter([FromQuery] ProductoFilter filtrosProducto)
+        public async Task<ActionResult<IEnumerable<ProductosTiendaDTO>>> ObtenerProductoByFilter([FromQuery] ProductoFilter filtrosProducto)
         {
             try
             {
-                var Productos = await context.Productos.Include(x => x.Marca).Where(x =>
-                    (x.NoParte.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
+                    (x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
                     (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
                     (x.Modelo.Contains(filtrosProducto.Modelo) && filtrosProducto.Modelo != null) ||
-                    (x.MarcaId == filtrosProducto.MarcaId && filtrosProducto.MarcaId != 0)
+                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId && filtrosProducto.MarcaId != 0)
                 ).ToListAsync();
-                return mapper.Map<List<ProductoDTO>>(Productos);
+                return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al obtener la información de los ProductosTiendas. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
 
-        [HttpGet("GetHistorialPrecioProducto/{productoId}")]
-        public async Task<ActionResult<List<HistorialPreciosProductosDTO>>> GetHistorialPrecioProducto(int productoId)
+        [HttpGet("GetHistorialPrecioProductoTienda/{ProductosTiendaId}")]
+        public async Task<ActionResult<List<HistorialPreciosProductosTiendaDTO>>> GetHistorialPrecioProductoTienda(int ProductosTiendaId)
         {
             try
             {
-                var historial = await context.HistorialPreciosProductos.Where(x => x.ProductoId == productoId).OrderByDescending(x => x.FechaRegistro).ToListAsync();
+                var historial = await context.HistorialPreciosProductosTienda.Where(x => x.ProductosTiendaId == ProductosTiendaId).OrderByDescending(x => x.FechaRegistro).ToListAsync();
                 if (historial == null)
-                    historial = new List<HistorialPreciosProductos>();
+                    historial = new List<HistorialPreciosProductosTienda>();
 
-                return mapper.Map<List<HistorialPreciosProductosDTO>>(historial);
+                return mapper.Map<List<HistorialPreciosProductosTiendaDTO>>(historial);
             }
             catch (Exception ex)
             {
