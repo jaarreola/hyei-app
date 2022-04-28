@@ -352,6 +352,46 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         }
 
 
+        [HttpGet("ObtenerClienteRentaByClienteId/{clienteId}")]
+        public async Task<ActionResult<ClienteDTO>> ObtenerClienteRentaByClienteId(int clienteId)
+        {
+            try
+            {
+                var vigencias = from v in context.VigenciaClientesRenta
+                                where v.ClienteId == clienteId
+                                group v by new { v.ClienteId } into g
+                                select new
+                                {
+                                    ClienteId = g.Key.ClienteId,
+                                    FechaInicio = g.Max(a => a.FechaInicio),
+                                    FechaFin = g.Max(a => a.FechaFin)
+                                };
+
+                var cliente = await context.Clientes.FirstOrDefaultAsync(x =>
+                    //x.PuedeRentar == true &&
+                    x.ClienteId == clienteId
+                );
+
+                var clienteDto = new ClienteDTO();
+                if (cliente != null)
+                {
+                    clienteDto = mapper.Map<ClienteDTO>(cliente);
+                    if(vigencias.ToList().Count>0)
+                        clienteDto.FechaVencimientoParaRenta = vigencias.FirstOrDefaultAsync(x => x.ClienteId == clienteId).Result.FechaFin;
+                }
+
+                return clienteDto;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información del cliente. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
 
         [HttpGet("EsClienteProblemaFilter")]
         public async Task<ActionResult<ClienteDTO>> EsClienteProblemaFilter([FromQuery] ClienteFilter filtrosCliente)

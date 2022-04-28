@@ -11,12 +11,20 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public int FolioProductoTienda { get; set; }
         public bool Usado { get; set; }
         public string Comentarios { get; set; }
-        public bool ParaRenta { get; set; }
-        [DataType(DataType.Currency)]
-        public float? PrecioRenta { get; set; }
         public bool ParaVenta { get; set; }
         [DataType(DataType.Currency)]
         public float? PrecioVenta { get; set; }
+
+        public bool ParaRenta { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoDia { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoSemana { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoQuincena { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoMes { get; set; }
+
         public bool Rentado { get; set; } //public bool NoDisponibleRenta { get; set; }
         public bool Vendido { get; set; }
         public DateTime? FechaVendido { get; set; }

@@ -15,17 +15,40 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaInicioRenta { get; set; }
         public DateTime? FechaFinRenta { get; set; }
         public DateTime? FechaEntrega { get; set; }
+
+
+        public int? CantidadDias { get; set; }
         [DataType(DataType.Currency)]
-        public float? PrecioRenta { get; set; }
+        public float? CostoDia { get; set; }
+        public int? CantidadSemanas { get; set; }
         [DataType(DataType.Currency)]
-        public float? PrecioRentaTotal { get; set; }
+        public float? CostoSemana { get; set; }
+        public int? CantidadQuincenas { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoQuincena { get; set; }
+        public int? CantidadMeses { get; set; }
+        [DataType(DataType.Currency)]
+        public float? CostoMes { get; set; }
+
+        [DataType(DataType.Currency)]
+        public float? TotalRenta { get; set; }
         [DataType(DataType.Currency)]
         public float? Recargo { get; set; }
+        [DataType(DataType.Currency)]
+        public float? TotalConRecargo { get; set; }
         public DateTime? FechaRegistro { get; set; }
         public int EmpleadoCreacion { get; set; }
         public DateTime? FechaModificacion { get; set; }
         public int EmpleadoModificacion { get; set; }
 
         public virtual ProductoTiendaExistencias ProductoTiendaExistencias { get; set; }
+        
+
+        public bool ChkDia { get; set; }
+        public bool ChkSemana { get; set; }
+        public bool ChkQuincena { get; set; }
+        public bool ChkMes { get; set; }
+
+        public virtual ProductosTienda ProductoTienda { get; set; }
     }
 }

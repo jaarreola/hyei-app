@@ -28,6 +28,6 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
 
 
         public virtual MarcasProductosTienda? Marca { get; set; }
-        public virtual List<ProductoTiendaExistencias>? Existencias { get; set; }
+        //public virtual List<ProductoTiendaExistencias>? Existencias { get; set; }
     }
 }

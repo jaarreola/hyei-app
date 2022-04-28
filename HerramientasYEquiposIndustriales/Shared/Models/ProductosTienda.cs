@@ -27,6 +27,6 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
 
 
         public virtual MarcasProductosTienda? Marca { get; set; }
-        public virtual List<ProductoTiendaExistencias>? Existencias { get; set; }
+        //public virtual List<ProductoTiendaExistencias>? Existencias { get; set; }
     }
 }

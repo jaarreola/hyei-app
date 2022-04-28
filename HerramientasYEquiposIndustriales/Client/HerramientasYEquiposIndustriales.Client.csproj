@@ -27,7 +27,6 @@
     <Folder Include="Helpers\" />
     <Folder Include="Pages\Cliente\" />
     <Folder Include="Pages\Productos\Marca\" />
-    <Folder Include="Pages\Rentas\Devoluciones\" />
     <Folder Include="Pages\Rentas\Renta\" />
   </ItemGroup>
 

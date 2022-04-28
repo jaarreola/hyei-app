@@ -96,7 +96,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).Where(x =>
+                //var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).Where(x =>
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
                     (x.Sku.Contains(filtrosProducto.NoParte) || filtrosProducto.NoParte == null) &&
                     (x.Nombre.Contains(filtrosProducto.Nombre) || filtrosProducto.Nombre == null) &&
                     (x.Modelo.Contains(filtrosProducto.Modelo) || filtrosProducto.Modelo == null) &&
