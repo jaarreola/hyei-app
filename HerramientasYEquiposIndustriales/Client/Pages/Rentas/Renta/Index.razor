@@ -9,3 +9,995 @@
 
 @inject IJSRuntime Js
 
+<h4>Generación de la Renta</h4>
+
+<div>
+	<div class="row">
+		<div class="col-md-12">
+			<MatAccordion>
+				<MatExpansionPanel @bind-Expanded="@expandido">
+					<MatExpansionPanelSummary>
+						<MatExpansionPanelHeader><h6>CLIENTE</h6></MatExpansionPanelHeader>
+					</MatExpansionPanelSummary>
+					<MatExpansionPanelDetails>
+						<div class="row">
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@clienteIdBusqueda" HelperText="Folio CLiente" Label="Folio Cliente"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatButton Raised="true" Icon="search" OnClick="@BuscarCliente" class="mdc-button-background">Buscar</MatButton>
+							</div>
+							<div class="col-md-3">
+								<MatTextField @bind-Value="@fechaVencimientoCLiente" HelperText="Vencimiento" Label="Vencimiento" Icon="av_timer" IconTrailing="true" Outlined="true" ReadOnly="true" InputStyle="color: red; font-weight: bold"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<span style="color:red; font-weight:bold;">@esVencido</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-3">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.Nombre" HelperText="Nombre del cliente" Label="Nombre" ReadOnly="true"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.Apellido" HelperText="Apellido del cliente" Label="Apellido" ReadOnly="true"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.Telefono" HelperText="Telefono del cliente" Label="Telefono" ReadOnly="true"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.Correo" HelperText="Correo del cliente" Label="Correo" ReadOnly="true"></MatTextField>
+							</div>
+							<div class="col-md-2">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.RFC" HelperText="RFC del cliente" Label="RFC" ReadOnly="true"></MatTextField>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-7">
+								<MatTextField FullWidth="true" @bind-Value="@cliente.Direccion" HelperText="Direccion del cliente" Label="Dirección" ReadOnly="true"></MatTextField>
+							</div>
+							<div class="col-md-3">
+								<span style="color:red; font-weight:bold;">@esProblema</span>
+							</div>
+						</div>
+					</MatExpansionPanelDetails>
+				</MatExpansionPanel>
+			</MatAccordion>
+		</div>
+	</div>
+</div>
+
+@if(procesando == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+<br />
+
+<div>
+	<div class="row">
+		<div class="col-md-6">
+			<h5>Herramientas</h5>
+		</div>
+		<div class="col-md-4">
+			<MatButton Raised="true" Icon="search" OnClick="@OpenDialogAgregaHerramienta" class="mdc-button-background">Agregar Herramienta</MatButton>
+		</div>
+		<div class="col-md-2">
+			<MatButton Raised="true" Icon="save" OnClick="@GuardarRenta" Disabled="@desactivaGuardar" class="mdc-button-background">GUARDAR</MatButton>
+		</div>
+	</div>	
+</div>
+
+<div>
+	<MatTable Items="@listaRentas" class="mat-elevation-z10 mdc-table1" ShowPaging="@mostrarPaginacionRentas">
+		<MatTableHeader>
+			<th style="width:25%;">Producto</th>
+			<th style="width:8%;">Costo Día</th>
+			<th style="width:8%;">Costo Semana</th>
+			<th style="width:8%;">Costo Quinena</th>
+			<th style="width:8%;">Costo Mes</th>
+			<th style="width:5%;"></th>
+			<th style="width:10%;">Fecha Renta</th>
+			<th style="width:10%;">Fecha Entrega</th>
+			<th style="width:12%;">Total a pagar</th>
+			<th style="width:5%;"></th>
+		</MatTableHeader>
+		<MatTableRow>
+			<td>@context.ProductoTiendaExistenciasId - @context.ProductoTienda.Nombre</td>
+			
+			<td>@FormatoMoneda(@context.CostoDia.ToString())</td>
+			<td>@FormatoMoneda(@context.CostoSemana.ToString())</td>
+			<td>@FormatoMoneda(@context.CostoQuincena.ToString())</td>
+			<td>@FormatoMoneda(@context.CostoMes.ToString())</td>
+
+			<td><MatIconButton OnClick="@(_=>OpenDialogEditHerramienta(@context))" Icon="edit"></MatIconButton></td>
+			<td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
+			<td>@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
+			<td>@FormatoMoneda(@context.TotalRenta.ToString())</td>
+			<td><MatIconButton OnClick="@(_=>EliminaHerramientaGrid(@context))" Icon="delete"></MatIconButton></td>
+		</MatTableRow>
+	</MatTable>
+</div>
+
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogBuscarCliente" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Busqueda Clientes Existentes</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@nombreCLienteBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+				<div class="col-md-4">
+                    <MatTextField FullWidth="true" @bind-Value="@apellidoCLienteBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@rfcClienteBusqueda" Label="RFC" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+                <div class="col-md-2">
+                    <MatTextField FullWidth="true" @bind-Value="@telefonoClienteBusqueda" Label="Teléfono" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                </div>
+            </div>
+			<div class="row">
+				<div class="col-md-12">
+                    <MatTextField FullWidth="true" @bind-Value="@direccionClienteBusqueda" Label="Dirección" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+				</div>
+			</div>
+            <br />
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@clientesBusqueda" OnRowDbClick="@OnDbClicked" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeClientes">
+						<MatTableHeader>
+							<th style="width:4%;">Código</th>
+							<th style="width:20%;">Nombre</th>
+							<th style="width:20%;">Direccion</th>
+							<th style="width:10%;">Telefono</th>
+							<th style="width:10%;">Correo</th>
+							<th style="width:5%;">RFC</th>
+							<th style="width:5%;">Vigencia</th>
+						</MatTableHeader>
+						<MatTableRow>
+							<td>@context.ClienteId.ToString("00000")</td>
+							<td>@context.Nombre @context.Apellido</td>
+							<td>@context.Direccion</td>
+							<td>@context.Telefono</td>
+							<td>@context.Correo</td>
+							<td>@context.RFC</td>
+							@if (context.FechaVencimientoParaRenta == null)
+							{ 
+								<td style="color:red; font-weight:bold">SIN VIGENCIAS</td> 
+							}
+							else if (context.FechaVencimientoParaRenta >= DateTime.Today && context.FechaVencimientoParaRenta < DateTime.Today.AddMonths(1))
+							{ 
+								<td style="color:orange; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+							}
+							else if (context.FechaVencimientoParaRenta < DateTime.Today)
+							{ 
+								<td style="color:red; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+							}
+							else if (context.FechaVencimientoParaRenta >= DateTime.Today)
+							{ 
+								<td style="color:green; font-weight:bold">@context.FechaVencimientoParaRenta?.ToString("dd/MM/yyyy")</td> 
+							}
+						</MatTableRow>
+					</MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialogSeleccionaCliente" class="mdc-button-modal">Cancel</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+<MatDialog @bind-IsOpen="@dialogBuscarHerramientas" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>Selección y consulta de herramientas</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@skuBusqueda" Label="SKU"></MatTextField>
+            </div>
+			<div class="col-md-5">
+                <MatTextField FullWidth="true" @bind-Value="@nombreHerramientaBusqueda" Label="Nombre Herramienta"></MatTextField>
+            </div>
+            <div class="col-md-3">
+                <MatButton Raised="true" Icon="search" OnClick="@BuscaHerramientas">Buscar</MatButton>
+            </div>
+        </div>
+		@if(procesandoBusqueda == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+		}
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@herramientasBusqueda" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalHerramientas">
+					<MatTableHeader>
+						<th style="width:10%;">SKU</th>
+						<th style="width:45%;">Nombre</th>
+						<th style="width:10%;">Marca</th>
+						<th style="width:10%;">Modelo</th>
+						<th style="width:10%;">Stock</th>
+						<th style="width:10%;">Disponibles</th>
+						<th style="width:5%;"></th>
+					</MatTableHeader>
+					<MatTableRow>
+						<td style="font-weight:bold">@context.Sku</td>
+						<td>@context.Nombre</td>
+						<td>@context.Marca</td>
+						<td>@context.Modelo</td>
+						<td>@context.NoVendidos</td>
+						<td>@context.Disponibles</td>
+						<td><MatIconButton OnClick="@(_=>VerExistencias(@context))" Icon="visibility"></MatIconButton></td>
+					</MatTableRow>
+				</MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CerrarDialogSeleccionaHerramienta" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog800">
+    <MatDialogTitle><h5>@herramientaSeleccionada.Sku - @herramientaSeleccionada.Nombre</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-12">
+                <MatTable Items="@listaExistencias" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalExistencias">
+                    <MatTableHeader>
+                        <th style="width:10%;">Folio</th>
+						<th style="width:15%;">Precio Venta</th>
+						<th style="width:15%;">Costo Diario</th>
+						<th style="width:15%;">Costo Semana</th>
+						<th style="width:15%;">Costo Quincena</th>
+						<th style="width:15%;">Costo Mes</th>
+						<th style="width:10%;">Rentado</th>
+						<th style="width:10%;"></th>
+                    </MatTableHeader>
+                    <MatTableRow>
+						<td style="font-weight:bold">@context.FolioProductoTienda</td>
+						<td>@FormatoMoneda(@context.PrecioVenta.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoDia.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoSemana.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoQuincena.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoMes.ToString())</td>
+						<td><MatCheckbox @bind-Value="@context.Rentado" Disabled="true"></MatCheckbox></td>
+						<td><MatButton OnClick="@(_=>SeleccionaExistencia(@context))" class="mdc-button-modal">Seleccionar</MatButton></td>
+                    </MatTableRow>
+                </MatTable>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogExistencia" class="mdc-button-modal">Cancelar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+<MatDialog @bind-IsOpen="@dialogEditaHerramienta" CanBeClosed="false" class="mdc-dialog800">
+    <MatDialogTitle><h5>Renta para: @rentaDetalleEditar.ProductoTienda.Sku - @rentaDetalleEditar.ProductoTienda.Nombre</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-3">
+                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueDia(value))" Value="@rentaDetalleEditar.ChkDia">Diario</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueSemana(value))" Value="@rentaDetalleEditar.ChkSemana">Semanal</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueQuincena(value))" Value="@rentaDetalleEditar.ChkQuincena">Quincenal</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" ValueChanged="@(value=>OnChangeValueMes(value))" Value="@rentaDetalleEditar.ChkMes">Mes</MatCheckbox>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEditar.CostoDia"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEditar.CostoSemana"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEditar.CostoQuincena"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEditar.CostoMes"></MatTextField>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEditar.CantidadDias DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="@deshabilitaContadorDias" ValueChanged="@(value=>OnChangeValueCantidadesDias(value))" TValue="int?" ></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEditar.CantidadSemanas DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="@deshabilitaContadorSemanas" ValueChanged="@(value=>OnChangeValueCantidadesSemanas(value))" TValue="int?"></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEditar.CantidadQuincenas DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="@deshabilitaContadorQuincenas" ValueChanged="@(value=>OnChangeValueCantidadesQuincenas(value))" TValue="int?"></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEditar.CantidadMeses DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="@deshabilitaContadorMeses" ValueChanged="@(value=>OnChangeValueCantidadesMeses(value))" TValue="int?"></MatNumericUpDownField>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-4">
+				<MatDatePicker @bind-Value="@rentaDetalleEditar.FechaInicioRenta" HelperText="Fecha Inicial" Label="Fecha Inicial" ReadOnly="true" Format="dd/MMMM/yyyy"></MatDatePicker>
+            </div>
+			<div class="col-md-4">
+				<MatDatePicker @bind-Value="@rentaDetalleEditar.FechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MMMM/yyyy"></MatDatePicker>
+            </div>
+			<div class="col-md-4">
+				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEditar.TotalRenta.ToString())</strong>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+		@*<MatButton OnClick="@CancelaHerramientaRenta" class="mdc-button-modal">Cancelar</MatButton>*@
+        <MatButton OnClick="@GuardaHerramientaRenta" class="mdc-button-modal">Aceptar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+
+<MatDialog @bind-IsOpen="@dialogValidaEmpleado" CanBeClosed="false">
+	<MatDialogTitle><h5>Valida Usuario</h5></MatDialogTitle>
+	<MatDialogContent>
+		<div class="row">
+			<div class="col-md-12">
+				<MatTextField FullWidth="true" @bind-Value="@numeroEmpleado" Label="Numero Empleado" HelperText="Numero de empleado" Type="password"></MatTextField>
+			</div>
+		</div>
+	</MatDialogContent>
+	<MatDialogActions>
+		@if(guardandoRenta == true)
+		{
+			<MatProgressBar Indeterminate="true"></MatProgressBar>
+			<br />
+		}
+		else
+		{
+			<MatButton OnClick="@CancelaDialogValidaEmpleado" class="mdc-button-modal">Cancel</MatButton>
+			<MatButton OnClick="@ValidaEmpleado" class="mdc-button-modal">Aceptar</MatButton>
+		}
+	</MatDialogActions>
+</MatDialog>
+
+
+
+@code {
+	//FILTROS BUSQUEDA
+	private int? clienteIdBusqueda;
+	private string nombreCLienteBusqueda;
+	private string apellidoCLienteBusqueda;
+	private string direccionClienteBusqueda;
+	private string rfcClienteBusqueda;
+	private string telefonoClienteBusqueda;
+
+	Dictionary<string, string> queryStringsDict = new Dictionary<string, string>();
+
+	private ClienteDTO cliente = new ClienteDTO();
+	private List<ClienteDTO> clientesBusqueda = new List<ClienteDTO>();
+	private string fechaVencimientoCLiente = string.Empty;
+
+	private bool dialogBuscarCliente = false;
+
+	private bool expandido = true;
+	private string esProblema = string.Empty;
+	private string esVencido = string.Empty;
+	private bool procesando = false;
+	private bool procesandoBusqueda = false;
+	private int pageSizeClientes = 0;
+	private bool dialogBuscarHerramientas = false;
+	private bool desactivaGuardar = true;
+
+
+	private List<RentasDTO> listaRentas = new List<RentasDTO>();
+	private bool mostrarPaginacionRentas = false;
+	private RentasDTO rentaDetalleEditar = new RentasDTO();
+	private RentasDTO rentaDetalleEditarOriginal = new RentasDTO();
+	private bool dialogEditaHerramienta = false;
+	private bool deshabilitaContadorDias = true;
+	private bool deshabilitaContadorSemanas;
+	private bool deshabilitaContadorQuincenas;
+	private bool deshabilitaContadorMeses;
+
+
+	private string skuBusqueda = string.Empty;
+	private string nombreHerramientaBusqueda = string.Empty;
+	private List<ExistenciasBusquedaDTO> herramientasBusqueda = new List<ExistenciasBusquedaDTO>();
+	private ExistenciasBusquedaDTO herramientaSeleccionada = new ExistenciasBusquedaDTO();
+	private int totalHerramientas = 0;
+	private Dictionary<string, string> queryStringsBusquedaHerramienta = new Dictionary<string, string>();
+	
+
+	private bool dialogListaExistenciasIsOpen = false;
+	private List<ProductoTiendaExistenciasDTO> listaExistencias = new List<ProductoTiendaExistenciasDTO>();
+	private ProductoTiendaExistenciasDTO existenciaSeleccionada = new ProductoTiendaExistenciasDTO();
+	private int totalExistencias = 0;
+
+
+	private bool dialogValidaEmpleado = false;
+	private bool guardandoRenta = false;
+	private string numeroEmpleado;
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		rentaDetalleEditar.ProductoTienda = new ProductosTienda();
+		await Task.Delay(50);
+	}
+
+
+	private async Task BuscarCliente()
+	{
+		procesando = true;
+		var responseHttp = await repository.Get<ClienteDTO>("api/Clientes/ObtenerClienteRentaByClienteId/" + (clienteIdBusqueda ?? 0));
+		cliente = responseHttp.Response;
+		fechaVencimientoCLiente = string.Empty;
+		esVencido = string.Empty;
+		esProblema = string.Empty;
+
+		if(cliente.ClienteId != 0 && cliente.PuedeRentar == true)
+		{
+			fechaVencimientoCLiente = cliente.FechaVencimientoParaRenta?.ToString("dd/MMMM/yyyy");
+			if (cliente.FechaVencimientoParaRenta != null && cliente.FechaVencimientoParaRenta <= DateTime.Today)
+				esVencido = "VENCIDO";
+
+			if (cliente.EsProblema == true)
+				esProblema = "ES PROBLEMA";
+		}
+		else if(cliente.ClienteId != 0)
+		{
+			await OpenMessage(cliente.Nombre + " " + (cliente.Apellido ?? string.Empty) + " NO ES UN CLIENTE DE RENTA.");
+			cliente = new ClienteDTO();
+		}
+		else
+		{
+			if (await OpenConfirmacion("No existe un cliente con ese folio, desea expander la busqueda?") == 1)
+				dialogBuscarCliente = true;
+		}
+		PuedeGuardar();
+		procesando = false;
+	}
+
+
+	private void PuedeGuardar()
+	{
+		if ((cliente.FechaVencimientoParaRenta != null && cliente.FechaVencimientoParaRenta <= DateTime.Today))
+			desactivaGuardar = true;
+		else
+			desactivaGuardar = false;
+	}
+
+
+
+	private async Task KeyPress(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			await BuscarClientes();
+	}
+
+	private async Task LostFocus(FocusEventArgs e)
+	{
+		await BuscarClientes();
+	}
+
+
+	private async Task BuscarClientes()
+    {
+        if( (nombreCLienteBusqueda ?? string.Empty) != string.Empty || (apellidoCLienteBusqueda ?? string.Empty) != string.Empty || (direccionClienteBusqueda ?? string.Empty) != string.Empty || (rfcClienteBusqueda ?? string.Empty) != string.Empty || (telefonoClienteBusqueda ?? string.Empty) != string.Empty)
+        {
+            procesando = true;
+            var queryStrings = GenerarQueryStrings();
+			var responseHttp = await repository.Get<List<ClienteDTO>>("api/Clientes/ObtenerClientesRentaFilter?" + queryStrings);
+			clientesBusqueda = responseHttp.Response;
+
+			if (clientesBusqueda.Count > 0)
+				pageSizeClientes = clientesBusqueda.Count;
+            procesando = false;
+        }
+    }
+
+
+	private void OnDbClicked(object item)
+    {
+        cliente = item as ClienteDTO;
+        if (cliente != null)
+		{
+			clienteIdBusqueda = cliente.ClienteId;
+			
+			fechaVencimientoCLiente = cliente.FechaVencimientoParaRenta?.ToString("dd/MMMM/yyyy");
+			if (cliente.FechaVencimientoParaRenta != null && cliente.FechaVencimientoParaRenta <= DateTime.Today)
+				esVencido = "VENCIDO";
+
+			if (cliente.EsProblema == true)
+				esProblema = "ES PROBLEMA";
+
+			PuedeGuardar();
+			dialogBuscarCliente = false;
+		}
+    }
+
+
+
+	//private async Task OpenDialogEditHerramienta(RentasDTO ordenTrabajoDetalle)
+	//{
+	//	if (!expandido) { expandido = false; }
+	//	
+	//	if (desactivaGuardar == true)
+	//		return;
+	//
+	//	await OpenMessage("FALTA GENERA PROCESO PARA EDICION DE UNA HERRAMIENTA");
+	//	return;
+	//}
+
+	private async Task EliminaHerramientaGrid(RentasDTO herramientaRenta)
+	{
+		if (!expandido) { expandido = false; }
+
+		if (await OpenConfirmacion("Desea eliminar este registro?") == 1)
+			listaRentas.Remove(herramientaRenta);
+
+		MuestraOcultarPaginadorHerramientas();
+	}
+
+
+	void MuestraOcultarPaginadorHerramientas()
+	{
+		if (listaRentas.Count > 5)
+			mostrarPaginacionRentas = true;
+		else
+			mostrarPaginacionRentas = false;
+	}
+
+
+	private void OpenDialogAgregaHerramienta()
+	{
+		if (!expandido) { expandido = false; }
+		//textoOpcionBoton = "Agregar";
+		
+		dialogBuscarHerramientas = true;
+	}
+
+
+
+	public async Task CancelaDialogSeleccionaCliente()
+	{
+		dialogBuscarCliente = false;
+		await Task.Delay(10);
+	}
+
+
+
+
+	private async Task BuscaHerramientas()
+    {
+        procesandoBusqueda = true;
+        var queryStrings = GenerarQueryStringsBusquedaHerramientas();
+        var responseHttp = await repository.Get<List<ExistenciasBusquedaDTO>>("api/ProductoTiendaExistencias/GetExistenciasByFilter?" + queryStrings);
+        if (responseHttp.Response == null)
+            herramientasBusqueda = new List<ExistenciasBusquedaDTO>();
+        else
+            herramientasBusqueda = responseHttp.Response;
+        totalHerramientas = herramientasBusqueda.Count;
+        procesandoBusqueda = false;
+    }
+
+
+	private void SeleccionaExistencia(ProductoTiendaExistenciasDTO item)
+    {
+        if (item != null)
+        {
+			if(listaRentas != null && listaRentas.Where(x => x.ProductoTiendaExistenciasId == item.ProductoTiendaExistenciasId).Count() <= 0)
+			{
+				dialogListaExistenciasIsOpen = false;
+				dialogBuscarHerramientas = false;
+
+				listaRentas.Add(new RentasDTO() {
+					ProductoTiendaExistenciasId = item.ProductoTiendaExistenciasId,
+					ProductoTienda = item.ProductoTienda,
+					FechaInicioRenta = DateTime.Today,
+					FechaRegistro = DateTime.Today,
+
+					CostoDia = item.CostoDia,
+					CostoSemana = item.CostoSemana,
+					CostoQuincena = item.CostoQuincena,
+					CostoMes = item.CostoMes
+				});
+			}
+        }
+    }
+
+
+	private async Task VerExistencias(ExistenciasBusquedaDTO productoTienda)
+	{
+		if(productoTienda.Nuevos > 0 || productoTienda.Usados > 0)
+		{
+			herramientaSeleccionada = productoTienda;		
+			if (!expandido) { expandido = false; }
+		
+			var responseHttp = await repository.Get<List<ProductoTiendaExistenciasDTO>>("api/ProductoTiendaExistencias/GetExistenciasDisponiblesByProductoTienda/" + productoTienda.ProductosTiendaId);
+			if (responseHttp.Response != null)
+			{
+				listaExistencias = responseHttp.Response;
+				totalExistencias = listaExistencias.Count;
+				dialogListaExistenciasIsOpen = true;
+			}
+		}
+	}
+
+
+	private void CerrarDialogSeleccionaHerramienta()
+	{
+		dialogBuscarHerramientas = false;
+	}
+
+
+	private void CancelaDialogExistencia()
+	{
+		dialogListaExistenciasIsOpen = false;
+	}
+
+
+
+	private void OpenDialogEditHerramienta(RentasDTO rentaDetalle)
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+		CultureInfo.CurrentCulture = new CultureInfo("es-MX", true);
+
+		if (!expandido) { expandido = false; }
+
+		rentaDetalleEditar = rentaDetalle;
+		rentaDetalleEditarOriginal = new RentasDTO()
+		{
+			ProductoTiendaExistenciasId = rentaDetalle.ProductoTiendaExistenciasId,
+			FechaInicioRenta = rentaDetalle.FechaInicioRenta,
+			FechaFinRenta = rentaDetalle.FechaFinRenta,
+			FechaEntrega = rentaDetalle.FechaEntrega,
+			TotalRenta = rentaDetalle.TotalRenta,
+			Recargo = rentaDetalle.Recargo,
+			TotalConRecargo = rentaDetalle.TotalConRecargo,
+			
+			CostoDia = rentaDetalle.CostoDia,
+			CostoSemana = rentaDetalle.CostoSemana,
+			CostoQuincena = rentaDetalle.CostoQuincena,
+			CostoMes = rentaDetalle.CostoMes,
+			ProductoTienda = rentaDetalle.ProductoTienda,
+
+			CantidadDias = rentaDetalle.CantidadDias,
+			CantidadSemanas = rentaDetalle.CantidadSemanas,
+			CantidadQuincenas = rentaDetalle.CantidadQuincenas,
+			CantidadMeses = rentaDetalle.CantidadMeses,
+
+			ChkDia = rentaDetalle.ChkDia,
+			ChkSemana = rentaDetalle.ChkSemana,
+			ChkQuincena = rentaDetalle.ChkQuincena,
+			ChkMes = rentaDetalle.ChkMes
+		};
+
+		deshabilitaContadorDias = !rentaDetalleEditar.ChkDia;
+		deshabilitaContadorSemanas = !rentaDetalleEditar.ChkSemana;
+		deshabilitaContadorQuincenas = !rentaDetalleEditar.ChkQuincena;
+		deshabilitaContadorMeses = !rentaDetalleEditar.ChkMes;
+
+		dialogEditaHerramienta = true;
+	}
+
+
+
+	private void OnChangeValueCantidadesDias(int? value)
+    {
+		if((value ?? 0) >= 0)
+		{
+			rentaDetalleEditar.CantidadDias = value;
+			CalculaRentaTotalYFechaFinRenta();
+		}
+    }
+
+	private void OnChangeValueCantidadesSemanas(int? value)
+    {
+		if((value ?? 0) >= 0)
+		{
+			rentaDetalleEditar.CantidadSemanas = value;
+			CalculaRentaTotalYFechaFinRenta();
+		}
+    }
+
+	private void OnChangeValueCantidadesQuincenas(int? value)
+    {
+		if((value ?? 0) >= 0)
+		{
+			rentaDetalleEditar.CantidadQuincenas = value;
+			CalculaRentaTotalYFechaFinRenta();
+		}
+    }
+
+	private void OnChangeValueCantidadesMeses(int? value)
+    {
+		if((value ?? 0) >= 0)
+		{
+			rentaDetalleEditar.CantidadMeses = value;
+			CalculaRentaTotalYFechaFinRenta();
+		}
+    }
+
+	private void OnChangeValueDia(bool value)
+    {
+		deshabilitaContadorDias = !value;
+		rentaDetalleEditar.ChkDia = value;
+
+		CalculaRentaTotalYFechaFinRenta();
+    }
+
+	private void OnChangeValueSemana(bool value)
+    {
+        deshabilitaContadorSemanas = !value;
+		rentaDetalleEditar.ChkSemana = value;
+
+		CalculaRentaTotalYFechaFinRenta();
+    }
+
+	private void OnChangeValueQuincena(bool value)
+    {
+        deshabilitaContadorQuincenas = !value;
+		rentaDetalleEditar.ChkQuincena = value;
+
+		CalculaRentaTotalYFechaFinRenta();
+    }
+
+	private void OnChangeValueMes(bool value)
+    {
+        deshabilitaContadorMeses = !value;
+		rentaDetalleEditar.ChkMes = value;
+
+		CalculaRentaTotalYFechaFinRenta();
+    }
+
+	public void GuardaHerramientaRenta()
+	{
+		dialogEditaHerramienta = false;
+	}
+
+	//public void CancelaHerramientaRenta()
+	//{
+	//	//rentaDetalleEditar = rentaDetalleEditarOriginal;
+	//	rentaDetalleEditar = new RentasDTO()
+	//	{
+	//		ProductoTiendaExistenciasId = rentaDetalleEditarOriginal.ProductoTiendaExistenciasId,
+	//		FechaInicioRenta = rentaDetalleEditarOriginal.FechaInicioRenta,
+	//		FechaFinRenta = rentaDetalleEditarOriginal.FechaFinRenta,
+	//		FechaEntrega = rentaDetalleEditarOriginal.FechaEntrega,
+	//		DetalleRenta = rentaDetalleEditarOriginal.DetalleRenta,
+	//		TotalRenta = rentaDetalleEditarOriginal.TotalRenta,
+	//		Recargo = rentaDetalleEditarOriginal.Recargo,
+	//		TotalConRecargo = rentaDetalleEditarOriginal.TotalConRecargo,
+	//		
+	//		CostoDia = rentaDetalleEditarOriginal.CostoDia,
+	//		CostoSemana = rentaDetalleEditarOriginal.CostoSemana,
+	//		Costo15Dias = rentaDetalleEditarOriginal.Costo15Dias,
+	//		CostoMes = rentaDetalleEditarOriginal.CostoMes,
+	//		ProductoTienda = rentaDetalleEditarOriginal.ProductoTienda,
+	//
+	//		CantidadDias = rentaDetalleEditarOriginal.CantidadDias,
+	//		CantidadSemanas = rentaDetalleEditarOriginal.CantidadSemanas,
+	//		CantidadQuincenas = rentaDetalleEditarOriginal.CantidadQuincenas,
+	//		CantidadMeses = rentaDetalleEditarOriginal.CantidadMeses,
+	//
+	//		ChkDia = rentaDetalleEditarOriginal.ChkDia,
+	//		ChkSemana = rentaDetalleEditarOriginal.ChkSemana,
+	//		ChkQuincena = rentaDetalleEditarOriginal.ChkQuincena,
+	//		ChkMes = rentaDetalleEditarOriginal.ChkMes
+	//	};
+	//
+	//	dialogEditaHerramienta = false;
+	//}
+
+
+	public void CalculaRentaTotalYFechaFinRenta()
+	{
+		float? rentaTotal = 0;
+		DateTime fechaFin = DateTime.Today;
+
+		if(rentaDetalleEditar.ChkDia)
+		{
+			rentaTotal += (rentaDetalleEditar.CostoDia ?? 0) * (rentaDetalleEditar.CantidadDias ?? 0);
+			fechaFin = fechaFin.AddDays((rentaDetalleEditar.CantidadDias ?? 0));
+		}
+		if(rentaDetalleEditar.ChkSemana)
+		{
+			rentaTotal += (rentaDetalleEditar.CostoSemana ?? 0) * (rentaDetalleEditar.CantidadSemanas ?? 0);
+			fechaFin = fechaFin.AddDays((rentaDetalleEditar.CantidadSemanas ?? 0) * 7);
+		}
+		if(rentaDetalleEditar.ChkQuincena)
+		{
+			rentaTotal += (rentaDetalleEditar.CostoQuincena ?? 0) * (rentaDetalleEditar.CantidadQuincenas ?? 0);
+			fechaFin = fechaFin.AddDays((rentaDetalleEditar.CantidadQuincenas ?? 0) * 15);
+		}
+		if(rentaDetalleEditar.ChkMes)
+		{
+			rentaTotal += (rentaDetalleEditar.CostoMes ?? 0) * (rentaDetalleEditar.CantidadMeses ?? 0);
+			fechaFin = fechaFin.AddMonths((rentaDetalleEditar.CantidadMeses ?? 0));
+		}
+
+		rentaDetalleEditar.TotalRenta = rentaTotal;
+
+		if (fechaFin.DayOfWeek == System.DayOfWeek.Sunday)
+			fechaFin = fechaFin.AddDays(1);
+
+		if (rentaDetalleEditar.FechaInicioRenta < fechaFin)
+			rentaDetalleEditar.FechaFinRenta = fechaFin;
+		else
+			rentaDetalleEditar.FechaFinRenta = rentaDetalleEditarOriginal.FechaFinRenta;
+	}
+
+
+
+	private async Task<bool> GuardarRenta()
+	{
+		await Task.Delay(50);
+		if (cliente.ClienteId == 0)
+		{
+			toastService.ShowWarning("Debe seleccionar un cliente", "Atención");
+			return false;
+		}
+
+		//validamos que las herramientas tenga un total a pagar
+		if (listaRentas.Count > 0)
+		{
+			foreach (RentasDTO renta in listaRentas)
+			{
+				if ((renta.TotalRenta ?? 0) == 0)
+				{
+					toastService.ShowWarning("Hay herramientas que falta generarle su Costo total", "Atención");
+					return false;
+				}
+			}
+			dialogValidaEmpleado = true;
+			return true;
+		}
+		else
+		{
+			toastService.ShowWarning("Debe de agregar alguna herramienta.", "Atención");
+			return false;
+		}
+	}
+
+
+	private async Task ValidaEmpleado()
+	{
+		guardandoRenta = true;
+		
+		var responseHttp = await repository.Post("api/Empleados/ObtenerEmpleadoValidoByNumero", numeroEmpleado);
+
+		JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+		var responseString = await responseHttp.HttpResponseMessage.Content.ReadAsStringAsync();
+		EmpleadoDTO empleado = JsonSerializer.Deserialize<EmpleadoDTO>(responseString, JsonSerializerOptions);
+
+		if (empleado.EmpleadoId != 0)
+		{
+			//se manda guardar toda la lista
+			List<Object> enviar = new List<Object>();
+			enviar.Add(cliente);
+			enviar.Add(empleado);
+			enviar.Add(listaRentas);
+			var httpResponse = await repository.Post("api/Rentas/GuardaRentas", enviar);
+
+			if (httpResponse.Error)
+				toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+			else
+			{
+				dialogValidaEmpleado = false;
+
+				//limpiamos los campos despues de guardar
+				numeroEmpleado = string.Empty;
+				cliente = new ClienteDTO();
+				listaRentas = new List<RentasDTO>();
+				clienteIdBusqueda = null;
+				fechaVencimientoCLiente = string.Empty;
+				esVencido = string.Empty;
+				toastService.ShowSuccess("Registro completo", "Guardado");
+
+				await Task.Delay(500);
+				//await ImprimirUltimoTicket();
+			}
+		}
+		else
+			toastService.ShowError("Numero de empleado no valido", "Error");
+
+		guardandoRenta = false;
+	}
+
+
+	private void CancelaDialogValidaEmpleado()
+	{
+		numeroEmpleado = String.Empty;
+		dialogValidaEmpleado = false;
+	}
+
+
+
+
+
+	private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+
+	private async Task<int> OpenMessage(string pregunta)
+	{
+		var result = await MatDialogService.AskAsync(pregunta, new string[] { "Ok" });
+		int r = 0;
+		switch (result)
+		{
+			case "Si":
+				r = 1;
+				break;
+		}
+		return r;
+	}
+
+
+	private string GenerarQueryStrings()
+    {
+        if (queryStringsDict == null)
+            queryStringsDict = new Dictionary<string, string>();
+
+        queryStringsDict["Nombre"] = nombreCLienteBusqueda ?? String.Empty;
+        queryStringsDict["Apellido"] = apellidoCLienteBusqueda ?? String.Empty;
+        queryStringsDict["Direccion"] = direccionClienteBusqueda ?? String.Empty;
+        queryStringsDict["RFC"] = rfcClienteBusqueda ?? String.Empty;
+		queryStringsDict["Telefono"] = telefonoClienteBusqueda ?? String.Empty;
+
+		queryStringsDict["PuedeRentar"] = "0";
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+	private string GenerarQueryStringsBusquedaHerramientas()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if (queryStringsBusquedaHerramienta == null)
+            queryStringsBusquedaHerramienta = new Dictionary<string, string>();
+
+		queryStringsBusquedaHerramienta["Sku"] = skuBusqueda ?? string.Empty;
+        queryStringsBusquedaHerramienta["NombreProducto"] = nombreHerramientaBusqueda ?? string.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsBusquedaHerramienta
+            .Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+
+	private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value.Replace(",", ".")));
+        else
+            return "";
+    }
+}

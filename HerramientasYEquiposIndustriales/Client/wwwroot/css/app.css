@@ -276,6 +276,11 @@ app {
     max-width: 900px !important;
 }
 
+.mdc-dialog1000 .mdc-dialog__surface {
+    min-width: 1000px !important;
+    max-width: 1000px !important;
+}
+
 /* MatButton*/
 .mdc-button {
     background: steelblue !important;

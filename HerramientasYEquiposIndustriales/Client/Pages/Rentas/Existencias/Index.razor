@@ -176,7 +176,7 @@ else
 
 
 
-<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog900">
+<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog1000">
     <MatDialogTitle><h5>@productoSeleccionado.Sku - @productoSeleccionado.Nombre</h5></MatDialogTitle>
     <MatDialogContent>
         <div class="row">
@@ -185,10 +185,13 @@ else
                     <MatTableHeader>
                         <th style="width:15%;">Folio</th>
                         <th style="width:10%;">Usado</th>
-                        <th style="width:10%;">Para Renta</th>
-                        <th style="width:10%;">Precio Renta</th>
                         <th style="width:10%;">Para Venta</th>
                         <th style="width:10%;">Precio Venta</th>
+						<th style="width:10%;">Para Renta</th>
+                        <th style="width:10%;">Costo Dia</th>
+						<th style="width:10%;">Costo Semana</th>
+						<th style="width:10%;">Costo Quincena</th>
+						<th style="width:10%;">Costo Mes</th>
 						<th style="width:10%;">Rentado</th>
 						<th style="width:10%;">Vendido</th>
 						<th style="width:10%;"></th>
@@ -207,10 +210,13 @@ else
 							<td style="color:green; font-weight:bold">@context.FolioProductoTienda</td>
 						}
                         <td><MatCheckbox @bind-Value="@context.Usado" Disabled="true"></MatCheckbox></td>
-						<td><MatCheckbox @bind-Value="@context.ParaRenta" Disabled="true"></MatCheckbox></td>
-						<td>@FormatoMoneda(@context.PrecioRenta.ToString())</td>
 						<td><MatCheckbox @bind-Value="@context.ParaVenta" Disabled="true"></MatCheckbox></td>
 						<td>@FormatoMoneda(@context.PrecioVenta.ToString())</td>
+						<td><MatCheckbox @bind-Value="@context.ParaRenta" Disabled="true"></MatCheckbox></td>
+						<td>@FormatoMoneda(@context.CostoDia.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoSemana.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoQuincena.ToString())</td>
+						<td>@FormatoMoneda(@context.CostoMes.ToString())</td>
 						<td><MatCheckbox @bind-Value="@context.Rentado" Disabled="true"></MatCheckbox></td>
 						<td><MatCheckbox @bind-Value="@context.Vendido" Disabled="true"></MatCheckbox></td>
 						<td><MatIconButton OnClick="@(_=>EditaExistencia(@context))" Icon="edit"></MatIconButton></td>
@@ -250,16 +256,30 @@ else
 						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.FolioProductoTienda" Label="No producto" ReadOnly="true"></MatTextField>
 					</div>
 					<div class="col-md-2">
-						<MatCheckbox @bind-Value="@existenciaNueva.ParaRenta" Label="Para Renta"></MatCheckbox>
-					</div>
-					<div class="col-md-3">
-						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.PrecioRenta" Label="Costo de Renta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
-					</div>
-					<div class="col-md-2">
 						<MatCheckbox @bind-Value="@existenciaNueva.ParaVenta" Label="Para Venta"></MatCheckbox>
 					</div>
-					<div class="col-md-3">
-						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.PrecioVenta" Label="Costo de Renta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.PrecioVenta" Label="Costo de Venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-2">
+						&nbsp;
+					</div>
+					<div class="col-md-2">
+						<MatCheckbox @bind-Value="@existenciaNueva.ParaRenta" Label="Para Renta"></MatCheckbox>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.CostoDia" Label="Costo Día" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.CostoSemana" Label="Costo Semana" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.CostoQuincena" Label="Costo Quincena" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+					</div>
+					<div class="col-md-2">
+						<MatTextField FullWidth="true" @bind-Value="@existenciaNueva.CostoMes" Label="Costo Mes" OnFocusOut="@ajustaCostoVenta"></MatTextField>
 					</div>
 				</div>
 				<div class="row">
@@ -365,7 +385,8 @@ else
         {
             var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");		
 			productosTiendaBusqueda = new List<ProductosTiendaDTO>();
-			productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty, Existencias = new List<ProductoTiendaExistencias>() });
+			//productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty, Existencias = new List<ProductoTiendaExistencias>() });
+			productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty });
 			productosTiendaBusqueda.AddRange(responseHttp.Response);
         }
         catch (Exception ex)

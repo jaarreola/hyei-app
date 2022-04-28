@@ -79,7 +79,7 @@ else
 				<th style="width:15%;">Marca</th>
 				<th style="width:10%;">Modelo</th>
 				<th style="width:8%;">Costo Venta</th>
-				<th style="width:8%;">Existencias</th>
+				@*<th style="width:8%;">Existencias</th>*@
 				<th style="width:8%;">Registro</th>
 				<th style="width:5%;"></th>
 				<th style="width:5%;"></th>
@@ -98,7 +98,7 @@ else
 				<td>@context.Modelo</td>
 				<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
 
-				<td>@context.Existencias.Count</td>
+				@*<td>@context.Existencias.Count</td>*@
 		
 				<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
 				<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>

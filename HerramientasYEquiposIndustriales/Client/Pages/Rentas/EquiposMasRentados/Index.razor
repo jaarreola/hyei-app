@@ -1,0 +1,199 @@
+﻿@page "/Rentas/MasRentados"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+@inject IJSRuntime Js
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandido">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h4>Productos mas Rentados</h4></MatExpansionPanelHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+				<div class="col-md-2">
+					<MatTextField FullWidth="true" @bind-Value="@skuBusqueda" Label="SKU"></MatTextField>
+				</div>
+				<div class="col-md-8">
+					<MatSelectValue @bind-Value="@productoTiendaIdBusqueda" Items="@productosTiendaBusqueda" ValueSelector=@(i => i.ProductosTiendaId) Label="Producto">
+						<ItemTemplate Context="productosTiendaBusqueda">@productosTiendaBusqueda?.Nombre</ItemTemplate>
+					</MatSelectValue>
+				</div>
+                <div class="col-md-2">
+					<MatButton Raised="true" Icon="search" OnClick="@BuscaProductosMasRentados">Buscar</MatButton>
+				</div>
+			</div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<br />
+@if(procesandoBusqueda == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+
+<div class="col-md-3" style="padding:15px 0px 0px 0px">
+    Total de registros: <strong>@regTotales</strong>
+</div>
+<div class="row">
+    <MatTable Items="@productosRentados" AllowSelection="true" class="mat-elevation-z10">
+        <MatTableHeader>
+            <th style="width:15%;">Sku</th>
+            <th style="width:70%;">Herramienta</th>
+            <th style="width:15%;">Marca</th>
+            <th style="width:15%;">Modelo</th>
+            <th style="width:15%;">Rentadas</th>
+            <th style="width:10%;"></th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td><strong>@context.Sku</strong></td>
+            <td>@context.NombreHerramienta</td>
+            <td>@context.Marca</td>
+            <td>@context.Modelo</td>
+            <td>@context.VecesRentado</td>
+            <td><MatIconButton OnClick="@(_=>BuscaHistorialProductoRentas(@context))" Icon="visibility"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+<MatDialog @bind-IsOpen="@dialogDetalleProductoIsOpen" CanBeClosed="false" class="mdc-dialog900">
+    <MatDialogTitle><h5>Producto - <strong>@nombreProductoRentado</strong></h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@marca" HelperText="Marca" Label="Marca" ReadOnly="true"></MatTextField>
+            </div>
+            <div class="col-md-4">
+                <MatTextField FullWidth="true" @bind-Value="@modelo" HelperText="Modelo" Label="Modelo" ReadOnly="true"></MatTextField>
+            </div>
+        </div>
+        <MatTable Items="@historialRentas" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10">
+            <MatTableHeader>
+                <th style="width:15%;">No Renta</th>
+                <th style="width:20%;">Folio Prod</th>
+                <th style="width:20%;">Fecha Inicial</th>
+                <th style="width:20%;">Fecha Final</th>
+                <th style="width:25%;">Fecha Entrega</th>
+            </MatTableHeader>
+            <MatTableRow>
+                <td style="font-weight:bold">@context.RentasId</td>
+                <td>@context.FolioProductoTienda</td>
+                <td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
+                <td>@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
+                <td>@context.FechaEntrega</td>
+            </MatTableRow>
+        </MatTable>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@CancelaDialogDetalleMovimiento" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code{
+
+    private bool expandido = true;
+    private bool procesandoBusqueda = true;
+    private int regTotales;
+    private int pageSize = 0;
+    Dictionary<string, string> queryString = new Dictionary<string, string>();
+
+    private bool dialogDetalleProductoIsOpen = false;
+
+    private string skuBusqueda;
+    private List<ProductosTiendaDTO> productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+    private int productoTiendaIdBusqueda = 0;
+    private string nombreProductoRentado = string.Empty;
+    private string marca = string.Empty;
+    private string modelo = string.Empty;
+
+    private List<HistorialProductosRentadosDTO> productosRentados = new List<HistorialProductosRentadosDTO>();
+    private List<HistorialProductosRentadosDTO> historialRentas = new List<HistorialProductosRentadosDTO>();
+
+
+    protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		await CargaComboProductos();
+        await BuscaProductosMasRentados();
+	}
+
+
+    private async Task CargaComboProductos()
+	{
+		try
+        {
+            var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");		
+			productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+			productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty });
+			productosTiendaBusqueda.AddRange(responseHttp.Response);
+        }
+        catch (Exception ex)
+		{
+            System.Console.WriteLine(ex.Message);
+			toastService.ShowError(ex.Message, "Error");
+		}
+	}
+
+
+    private async Task BuscaProductosMasRentados()
+    {
+        procesandoBusqueda = true;
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var queryStrings = GenerarQueryStringsBusqueda();
+        var responseHttp = await repository.Get<List<HistorialProductosRentadosDTO>>("api/Rentas/GetMasRentadosByFilter?" + queryStrings);
+        productosRentados = responseHttp.Response;
+        regTotales = productosRentados == null ? 0 : productosRentados.Count;
+        await Task.Delay(50);
+        procesandoBusqueda = false;
+    }
+
+
+    private async Task BuscaHistorialProductoRentas(HistorialProductosRentadosDTO producto)
+    {
+        procesandoBusqueda = true;
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        dialogDetalleProductoIsOpen = true;
+        nombreProductoRentado = producto.NombreHerramienta;
+        marca = producto.Marca;
+        modelo = producto.Modelo;
+        var responseHttp = await repository.Get<List<HistorialProductosRentadosDTO>>("api/Rentas/GetHistorialRentasByProducto/" + producto.ProdcutoTiendaId);
+        historialRentas = responseHttp.Response;
+        pageSize = historialRentas == null ? 0 : historialRentas.Count;
+        procesandoBusqueda = false;
+    }
+
+
+    private async Task CancelaDialogDetalleMovimiento()
+    {
+        dialogDetalleProductoIsOpen = false;
+        await Task.Delay(50);
+    }
+
+
+    private string GenerarQueryStringsBusqueda()
+    {
+        queryString = new Dictionary<string, string>();            
+
+        queryString["Sku"] = skuBusqueda ?? string.Empty;
+        queryString["ProductoTiendaId"] = productoTiendaIdBusqueda.ToString() ?? "0";
+        
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        string result = string.Join("&", queryString
+            //.Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        return result;
+    }
+
+}

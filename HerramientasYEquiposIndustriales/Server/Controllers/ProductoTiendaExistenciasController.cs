@@ -137,12 +137,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
                 var consultaFinal = from pt in context.ProductosTienda.Include(x => x.Marca)
-                                    where (pt.ProductosTiendaId == filtro.ProductoTiendaId || filtro.ProductoTiendaId == 0) && (pt.Sku.Contains(filtro.Sku) || (filtro.Sku ?? string.Empty) == string.Empty)
-
-                                    //join pro in context.ProductosTienda on pt.ProductosTiendaId  equals pro.ProductosTiendaId into cPro
-                                    //from gPro in cPro.DefaultIfEmpty()
-                                    //where (gPro.Sku.Contains(filtro.Sku) || filtro.Sku == string.Empty)
-
+                                    where (pt.ProductosTiendaId == filtro.ProductoTiendaId || filtro.ProductoTiendaId == 0) && (pt.Sku.Contains(filtro.Sku) || (filtro.Sku ?? string.Empty) == string.Empty) &&
+                                        (pt.Nombre.Contains(filtro.NombreProducto) || (filtro.NombreProducto ?? string.Empty) == string.Empty)
                                     join cu in consultaUsados on pt.ProductosTiendaId equals cu.Id into cUs
                                     from gUs in cUs.DefaultIfEmpty()
                                     join cn in consultaNuevos on pt.ProductosTiendaId equals cn.Id into cNu
@@ -257,6 +253,24 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var existencias = await context.ProductoTiendaExistencias.Where(x => x.ProductoTiendaId == productoTiendaId).ToListAsync();
+                return mapper.Map<List<ProductoTiendaExistenciasDTO>>(existencias);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener el listado de empleados. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetExistenciasDisponiblesByProductoTienda/{productoTiendaId}")]
+        public async Task<ActionResult<IEnumerable<ProductoTiendaExistenciasDTO>>> GetExistenciasDisponiblesByProductoTienda(int productoTiendaId)
+        {
+            try
+            {
+                var existencias = await context.ProductoTiendaExistencias.Include(x => x.ProductoTienda).Where(x => x.ProductoTiendaId == productoTiendaId && !x.Rentado).ToListAsync();
                 return mapper.Map<List<ProductoTiendaExistenciasDTO>>(existencias);
             }
             catch (Exception ex)

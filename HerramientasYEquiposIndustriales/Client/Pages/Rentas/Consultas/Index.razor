@@ -1,0 +1,325 @@
+﻿@page "/Rentas/Consultas"
+
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+@inject IMatDialogService MatDialogService
+
+@inject IJSRuntime Js
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandido">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h4>Consulta de Rentas</h4></MatExpansionPanelHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+			<div class="row">
+				<div class="col-md-2">
+					<MatTextField FullWidth="true" @bind-Value="@rentasIdBusqueda" Label="No Renta"></MatTextField>
+				</div>
+				<div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaInicioBusqueda" HelperText="Fecha Inicial de búsqueda" Label="Fecha Inicial Búsqueda"></MatDatePicker>
+                </div>
+                <div class="col-md-3">
+                    <MatDatePicker @bind-Value="@fechaFinBusqueda" HelperText="Fecha Final de búsqueda" Label="Fecha Final Búsqueda"></MatDatePicker>
+                </div>
+                <div class="col-md-2">
+					&nbsp;
+				</div>
+                <div class="col-md-2">
+					<MatButton Raised="true" Icon="search" OnClick="@BuscaRentas">Buscar</MatButton>
+				</div>
+			</div>
+            <div class="row">
+				<div class="col-md-2">
+					<MatTextField FullWidth="true" @bind-Value="@skuBusqueda" Label="SKU"></MatTextField>
+				</div>
+				<div class="col-md-8">
+					<MatSelectValue @bind-Value="@productoTiendaIdBusqueda" Items="@productosTiendaBusqueda" ValueSelector=@(i => i.ProductosTiendaId) Label="Producto">
+						<ItemTemplate Context="productosTiendaBusqueda">@productosTiendaBusqueda?.Nombre</ItemTemplate>
+					</MatSelectValue>
+				</div>
+			</div>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatRadioGroup @bind-Value="@estatusRenta" TValue="int">
+						<MatRadioButton Value="1" TValue="int">Activas</MatRadioButton>
+						<MatRadioButton Value="2" TValue="int">Vencidas</MatRadioButton>
+						<MatRadioButton Value="3" TValue="int">Entregadas</MatRadioButton>
+					</MatRadioGroup>
+                </div>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+<br />
+@if(procesandoBusqueda == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+<br />
+
+<div class="col-md-3" style="padding:15px 0px 0px 0px">
+    Total de registros: <strong>@regTotales</strong>
+</div>
+<div class="row">
+    <MatTable Items="@rentas" AllowSelection="true" class="mat-elevation-z10">
+        <MatTableHeader>
+            <th style="width:10%;">Sku</th>
+            <th style="width:20%;">Herramienta</th>
+            <th style="width:8%;">Folio</th>
+            <th style="width:10%;">Inicio Renta</th>
+            <th style="width:10%;">Fin Renta</th>
+            <th style="width:10%;">Total Renta</th>
+            <th style="width:20%;">Cliente</th>
+            <th style="width:8%;">Teléfono</th>
+            <th style="width:8%;"></th>
+        </MatTableHeader>
+        <MatTableRow>
+            <td><strong>@context.Sku</strong></td>
+            <td>@context.Herramienta</td>
+            <td>@context.FolioProductoTienda</td>
+            <td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
+
+            @if (context.FechaEntregado != null)
+            {
+                <td style="color:blue; font-weight:bold">@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
+            }
+            else if (context.FechaFinRenta < DateTime.Today)
+            {
+                <td style="color:red; font-weight:bold">@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
+            }
+            else
+            {
+                <td style="color:green; font-weight:bold">@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
+            }
+            <td>@FormatoMoneda(context.TotalRenta.ToString())</td>
+            <td>@context.Nombre  @context.Apellido</td>
+            <td>@context.Telefono</td>
+            <td><MatIconButton OnClick="@(_=>MostrarDetalleRenta(@context))" Icon="visibility"></MatIconButton></td>
+        </MatTableRow>
+    </MatTable>
+</div>
+
+
+<MatDialog @bind-IsOpen="@dialogEditaHerramienta" CanBeClosed="false" class="mdc-dialog800">
+    <MatDialogTitle><h5>Renta para: @rentaSeleccionada.Sku - @rentaSeleccionada.Herramienta</h5></MatDialogTitle>
+    <MatDialogContent>
+        <div class="row">
+            <div class="col-md-3">
+                <MatCheckbox TValue="bool" Value="@rentaDetalleEntregar.ChkDia" Disabled="true">Diario</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" Value="@rentaDetalleEntregar.ChkSemana" Disabled="true">Semanal</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" Value="@rentaDetalleEntregar.ChkQuincena" Disabled="true">Quincenal</MatCheckbox>
+            </div>
+			<div class="col-md-3">
+                <MatCheckbox TValue="bool" Value="@rentaDetalleEntregar.ChkMes" Disabled="true">Mes</MatCheckbox>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEntregar.CostoDia" Disabled="true"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEntregar.CostoSemana" Disabled="true"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEntregar.CostoQuincena" Disabled="true"></MatTextField>
+            </div>
+			<div class="col-md-3">
+                <MatTextField @bind-Value="@rentaDetalleEntregar.CostoMes" Disabled="true"></MatTextField>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEntregar.CantidadDias DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="true" TValue="int?" ></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEntregar.CantidadSemanas DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="true" TValue="int?"></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEntregar.CantidadQuincenas DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="true" TValue="int?"></MatNumericUpDownField>
+            </div>
+			<div class="col-md-3">
+                <MatNumericUpDownField Value=@rentaDetalleEntregar.CantidadMeses DecimalPlaces=0 Minimum=null Maximum=null FullWidth="true" Disabled="true" TValue="int?"></MatNumericUpDownField>
+            </div>
+        </div>
+		<div class="row">
+            <div class="col-md-4">
+				<MatDatePicker @bind-Value="@fechaInicioRenta" HelperText="Fecha Inicial" Label="Fecha Inicial" ReadOnly="true" Format="dd/MM/yyyy"></MatDatePicker> 
+            </div>
+			<div class="col-md-4">
+                @if (rentaDetalleEntregar.FechaEntrega != null)
+                {
+                    <MatDatePicker @bind-Value="@fechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: blue; font-weight:bold"></MatDatePicker>
+                }
+                else if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today)
+                {
+                    <MatDatePicker @bind-Value="@fechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: red; font-weight:bold"></MatDatePicker>
+                }
+                else
+                {
+                    <MatDatePicker @bind-Value="@fechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: green; font-weight:bold"></MatDatePicker>
+                }
+            </div>
+            <div class="col-md-1">
+				&nbsp;
+            </div>
+            <div class="col-md-3">
+				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalRenta.ToString())</strong>
+            </div>
+        </div>
+        <div class="row">            
+            <div class="col-md-3">
+				<div style="color:red; font-weight:bold">@mensajeVencimiento</div>
+            </div>
+        </div>
+    </MatDialogContent>
+    <MatDialogActions>
+		<MatButton OnClick="@CerrarDetalle" class="mdc-button-modal">Cerrar</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+@code{
+
+    private bool expandido = true;
+    private bool procesandoBusqueda = false;
+    private bool dialogEditaHerramienta = false;
+    private int regTotales;
+    private string mensajeVencimiento = string.Empty;
+
+    Dictionary<string, string> queryString = new Dictionary<string, string>();
+
+    private int rentasIdBusqueda;
+    private DateTime? fechaInicioBusqueda;
+    private DateTime? fechaFinBusqueda;
+    private string skuBusqueda;
+    private List<ProductosTiendaDTO> productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+    private int productoTiendaIdBusqueda = 0;
+
+    private List<RentasDetalleDTO> rentas = new List<RentasDetalleDTO>();
+    private RentasDetalleDTO rentaSeleccionada = new RentasDetalleDTO();
+    private RentasDTO rentaDetalleEntregar = new RentasDTO();
+    private float? recargo;
+    private DateTime? fechaInicioRenta;
+    private DateTime? fechaFinRenta;
+
+    private int estatusRenta = 1;
+
+
+    protected async override Task OnInitializedAsync()
+	{
+		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		await CargaComboProductos();
+		await Task.Delay(50);
+	}
+
+
+    private async Task CargaComboProductos()
+	{
+		try
+        {
+            var responseHttp = await repository.Get<List<ProductosTiendaDTO>>("api/ProductosTienda");		
+			productosTiendaBusqueda = new List<ProductosTiendaDTO>();
+			productosTiendaBusqueda.Add(new ProductosTiendaDTO() { Nombre = string.Empty });
+			productosTiendaBusqueda.AddRange(responseHttp.Response);
+        }
+        catch (Exception ex)
+		{
+            System.Console.WriteLine(ex.Message);
+			toastService.ShowError(ex.Message, "Error");
+		}
+	}
+
+
+    private async Task BuscaRentas()
+    {
+        procesandoBusqueda = true;
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        var queryStrings = GenerarQueryStringsBusqueda();
+        var responseHttp = await repository.Get<List<RentasDetalleDTO>>("api/Rentas/GetRentasByFilter?" + queryStrings);
+        rentas = responseHttp.Response;
+        regTotales = rentas.Count > 0 ? rentas.Count : 0;
+        procesandoBusqueda = false;
+    }
+
+
+    private async Task MostrarDetalleRenta(RentasDetalleDTO registro)
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+        if(registro.RentaId != 0)
+        {
+            //obtenemos el detalle del registro seleccionado
+            rentaSeleccionada = registro;
+            var responseHttp = await repository.Get<RentasDTO>("api/Rentas/GetRentaByRentaId/" + registro.RentaId);
+            rentaDetalleEntregar = responseHttp.Response;
+
+            rentaDetalleEntregar.ChkDia = ((rentaDetalleEntregar.CantidadDias ?? 0) > 0 ? true : false);
+            rentaDetalleEntregar.ChkSemana = ((rentaDetalleEntregar.CantidadSemanas ?? 0) > 0 ? true : false);
+            rentaDetalleEntregar.ChkQuincena = ((rentaDetalleEntregar.CantidadQuincenas ?? 0) > 0 ? true : false);
+            rentaDetalleEntregar.ChkMes = ((rentaDetalleEntregar.CantidadMeses ?? 0) > 0 ? true : false);
+
+            fechaInicioRenta = rentaDetalleEntregar.FechaInicioRenta.Value.AddDays(1);
+            fechaFinRenta = rentaDetalleEntregar.FechaFinRenta.Value.AddDays(1);
+            
+            if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && rentaDetalleEntregar.FechaEntrega == null)
+                mensajeVencimiento = "Renta vencida desde hace " + @DateTime.Today.Subtract(rentaDetalleEntregar.FechaFinRenta.Value).Days + " días";
+            else
+                mensajeVencimiento = string.Empty;
+
+            dialogEditaHerramienta = true;
+        }
+    }
+
+    private async Task CerrarDetalle()
+	{
+        rentaDetalleEntregar = new RentasDTO();
+        dialogEditaHerramienta = false;
+		await Task.Delay(50);
+	}
+
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return string.Empty;
+    }
+
+
+    private string GenerarQueryStringsBusqueda()
+    {
+        queryString = new Dictionary<string, string>();            
+
+        queryString["EstatusRenta"] = estatusRenta.ToString(); //ACTIVAS
+
+        queryString["RentasId"] = rentasIdBusqueda.ToString() ?? string.Empty;
+        queryString["FechaInicioRenta"] = fechaInicioBusqueda.ToString() ?? string.Empty;
+        queryString["FechaFinRenta"] = fechaFinBusqueda.ToString() ?? string.Empty;
+
+        queryString["Sku"] = skuBusqueda ?? string.Empty;
+        queryString["ProductoTiendaId"] = productoTiendaIdBusqueda.ToString() ?? string.Empty;
+
+        var valoresPorDefecto = new List<string>() { "false", "", "0" };
+
+        string result = string.Join("&", queryString
+            //.Where(x => !valoresPorDefecto.Contains(x.Value.ToLower()))
+            .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        return result;
+    }
+
+}
