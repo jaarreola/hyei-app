@@ -521,6 +521,21 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                var consulta1 = from otd in context.OrdenTrabajoDetalle
+                                join em in context.Empleados on otd.EmpleadoCreacion equals em.EmpleadoId
+                                where otd.OrdenTrabajoDetalleId == idOtd
+                                select new HistorialOrdenTrabajoDTO()
+                                {
+                                    Posicion = 0,
+                                    Descripcion = "Recibida",
+                                    FechaRegistro = otd.FechaRegistro,
+                                    NumeroEmpleado = em.NumeroEmpleado,
+                                    Nombre = em.Nombre,
+                                    Ubicacion = "",
+                                    Comentario = "SE RECIBE HERRAMIENTA"
+                                };
+                var result1 = await consulta1.OrderBy(x => x.FechaRegistro).ToListAsync();
+
                 var consulta = from ef in context.EstatusOTFlujos
                                join e in context.EstatusOTs on ef.EstatusOTId equals e.EstatusOTId
                                join em in context.Empleados on ef.EmpleadoCreacion equals em.EmpleadoId
@@ -534,11 +549,13 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    Nombre = em.Nombre,
                                    Ubicacion = ef.Ubicacion,
                                    Comentario = ef.Comentario
-                               };
-
+                               };                
                 var result = await consulta.OrderBy(x => x.FechaRegistro).ToListAsync();
-                var totalResultado = result.Count;
-                return result;
+
+                if (result.Count > 0)
+                    result1.AddRange(result);
+                //var totalResultado = result.Count;
+                return result1;
             }
             catch (Exception ex)
             {
