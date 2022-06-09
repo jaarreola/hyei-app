@@ -287,11 +287,43 @@
                 </div>
             </MatDialogContent>
             <MatDialogActions>
-                @*<MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial OT</MatButton> &nbsp;*@
+                <MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial OT</MatButton> &nbsp;
                 <MatButton OnClick="@CancelaDetalleDialog" class="mdc-button-modal">Cerrar</MatButton>
             </MatDialogActions>
         </MatDialog>
     </EditForm>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogHistorialIsOpen" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Historial de la Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@historialOt" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
+                        <MatTableHeader>
+                            <th style="width:20%;">Fecha Registro</th>
+                            <th style="width:10%">Descripcion</th>
+                            <th style="width:35%">Empleado</th>
+                            <th style="width:10%;">Ubicación</th>
+                            <th style="width:25%;">Comentario</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                            <td>@context.Descripcion</td>
+                            <td>@context.NumeroEmpleado - @context.Nombre</td>
+                            <td>@context.Ubicacion</td>
+                            <td>@context.Comentario</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CierraHistorial" class="mdc-button-modal">Cerrar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
 </div>
 
 
@@ -445,6 +477,7 @@
 
 
     private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+    private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsultaRespaldo;
     private String nombreCompletoCliente;
     private String fechaRegistro;
     private CotizacionDTO cotizacion = new CotizacionDTO();
@@ -455,6 +488,7 @@
     private String garantiaLlega;
     private String garantiaLlegaDescripcion;
     private bool dialogDetalleOtIsOpen = false;
+    private int ordenTrabajoDetalleId = 0;
 
 
     //private async Task MuestraDetalleOT(OrdenTrabajoDetalleConsultaDTO ot)
@@ -464,16 +498,19 @@
         try
         {
             var responseHttpOtd = await repository.Get<OrdenTrabajoDetalleConsultaDTO>("api/OrdenTrabajo/GetOrdeTrabajoDetalleById/" + otdId);
-            ordenTrabajoConsulta = responseHttpOtd.Response != null ? responseHttpOtd.Response : new OrdenTrabajoDetalleConsultaDTO();
-            
+            var result = responseHttpOtd.Response != null ? responseHttpOtd.Response : new OrdenTrabajoDetalleConsultaDTO();
+            ordenTrabajoConsulta = result;
+            ordenTrabajoConsultaRespaldo = result;
+            ordenTrabajoDetalleId = ordenTrabajoConsultaRespaldo.OrdenTrabajoDetalleId;
+
             nombreCompletoCliente = ordenTrabajoConsulta.Nombre + " " + (ordenTrabajoConsulta.Apellido != null ? ordenTrabajoConsulta.Apellido : String.Empty);
             fechaRegistro = ordenTrabajoConsulta.FechaRegistro != null ? ordenTrabajoConsulta.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
             
-            var responseHttpCot = await repository.Get<CotizacionDTO>("api/Cotizaciones/GetCotizacionByOrdenTrabajoId/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
+            var responseHttpCot = await repository.Get<CotizacionDTO>("api/Cotizaciones/GetCotizacionByOrdenTrabajoId/" + ordenTrabajoDetalleId);
             cotizacion = responseHttpCot.Response != null ? responseHttpCot.Response : new CotizacionDTO();
             comentarioCotizacion = cotizacion.Comentario;
             
-            var responseHttpCotDet = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + ordenTrabajoConsulta.OrdenTrabajoDetalleId);
+            var responseHttpCotDet = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + ordenTrabajoDetalleId);
             cotizacionDetalle = responseHttpCotDet.Response != null ? responseHttpCotDet.Response : new List<CotizacionDetalleDTO>();
             pageSize = cotizacionDetalle.Count;
             totalCotizacion = TotalCotizacion();
@@ -485,7 +522,34 @@
         {
             System.Console.WriteLine(ex.Message);
         }
+        
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
         dialogDetalleOtIsOpen = true;
+    }
+
+
+
+    private bool dialogHistorialIsOpen = false;
+    private int pageSizeHistorial = 0;
+    private List<HistorialOrdenTrabajoDTO> historialOt = new List<HistorialOrdenTrabajoDTO>();
+
+    private async Task MuestraHistorial()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        try
+        {
+            ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+            var responseHttp = await repository.Get<List<HistorialOrdenTrabajoDTO>>("api/OrdenTrabajo/GetHistorialOTs/" + ordenTrabajoDetalleId);
+            ordenTrabajoConsulta = ordenTrabajoConsultaRespaldo;
+            historialOt = responseHttp.Response;
+            pageSizeHistorial = historialOt.Count;
+
+            dialogHistorialIsOpen = true;   
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine(ex.Message);
+        }
     }
 
 
@@ -523,18 +587,25 @@
 
     private async Task CancelaDetalleDialog()
     {
+        ordenTrabajoDetalleId = 0;
         ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
-        nombreCompletoCliente = string.Empty;
-        fechaRegistro = string.Empty;
-        cotizacion = new CotizacionDTO();
-        comentarioCotizacion = string.Empty;
-        cotizacionDetalle = new List<CotizacionDetalleDTO>();
-        pageSize = 0;
-        totalCotizacion = string.Empty;
-        garantiaLlega = string.Empty;
-        garantiaLlegaDescripcion = string.Empty;
+        //nombreCompletoCliente = string.Empty;
+        //fechaRegistro = string.Empty;
+        //cotizacion = new CotizacionDTO();
+        //comentarioCotizacion = string.Empty;
+        //cotizacionDetalle = new List<CotizacionDetalleDTO>();
+        //pageSize = 0;
+        //totalCotizacion = string.Empty;
+        //garantiaLlega = string.Empty;
+        //garantiaLlegaDescripcion = string.Empty;
 
         dialogDetalleOtIsOpen = false;
+        await Task.Delay(50);
+    }
+
+    private async Task CierraHistorial()
+    {
+        dialogHistorialIsOpen = false;
         await Task.Delay(50);
     }
 
