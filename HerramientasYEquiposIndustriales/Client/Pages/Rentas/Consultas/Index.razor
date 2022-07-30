@@ -73,7 +73,9 @@
             <th style="width:8%;">Folio</th>
             <th style="width:10%;">Inicio Renta</th>
             <th style="width:10%;">Fin Renta</th>
+            <th style="width:10%;">Entrega</th>
             <th style="width:10%;">Total Renta</th>
+            <th style="width:10%;">Total Con Recargo</th>
             <th style="width:20%;">Cliente</th>
             <th style="width:8%;">Teléfono</th>
             <th style="width:8%;"></th>
@@ -96,7 +98,9 @@
             {
                 <td style="color:green; font-weight:bold">@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
             }
+            <td style="color:blue; font-weight:bold">@context.FechaEntregado?.ToString("dd/MM/yyyy")</td>
             <td>@FormatoMoneda(context.TotalRenta.ToString())</td>
+            <td>@FormatoMoneda(context.TotalConRecargo.ToString())</td>
             <td>@context.Nombre  @context.Apellido</td>
             <td>@context.Telefono</td>
             <td><MatIconButton OnClick="@(_=>MostrarDetalleRenta(@context))" Icon="visibility"></MatIconButton></td>
@@ -155,7 +159,7 @@
 				<MatDatePicker @bind-Value="@fechaInicioRenta" HelperText="Fecha Inicial" Label="Fecha Inicial" ReadOnly="true" Format="dd/MM/yyyy"></MatDatePicker> 
             </div>
 			<div class="col-md-4">
-                @if (rentaDetalleEntregar.FechaEntrega != null)
+                @if (rentaDetalleEntregar.FechaEntrega != null && rentaDetalleEntregar.FechaFinRenta >= (rentaDetalleEntregar.FechaEntrega ?? DateTime.Today))
                 {
                     <MatDatePicker @bind-Value="@fechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: blue; font-weight:bold"></MatDatePicker>
                 }
@@ -168,16 +172,22 @@
                     <MatDatePicker @bind-Value="@fechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: green; font-weight:bold"></MatDatePicker>
                 }
             </div>
-            <div class="col-md-1">
-				&nbsp;
-            </div>
-            <div class="col-md-3">
-				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalRenta.ToString())</strong>
+            <div class="col-md-4">
+                @if (rentaDetalleEntregar.FechaEntrega != null)
+                {
+                    <MatDatePicker @bind-Value="@fechaEntrega" HelperText="Fecha Entrega" Label="Fecha Entrega" ReadOnly="true" Format="dd/MM/yyyy" InputStyle="color: blue; font-weight:bold"></MatDatePicker>
+                }
             </div>
         </div>
         <div class="row">            
             <div class="col-md-3">
-				<div style="color:red; font-weight:bold">@mensajeVencimiento</div>
+				<MatTextField FullWidth="true" Value="@recargo" HelperText="Recargo" Label="Recargo" ReadOnly="true" TValue="float?"></MatTextField>
+            </div>
+            <div class="col-md-4" style="padding: 10px 10px;">
+				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalRenta.ToString())</strong>
+            </div>
+            <div class="col-md-5" style="padding: 10px 10px;">
+				Total con Recargos: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalConRecargo.ToString())</strong>
             </div>
         </div>
     </MatDialogContent>
@@ -210,6 +220,8 @@
     private float? recargo;
     private DateTime? fechaInicioRenta;
     private DateTime? fechaFinRenta;
+    private DateTime? fechaEntrega;
+    
 
     private int estatusRenta = 1;
 
@@ -272,6 +284,9 @@
 
             fechaInicioRenta = rentaDetalleEntregar.FechaInicioRenta.Value.AddDays(1);
             fechaFinRenta = rentaDetalleEntregar.FechaFinRenta.Value.AddDays(1);
+
+            if(rentaDetalleEntregar.FechaEntrega != null)
+                fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
             
             if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && rentaDetalleEntregar.FechaEntrega == null)
                 mensajeVencimiento = "Renta vencida desde hace " + @DateTime.Today.Subtract(rentaDetalleEntregar.FechaFinRenta.Value).Days + " días";

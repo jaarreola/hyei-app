@@ -29,6 +29,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
 
         [DataType(DataType.Currency)]
         public float? TotalRenta { get; set; }
+        public int? TotalHorasRenta { get; set; }
         [DataType(DataType.Currency)]
         public float? Recargo { get; set; }
         [DataType(DataType.Currency)]

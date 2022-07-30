@@ -117,6 +117,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                  FechaFinRenta = r.FechaFinRenta,
                                  FechaEntregado = r.FechaEntrega,
                                  TotalRenta = r.TotalRenta,
+                                 TotalConRecargo = r.TotalConRecargo,
                                  ClienteId = c.ClienteId,
                                  Nombre = c.Nombre,
                                  Apellido = c.Apellido,
@@ -160,7 +161,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPost("RecibirRentaByRenta")]
-        public async Task<ActionResult<bool>> RecibirRentaByRenta(RentasDTO rentaDto)
+        public ActionResult<bool> RecibirRentaByRenta(RentasDTO rentaDto)
+        //public async Task<ActionResult<bool>> RecibirRentaByRenta(RentasDTO rentaDto)
         {
             try
             {
@@ -187,7 +189,6 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         context.Entry(productoExistencia).Property(x => x.EmpleadoRegistro).IsModified = false;
                         context.SaveChanges();
                     }
-                    await Task.Delay(50);
                     scope.Complete();
                 }
                 return true;
@@ -197,7 +198,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al crear el Marca. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al recibir el Producto. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 

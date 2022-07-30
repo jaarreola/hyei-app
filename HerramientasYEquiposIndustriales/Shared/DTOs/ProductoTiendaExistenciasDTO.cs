@@ -16,6 +16,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public float? PrecioVenta { get; set; }
 
         public bool ParaRenta { get; set; }
+        public int? TotalHorasRentado { get; set; }
         [DataType(DataType.Currency)]
         public float? CostoDia { get; set; }
         [DataType(DataType.Currency)]

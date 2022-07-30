@@ -240,7 +240,7 @@
 </MatDialog>
 
 
-<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog800">
+<MatDialog @bind-IsOpen="@dialogListaExistenciasIsOpen" CanBeClosed="false" class="mdc-dialog900">
     <MatDialogTitle><h5>@herramientaSeleccionada.Sku - @herramientaSeleccionada.Nombre</h5></MatDialogTitle>
     <MatDialogContent>
         <div class="row">
@@ -248,6 +248,7 @@
                 <MatTable Items="@listaExistencias" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalExistencias">
                     <MatTableHeader>
                         <th style="width:10%;">Folio</th>
+						<th style="width:10%;">Hrs Renta</th>
 						<th style="width:15%;">Precio Venta</th>
 						<th style="width:15%;">Costo Diario</th>
 						<th style="width:15%;">Costo Semana</th>
@@ -258,6 +259,7 @@
                     </MatTableHeader>
                     <MatTableRow>
 						<td style="font-weight:bold">@context.FolioProductoTienda</td>
+						<td>@(context.TotalHorasRentado ?? 0)</td>
 						<td>@FormatoMoneda(@context.PrecioVenta.ToString())</td>
 						<td>@FormatoMoneda(@context.CostoDia.ToString())</td>
 						<td>@FormatoMoneda(@context.CostoSemana.ToString())</td>
@@ -328,8 +330,13 @@
 			<div class="col-md-4">
 				<MatDatePicker @bind-Value="@rentaDetalleEditar.FechaFinRenta" HelperText="Fecha Final" Label="Fecha Final" ReadOnly="true" Format="dd/MMMM/yyyy"></MatDatePicker>
             </div>
-			<div class="col-md-4">
+			<div class="col-md-4" style="padding: 10px 10px;">
 				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEditar.TotalRenta.ToString())</strong>
+            </div>
+        </div>
+		<div class="row">
+			<div class="col-md-4" style="padding: 10px 10px;">
+				Total Horas: <strong>@rentaDetalleEditar.TotalHorasRenta.ToString() Hrs</strong>
             </div>
         </div>
     </MatDialogContent>
@@ -468,7 +475,7 @@
 
 	private void PuedeGuardar()
 	{
-		if ((cliente.FechaVencimientoParaRenta != null && cliente.FechaVencimientoParaRenta <= DateTime.Today))
+		if ((cliente.FechaVencimientoParaRenta != null && cliente.FechaVencimientoParaRenta <= DateTime.Today) || (fechaVencimientoCLiente ?? string.Empty) == string.Empty)
 			desactivaGuardar = true;
 		else
 			desactivaGuardar = false;
@@ -843,6 +850,13 @@
 		if (cliente.ClienteId == 0)
 		{
 			toastService.ShowWarning("Debe seleccionar un cliente", "Atención");
+			return false;
+		}
+
+		//validamos que el usuario este vigente para rentar
+		if((fechaVencimientoCLiente ?? string.Empty) == string.Empty)
+		{
+			toastService.ShowWarning("Este cliente no puede rentar.", "Atención");
 			return false;
 		}
 

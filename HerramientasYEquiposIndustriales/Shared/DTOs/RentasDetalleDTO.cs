@@ -19,6 +19,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaFinRenta { get; set; }
         public DateTime? FechaEntregado { get; set; }
         public float? TotalRenta { get; set; }
+        public float? TotalConRecargo { get; set; }
+        public int? TotalHorasRenta { get; set; }
         public int ClienteId { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
