@@ -151,37 +151,180 @@
 </MatAccordion>
 
 
-<MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog700">
-    <MatDialogTitle><h5>@tipoDetalle</h5></MatDialogTitle>
-    <MatDialogContent>
-        <div class="col-md-3" style="padding:15px 0px 0px 0px">
-            <strong>@totalDetalle</strong>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <MatTable Items="@otds" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeOtd">
-                    <MatTableHeader>
-                        <th style="width:15%;">Numero OT</th>
-                        <th style="width:15%;">Herramienta</th>
-                        <th style="width:35%;">Modelo</th>
-                        <th style="width:15%;">Marca</th>
-                        <th style="width:15%;">Fecha Registro</th>
-                    </MatTableHeader>
-                    <MatTableRow>
-                        <td>@context.NumeroOrdenTrabajo</td>
-                        <td>@context.NombreHerramienta</td>
-                        <td>@context.Modelo</td>
-                        <td>@context.Marca</td>
-                        <td>@context.FechaRegistro</td>
-                    </MatTableRow>
-                </MatTable>
+<div>
+    <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog800">
+        <MatDialogTitle><h5>@tipoDetalle</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="col-md-3" style="padding:15px 0px 0px 0px">
+                <strong>@totalDetalle</strong>
             </div>
-        </div>
-    </MatDialogContent>
-    <MatDialogActions>
-        <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
-    </MatDialogActions>
-</MatDialog>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@otds" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeOtd">
+                        <MatTableHeader>
+                            <th style="width:10%;">Numero OT</th>
+                            <th style="width:25%;">Herramienta</th>
+                            <th style="width:35%;">Modelo</th>
+                            <th style="width:15%;">Marca</th>
+                            <th style="width:15%;">Fecha Registro</th>
+                            <th style="width:5%;"></th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.NumeroOrdenTrabajo</td>
+                            <td>@context.NombreHerramienta</td>
+                            <td>@context.Modelo</td>
+                            <td>@context.Marca</td>
+                            <td>@context.FechaRegistro</td>
+                            <td style="width:50px;"><MatIconButton OnClick="@(_=>MuestraDetalleOT(@context.OrdenTrabajoDetalleId))" Icon="visibility"></MatIconButton></td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+
+<div>
+    <EditForm Model="@ordenTrabajoConsulta">
+        <DataAnnotationsValidator />
+        <MatDialog @bind-IsOpen="@dialogDetalleOtIsOpen" CanBeClosed="false" class="mdc-dialog900">
+            <MatDialogTitle><h5>Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+            <MatDialogContent>
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NombreHerramienta" Label="Herramienta" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Marca" Label="Marca" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Modelo" Label="Modelo" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.NumeroSerie" Label="Numero Serie" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@nombreCompletoCliente" Label="Cliente" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Telefono" Label="Teléfono" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.RFC" Label="RFC" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Correo" Label="Correo" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <MatTextField FullWidth="true" @bind-Value="@fechaRegistro" Label="Fecha Registro" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-3">
+                            <MatTextField FullWidth="true" @bind-Value="@garantiaLlega" Label="Llega por Garantia:" ReadOnly="true"></MatTextField>
+                        </div>
+                        <div class="col-md-5">
+                            <MatTextField FullWidth="true" @bind-Value="@garantiaLlegaDescripcion" Label="Descripción Garantia" TextArea="true" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <MatTextField FullWidth="true" @bind-Value="@ordenTrabajoConsulta.Comentarios" Label="Comentario / Observación Herramienta" TextArea="true" ReadOnly="true"></MatTextField>
+                        </div>
+                    </div>
+
+                    <br />
+
+                    <div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatSubtitle2>Detalle Cotización:</MatSubtitle2>
+                            </div>
+                            <div class="col-md-5">
+                            </div>
+                            <div class="col-md-3">
+                                <MatSubtitle2>Estatus: @(ordenTrabajoConsulta.Descripcion != null ? ordenTrabajoConsulta.Descripcion : "Sin Cotizar") </MatSubtitle2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <MatTextField FullWidth="true" @bind-Value="@comentarioCotizacion" Label="Comentario / Observación" TextArea="true" ReadOnly="true"></MatTextField>
+                            </div>
+                        </div>
+                        <MatTable Items="@cotizacionDetalle" ShowPaging="false" PageSize="@pageSize" AllowSelection="true" class="mat-elevation-z10" Context="detalleCotizacion">
+                            <MatTableHeader>
+                                <th style="width:20%;">No Parte</th>
+                                <th style="width:40%;">Nombre</th>
+                                <th style="width:10%;">PU</th>
+                                <th style="width:10%;">Cantidad</th>
+                                <th style="width:5%;">Total</th>
+                            </MatTableHeader>
+                            <MatTableRow>
+                                <td>@detalleCotizacion.Producto.NoParte</td>
+                                <td>@detalleCotizacion.Producto.Nombre</td>
+                                <td>@FormatoMoneda(@detalleCotizacion.CostoUnitario.ToString())</td>
+                                <td>@detalleCotizacion.Cantidad</td>
+                                <td style="font-weight:bold">@CalculaColumnaTotal(@detalleCotizacion.CostoUnitario, @detalleCotizacion.Cantidad)</td>
+                            </MatTableRow>
+                        </MatTable>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <MatHeadline6>Total Cotización: @totalCotizacion</MatHeadline6>
+                            </div>
+                            <div class="col-md-2">
+				                @*<MatIconButton OnClick="@ImprimirCotizacion" Icon="receipt"></MatIconButton>*@
+			                </div>
+                        </div>
+                    </div>
+                </div>
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton Raised="true" OnClick="@MuestraHistorial" class="mdc-button-background">Historial OT</MatButton> &nbsp;
+                <MatButton OnClick="@CancelaDetalleDialog" class="mdc-button-modal">Cerrar</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    </EditForm>
+</div>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogHistorialIsOpen" CanBeClosed="false" class="mdc-dialog900">
+        <MatDialogTitle><h5>Historial de la Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@historialOt" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@pageSizeHistorial">
+                        <MatTableHeader>
+                            <th style="width:20%;">Fecha Registro</th>
+                            <th style="width:10%">Descripcion</th>
+                            <th style="width:35%">Empleado</th>
+                            <th style="width:10%;">Ubicación</th>
+                            <th style="width:25%;">Comentario</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt")</td>
+                            <td>@context.Descripcion</td>
+                            <td>@context.NumeroEmpleado - @context.Nombre</td>
+                            <td>@context.Ubicacion</td>
+                            <td>@context.Comentario</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CierraHistorial" class="mdc-button-modal">Cerrar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
 
 
 
@@ -332,9 +475,137 @@
         await Task.Delay(50);
     }
 
+
+    private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+    private OrdenTrabajoDetalleConsultaDTO ordenTrabajoConsultaRespaldo;
+    private String nombreCompletoCliente;
+    private String fechaRegistro;
+    private CotizacionDTO cotizacion = new CotizacionDTO();
+    private String comentarioCotizacion;
+    private List<CotizacionDetalleDTO> cotizacionDetalle = new List<CotizacionDetalleDTO>();
+    private int pageSize = 0;
+    private string totalCotizacion;
+    private String garantiaLlega;
+    private String garantiaLlegaDescripcion;
+    private bool dialogDetalleOtIsOpen = false;
+    private int ordenTrabajoDetalleId = 0;
+
+
+    //private async Task MuestraDetalleOT(OrdenTrabajoDetalleConsultaDTO ot)
+    private async Task MuestraDetalleOT(int otdId)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        try
+        {
+            var responseHttpOtd = await repository.Get<OrdenTrabajoDetalleConsultaDTO>("api/OrdenTrabajo/GetOrdeTrabajoDetalleById/" + otdId);
+            var result = responseHttpOtd.Response != null ? responseHttpOtd.Response : new OrdenTrabajoDetalleConsultaDTO();
+            ordenTrabajoConsulta = result;
+            ordenTrabajoConsultaRespaldo = result;
+            ordenTrabajoDetalleId = ordenTrabajoConsultaRespaldo.OrdenTrabajoDetalleId;
+
+            nombreCompletoCliente = ordenTrabajoConsulta.Nombre + " " + (ordenTrabajoConsulta.Apellido != null ? ordenTrabajoConsulta.Apellido : String.Empty);
+            fechaRegistro = ordenTrabajoConsulta.FechaRegistro != null ? ordenTrabajoConsulta.FechaRegistro?.ToString("dd/MM/yyyy hh:mm tt") : String.Empty;
+            
+            var responseHttpCot = await repository.Get<CotizacionDTO>("api/Cotizaciones/GetCotizacionByOrdenTrabajoId/" + ordenTrabajoDetalleId);
+            cotizacion = responseHttpCot.Response != null ? responseHttpCot.Response : new CotizacionDTO();
+            comentarioCotizacion = cotizacion.Comentario;
+            
+            var responseHttpCotDet = await repository.Get<List<CotizacionDetalleDTO>>("api/Cotizaciones/GetCotizacionDetalleByOrdenTrabajoId/" + ordenTrabajoDetalleId);
+            cotizacionDetalle = responseHttpCotDet.Response != null ? responseHttpCotDet.Response : new List<CotizacionDetalleDTO>();
+            pageSize = cotizacionDetalle.Count;
+            totalCotizacion = TotalCotizacion();
+            
+            garantiaLlega = ordenTrabajoConsulta.GarantiaLocal ? "Local" : ordenTrabajoConsulta.GarantiaFabrica ? "Fábrica" : "";
+            garantiaLlegaDescripcion = ordenTrabajoConsulta.GarantiaLocal ? (ordenTrabajoConsulta.GarantiaLocalDetalle == null ? "" : ordenTrabajoConsulta.GarantiaLocalDetalle) : ordenTrabajoConsulta.GarantiaFabrica ? (ordenTrabajoConsulta.GarantiaFabricaDetalle == null ? "" : ordenTrabajoConsulta.GarantiaFabricaDetalle) : "";
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine(ex.Message);
+        }
+        
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        dialogDetalleOtIsOpen = true;
+    }
+
+
+
+    private bool dialogHistorialIsOpen = false;
+    private int pageSizeHistorial = 0;
+    private List<HistorialOrdenTrabajoDTO> historialOt = new List<HistorialOrdenTrabajoDTO>();
+
+    private async Task MuestraHistorial()
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        try
+        {
+            ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+            var responseHttp = await repository.Get<List<HistorialOrdenTrabajoDTO>>("api/OrdenTrabajo/GetHistorialOTs/" + ordenTrabajoDetalleId);
+            ordenTrabajoConsulta = ordenTrabajoConsultaRespaldo;
+            historialOt = responseHttp.Response;
+            pageSizeHistorial = historialOt.Count;
+
+            dialogHistorialIsOpen = true;   
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine(ex.Message);
+        }
+    }
+
+
+    private String TotalCotizacion()
+    {
+        float? total = 0;
+        foreach (CotizacionDetalleDTO m in cotizacionDetalle)
+            total += m.CostoUnitario * m.Cantidad;
+        return FormatoMoneda(total.ToString());
+    }
+
+    private String FormatoMoneda(String value)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        if (value != string.Empty)
+            return string.Format("{0:C2}", Convert.ToDecimal(value));
+        else
+            return "";
+    }
+
+    private String CalculaColumnaTotal(float? value, float? cantidad)
+    {
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+        return FormatoMoneda((value * cantidad).ToString());
+    }
+
+
+
     private async Task CancelaDialog()
     {
         dialogIsOpen = false;
+        await Task.Delay(50);
+    }
+
+
+    private async Task CancelaDetalleDialog()
+    {
+        ordenTrabajoDetalleId = 0;
+        ordenTrabajoConsulta = new OrdenTrabajoDetalleConsultaDTO();
+        //nombreCompletoCliente = string.Empty;
+        //fechaRegistro = string.Empty;
+        //cotizacion = new CotizacionDTO();
+        //comentarioCotizacion = string.Empty;
+        //cotizacionDetalle = new List<CotizacionDetalleDTO>();
+        //pageSize = 0;
+        //totalCotizacion = string.Empty;
+        //garantiaLlega = string.Empty;
+        //garantiaLlegaDescripcion = string.Empty;
+
+        dialogDetalleOtIsOpen = false;
+        await Task.Delay(50);
+    }
+
+    private async Task CierraHistorial()
+    {
+        dialogHistorialIsOpen = false;
         await Task.Delay(50);
     }
 

@@ -521,6 +521,21 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
+                var consulta1 = from otd in context.OrdenTrabajoDetalle
+                                join em in context.Empleados on otd.EmpleadoCreacion equals em.EmpleadoId
+                                where otd.OrdenTrabajoDetalleId == idOtd
+                                select new HistorialOrdenTrabajoDTO()
+                                {
+                                    Posicion = 0,
+                                    Descripcion = "Recibida",
+                                    FechaRegistro = otd.FechaRegistro,
+                                    NumeroEmpleado = em.NumeroEmpleado,
+                                    Nombre = em.Nombre,
+                                    Ubicacion = "",
+                                    Comentario = "SE RECIBE HERRAMIENTA"
+                                };
+                var result1 = await consulta1.OrderBy(x => x.FechaRegistro).ToListAsync();
+
                 var consulta = from ef in context.EstatusOTFlujos
                                join e in context.EstatusOTs on ef.EstatusOTId equals e.EstatusOTId
                                join em in context.Empleados on ef.EmpleadoCreacion equals em.EmpleadoId
@@ -534,11 +549,13 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    Nombre = em.Nombre,
                                    Ubicacion = ef.Ubicacion,
                                    Comentario = ef.Comentario
-                               };
-
+                               };                
                 var result = await consulta.OrderBy(x => x.FechaRegistro).ToListAsync();
-                var totalResultado = result.Count;
-                return result;
+
+                if (result.Count > 0)
+                    result1.AddRange(result);
+                //var totalResultado = result.Count;
+                return result1;
             }
             catch (Exception ex)
             {
@@ -809,6 +826,123 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener el ultimo valor de las Ordenes de trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetOrdeTrabajoDetalleById/{id}")]
+        public async Task<ActionResult<OrdenTrabajoDetalleConsultaDTO>> GetOrdeTrabajoDetalleById(int id)
+        {
+            try
+            {
+                //garantia 1= Local, 2= Fabrica, 3= Sin garantia, 0= Todos
+
+                var consulta = from otd in context.OrdenTrabajoDetalle
+                               join ot in context.OrdenTrabajo on otd.OrdenTrabajoId equals ot.OrdenTrabajoId
+                               join c in context.Clientes on ot.ClienteId equals c.ClienteId
+                               join ef in context.EstatusOTFlujos on otd.OrdenTrabajoDetalleId equals ef.OrdenTrabajoDetalleId into ef1
+                               from ef2 in ef1.DefaultIfEmpty()
+                               join e in context.EstatusOTs on ef2.EstatusOTId equals e.EstatusOTId into e1
+                               from e2 in e1.DefaultIfEmpty()
+                               where otd.OrdenTrabajoDetalleId == id
+                               select new OrdenTrabajoDetalleConsultaDTO()
+                               {
+                                   OrdenTrabajoDetalleId = otd.OrdenTrabajoDetalleId,
+                                   OrdenTrabajoId = otd.OrdenTrabajoId,
+                                   NumeroOrdenTrabajo = otd.NumeroOrdenTrabajo,
+                                   NombreHerramienta = otd.NombreHerramienta,
+                                   Marca = otd.Marca,
+                                   Modelo = otd.Modelo,
+                                   NumeroSerie = otd.NumeroSerie,
+                                   GarantiaFabrica = otd.GarantiaFabrica,
+                                   GarantiaFabricaDetalle = otd.GarantiaFabricaDetalle,
+                                   GarantiaLocal = otd.GarantiaLocal,
+                                   GarantiaLocalDetalle = otd.GarantiaLocalDetalle,
+                                   TiempoGarantia = otd.TiempoGarantia,
+                                   FechaRegistro = otd.FechaRegistro,
+                                   EmpleadoCreacion = otd.EmpleadoCreacion,
+                                   FechaUltimaModificacion = otd.FechaUltimaModificacion,
+                                   EmpleadoModificacion = otd.EmpleadoModificacion,
+                                   FechaEntrega = otd.FechaEntrega,
+                                   FechaFinaliacion = otd.FechaFinaliacion,
+                                   TieneCotizacion = otd.TieneCotizacion,
+                                   Comentarios = otd.Comentarios,
+                                   Ubicacion = ef2.Ubicacion,
+                                   ClienteId = c.ClienteId,
+                                   Nombre = c.Nombre,
+                                   Apellido = c.Apellido,
+                                   Telefono = c.Telefono,
+                                   Correo = c.Correo,
+                                   Direccion = c.Direccion,
+                                   RFC = c.RFC,
+                                   EsFrecuente = c.EsFrecuente,
+                                   EstatusOTFlujoId = ef2.EstatusOTFlujoId,
+                                   EstatusOTId = ef2.EstatusOTId,
+                                   Terminado = ef2.Terminado,
+                                   Descripcion = e2.Descripcion,
+                                   Posicion = e2.Posicion
+                               };
+
+                //var consultaResultado = from con in consulta
+                //                        join cot in (
+                //                            from cot in context.Cotizaciones
+                //                            join cd in context.CotizacionDetalles on cot.CotizacionId equals cd.CotizacionId
+                //                            group new { cot, cd } by new { cot.OrdenTrabajoDetalleId } into r
+                //                            select new
+                //                            {
+                //                                r.Key.OrdenTrabajoDetalleId,
+                //                                costoReparacion = r.Sum(x => x.cd.Cantidad * x.cd.CostoUnitario)
+                //                            }
+                //                        ) on con.OrdenTrabajoDetalleId equals cot.OrdenTrabajoDetalleId into m1
+                //                        from m2 in m1.DefaultIfEmpty()
+                //                        orderby con.FechaRegistro ascending
+                //                        select new OrdenTrabajoDetalleConsultaDTO()
+                //                        {
+                //                            OrdenTrabajoDetalleId = con.OrdenTrabajoDetalleId,
+                //                            OrdenTrabajoId = con.OrdenTrabajoId,
+                //                            NumeroOrdenTrabajo = con.NumeroOrdenTrabajo,
+                //                            NombreHerramienta = con.NombreHerramienta,
+                //                            Marca = con.Marca,
+                //                            Modelo = con.Modelo,
+                //                            NumeroSerie = con.NumeroSerie,
+                //                            GarantiaFabrica = con.GarantiaFabrica,
+                //                            GarantiaFabricaDetalle = con.GarantiaFabricaDetalle,
+                //                            GarantiaLocal = con.GarantiaLocal,
+                //                            GarantiaLocalDetalle = con.GarantiaLocalDetalle,
+                //                            TiempoGarantia = con.TiempoGarantia,
+                //                            FechaRegistro = con.FechaRegistro,
+                //                            EmpleadoCreacion = con.EmpleadoCreacion,
+                //                            FechaUltimaModificacion = con.FechaUltimaModificacion,
+                //                            EmpleadoModificacion = con.EmpleadoModificacion,
+                //                            FechaEntrega = con.FechaEntrega,
+                //                            FechaFinaliacion = con.FechaFinaliacion,
+                //                            TieneCotizacion = con.TieneCotizacion,
+                //                            Comentarios = con.Comentarios,
+                //                            Ubicacion = con.Ubicacion,
+                //                            ClienteId = con.ClienteId,
+                //                            Nombre = con.Nombre,
+                //                            Apellido = con.Apellido,
+                //                            Telefono = con.Telefono,
+                //                            Correo = con.Correo,
+                //                            Direccion = con.Direccion,
+                //                            RFC = con.RFC,
+                //                            EsFrecuente = con.EsFrecuente,
+                //                            EstatusOTFlujoId = con.EstatusOTFlujoId,
+                //                            EstatusOTId = con.EstatusOTId,
+                //                            Terminado = con.Terminado,
+                //                            Descripcion = con.Descripcion,
+                //                            Posicion = con.Posicion,
+                //                            costoReparacion = (decimal)m2.costoReparacion
+                //                        };
+
+                return await consulta.FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de la Orden de Trabajo. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 
