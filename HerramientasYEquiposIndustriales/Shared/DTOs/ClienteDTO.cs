@@ -26,6 +26,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
         public bool? PuedeRentar { get; set; }
+        public bool? PersonaFisica { get; set; }
+        public bool? PersonaMoral { get; set; }
 
         //DATOS PARA MOSTRAR EN GRID
         public bool ClienteVigenteParaRenta { get; set; }

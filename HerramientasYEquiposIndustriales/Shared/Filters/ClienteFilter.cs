@@ -17,5 +17,6 @@ namespace HerramientasYEquiposIndustriales.Shared.Filters
         public bool Todos { get; set; }
         public int PuedeRentar { get; set; }
         public int Activo { get; set; }
+        public int TipoCLienteFiscal { get; set; } //0 = MORAL ; 1 = FISICA
     }
 }

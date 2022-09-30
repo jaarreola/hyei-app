@@ -23,5 +23,7 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public bool EsFrecuente { get; set; }
         public bool? EsProblema { get; set; }
         public bool? PuedeRentar { get; set; }
+        public bool? PersonaFisica { get; set; }
+        public bool? PersonaMoral { get; set; }
     }
 }

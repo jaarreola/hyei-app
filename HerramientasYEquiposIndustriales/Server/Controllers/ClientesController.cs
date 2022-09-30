@@ -326,9 +326,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 DateTime? nuevaFechaFin;
                 if (vigencias.ToList().Count > 0)
-                    nuevaFechaFin = vigencias.FirstOrDefaultAsync().Result.FechaFin.Value.AddYears(1);
+                    nuevaFechaFin = vigencias.FirstOrDefaultAsync().Result.FechaFin.Value.AddMonths(6);  //nuevaFechaFin = vigencias.FirstOrDefaultAsync().Result.FechaFin.Value.AddYears(1);
                 else
-                    nuevaFechaFin = DateTime.Today.AddYears(1);
+                    nuevaFechaFin = DateTime.Today.AddMonths(6);
 
                 var nuevaVigencia = new VigenciaClientesRenta() 
                 {
