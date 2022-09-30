@@ -88,6 +88,117 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
 
+        [HttpPost("GuardaRenta")]
+        public ActionResult<RentasDTO> GuardaRenta(List<object> datos)
+        {
+            try
+            {
+                Cliente cliente = new Cliente();
+                Empleado empleado = new Empleado();
+                Rentas renta = new Rentas();
+
+                if (datos.Count == 3)
+                {
+                    cliente = mapper.Map<Cliente>(JsonConvert.DeserializeObject<ClienteDTO>(datos[0].ToString()));
+                    empleado = mapper.Map<Empleado>(JsonConvert.DeserializeObject<EmpleadoDTO>(datos[1].ToString()));
+                    renta = mapper.Map<Rentas>(JsonConvert.DeserializeObject<RentasDTO>(datos[2].ToString()));
+                }
+
+                using (var scope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+                {
+                    if(renta.RentasId == 0)
+                    {
+                        renta.ClienteId = cliente.ClienteId;
+                        renta.EmpleadoCreacion = empleado.EmpleadoId;
+                        renta.FechaRegistro = DateTime.Now;
+                        context.Rentas.Add(renta);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        renta.ClienteId = cliente.ClienteId;
+                        renta.EmpleadoCreacion = empleado.EmpleadoId;
+                        context.Entry(renta).State = EntityState.Modified;
+                        context.Entry(renta).Property(x => x.FechaRegistro).IsModified = false;
+                        context.SaveChanges();
+                    }
+                    scope.Complete();
+                }
+                return mapper.Map<RentasDTO>(renta);
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al generar la renta de la herramienta. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpPost("CompletaRenta")]
+        public ActionResult<bool> CompletaRenta(List<object> datos)
+        {
+            try
+            {
+                Cliente cliente = new Cliente();
+                Empleado empleado = new Empleado();
+                List<Rentas> rentas = new List<Rentas>();
+
+                if (datos.Count == 3)
+                {
+                    cliente = mapper.Map<Cliente>(JsonConvert.DeserializeObject<ClienteDTO>(datos[0].ToString()));
+                    empleado = mapper.Map<Empleado>(JsonConvert.DeserializeObject<EmpleadoDTO>(datos[1].ToString()));
+                    foreach (RentasDTO renta in (JsonConvert.DeserializeObject<List<RentasDTO>>(datos[2].ToString())))
+                    {
+                        //se agregan las rentas
+                        rentas.Add(mapper.Map<Rentas>(renta));
+                    }
+                }
+
+                using (var scope = new TransactionScope(TransactionScopeOption.Required,
+                    new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+                {
+                    foreach (var renta in rentas)
+                    {
+                        var rentaActualiza = context.Rentas.Where(x => x.RentasId == renta.RentasId).FirstOrDefault();
+                        rentaActualiza.ClienteId = cliente.ClienteId;
+                        rentaActualiza.EmpleadoCreacion = empleado.EmpleadoId;
+                        rentaActualiza.Generada = true;
+
+                        context.Entry(rentaActualiza).State = EntityState.Modified;
+                        context.Entry(rentaActualiza).Property(x => x.FechaRegistro).IsModified = false;
+                        context.SaveChanges();
+
+                        //por cada renta hay que afectar la existencia del producto
+                        var productoExistencia = context.ProductoTiendaExistencias.Where(x => x.ProductoTiendaExistenciasId == renta.ProductoTiendaExistenciasId).FirstOrDefault();
+                        productoExistencia.FechaModificacion = DateTime.Now;
+                        productoExistencia.EmpleadoModificacion = empleado.EmpleadoId;
+                        productoExistencia.Rentado = true;
+
+                        context.Entry(productoExistencia).State = EntityState.Modified;
+                        context.Entry(productoExistencia).Property(x => x.FechaRegistro).IsModified = false;
+                        context.Entry(productoExistencia).Property(x => x.EmpleadoRegistro).IsModified = false;
+                        context.SaveChanges();
+                    }
+                    scope.Complete();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al generar la renta de la herramienta. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+
         [HttpGet("GetRentasByFilter")]
         public async Task<ActionResult<IEnumerable<RentasDetalleDTO>>> GetRentasByFilter([FromQuery] BusquedaRentaFilter filtro)
         {
@@ -178,11 +289,12 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         context.Entry(renta).Property(x => x.EmpleadoCreacion).IsModified = false;
                         context.SaveChanges();
 
-                        //ponemos disponible de nueva cuenta el producto que se recibio
+                        //ponemos disponible de nueva cuenta el producto que se recibio y actualizamos su total de horas de uso
                         var productoExistencia = context.ProductoTiendaExistencias.Where(x => x.ProductoTiendaExistenciasId == renta.ProductoTiendaExistenciasId).FirstOrDefault();
                         productoExistencia.FechaModificacion = DateTime.Now;
                         productoExistencia.EmpleadoModificacion = renta.EmpleadoModificacion;
                         productoExistencia.Rentado = false;
+                        productoExistencia.TotalHorasRentado = (productoExistencia.TotalHorasRentado ?? 0) + renta.TotalHorasRenta;
 
                         context.Entry(productoExistencia).State = EntityState.Modified;
                         context.Entry(productoExistencia).Property(x => x.FechaRegistro).IsModified = false;
@@ -273,6 +385,30 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener la información de los Productos. \n{CommonConstant.MSG_ERROR_FIN}");
             }
+        }
+
+
+        [HttpDelete("DeleteRenta/{id}")]
+        public async Task<ActionResult> DeleteRenta(int id)
+        {
+            try
+            {
+                if (!RentaExists(id)) { return NotFound(); }
+                context.Rentas.Remove(new Rentas() { RentasId = id });
+                await context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al eliminar la renta. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+        private bool RentaExists(int id)
+        {
+            return context.Rentas.Any(x => x.RentasId == id);
         }
 
     }

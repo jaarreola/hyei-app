@@ -156,6 +156,9 @@
     <MatDialogTitle><h5>Renta para: @rentaSeleccionada.Sku - @rentaSeleccionada.Herramienta</h5></MatDialogTitle>
     <MatDialogContent>
         <div class="row">
+            <MatTextField @bind-Value="@fechaActcual" HelperText="Fecha" Label="Fecha" Icon="av_timer" IconTrailing="true" Outlined="true" ReadOnly="true" InputStyle="color: green; font-weight: bold"></MatTextField>
+        </div>
+        <div class="row">
             <div class="col-md-3">
                 <MatCheckbox TValue="bool" Value="@rentaDetalleEntregar.ChkDia" Disabled="true">Diario</MatCheckbox>
             </div>
@@ -232,6 +235,26 @@
             <div class="col-md-5" style="padding: 10px 10px;">
 				Total con Recargos: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalConRecargo.ToString())</strong>
             </div>
+        </div>
+        <div class="row">
+            @if (rentaDetalleEntregar.FechaEntrega != null)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
+                </div>
+            }
+            else if (fechaFinRenta < DateTime.Today)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="red"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }
+            else if (fechaFinRenta >= DateTime.Today)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="green"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }
         </div>
     </MatDialogContent>
     <MatDialogActions>
@@ -313,6 +336,8 @@
     private string numeroEmpleado;
     private bool guardandoRenta = false;
     private string mensajeVencimiento = string.Empty;
+
+    private string fechaActcual = DateTime.Today.Date.ToString("dd/MMMM/yyyy");
 
     protected async override Task OnInitializedAsync()
 	{
@@ -402,6 +427,11 @@
             
             if(rentaDetalleEntregar.FechaEntrega != null)
                 fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
+
+
+            if (rentaDetalleEntregar.FechaEntrega == null)
+                rentaDetalleEntregar.TotalHorasRenta = (int)(DateTime.Today - (DateTime)rentaDetalleEntregar.FechaInicioRenta).TotalDays * 8;
+
             
             if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && rentaDetalleEntregar.FechaEntrega == null)
                 mensajeVencimiento = "Renta vencida desde hace " + @DateTime.Today.Subtract(rentaDetalleEntregar.FechaFinRenta.Value).Days + " días";

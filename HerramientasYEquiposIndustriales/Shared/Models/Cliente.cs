@@ -26,5 +26,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public DateTime? FechaRegistro { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
         public bool? PuedeRentar { get; set; }
+        public bool? PersonaFisica { get; set; }
+        public bool? PersonaMoral { get; set; }
     }
 }

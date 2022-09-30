@@ -88,7 +88,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
-                    $"al actualizar la información del aval. \n{CommonConstant.MSG_ERROR_FIN}");
+                    $"al actualizar la información de la Referencia. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
 

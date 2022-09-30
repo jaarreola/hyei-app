@@ -99,6 +99,7 @@
 			<th style="width:10%;">Fecha Entrega</th>
 			<th style="width:12%;">Total a pagar</th>
 			<th style="width:5%;"></th>
+			<th style="width:5%;"></th>
 		</MatTableHeader>
 		<MatTableRow>
 			<td>@context.ProductoTiendaExistenciasId - @context.ProductoTienda.Nombre</td>
@@ -112,6 +113,7 @@
 			<td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
 			<td>@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
 			<td>@FormatoMoneda(@context.TotalRenta.ToString())</td>
+			<td><MatIconButton OnClick="@(_=>ImprimeHerramientaGrid(@context))" Icon="print"></MatIconButton></td>
 			<td><MatIconButton OnClick="@(_=>EliminaHerramientaGrid(@context))" Icon="delete"></MatIconButton></td>
 		</MatTableRow>
 	</MatTable>
@@ -128,7 +130,7 @@
                     <MatTextField FullWidth="true" @bind-Value="@nombreCLienteBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
                 </div>
 				<div class="col-md-4">
-                    <MatTextField FullWidth="true" @bind-Value="@apellidoCLienteBusqueda" Label="Nombre" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
+                    <MatTextField FullWidth="true" @bind-Value="@apellidoCLienteBusqueda" Label="Apellido" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
                 </div>
                 <div class="col-md-2">
                     <MatTextField FullWidth="true" @bind-Value="@rfcClienteBusqueda" Label="RFC" OnKeyPress="@KeyPress" OnFocusOut="@LostFocus"></MatTextField>
@@ -429,6 +431,15 @@
 	private bool guardandoRenta = false;
 	private string numeroEmpleado;
 
+	private bool guardaIndividual = false;
+	RentasDTO rentaIndividual;
+
+	private bool actualizaRentaIndividual = false;
+	private string ipRutaReporteContrato;
+	private bool imprimeContrato = false;
+	private int posicionReg;
+	private int index;
+
 
 	protected async override Task OnInitializedAsync()
 	{
@@ -465,7 +476,7 @@
 		}
 		else
 		{
-			if (await OpenConfirmacion("No existe un cliente con ese folio, desea expander la busqueda?") == 1)
+			if (await OpenConfirmacion("No existe un cliente con ese folio, desea extender la busqueda?") == 1)
 				dialogBuscarCliente = true;
 		}
 		PuedeGuardar();
@@ -543,12 +554,62 @@
 	//	return;
 	//}
 
-	private async Task EliminaHerramientaGrid(RentasDTO herramientaRenta)
+	private async Task ImprimeHerramientaGrid(RentasDTO herramientaRenta)
 	{
 		if (!expandido) { expandido = false; }
 
+		index = listaRentas.FindIndex(s => s == herramientaRenta);
+
+		if (await OpenConfirmacion("Desea imprimir el contrato para esta herramienta?") == 1)
+		{
+			rentaIndividual = herramientaRenta;
+			if (rentaIndividual.RentasId != 0)
+				actualizaRentaIndividual = true;
+
+			imprimeContrato = true;
+			await GuardarRentaIndividual(rentaIndividual);
+
+			//if (await GuardarRentaIndividual(rentaIndividual))
+			//{
+			//	await CargaRutaContrato();
+			//	String url = "http://" + ipRutaReporteContrato + "/Reportes/GetCotizacionByCotizacion?cotizacionId=" + herramientaRenta.RentasId;
+			//	//await Js.InvokeAsync<object>("open", url, "_blank");
+			//	await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+			//}
+		}
+
+		MuestraOcultarPaginadorHerramientas();
+	}
+
+
+	private async Task CargaRutaContrato()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContrato");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteContrato = configuracion.Valor;
+	}
+
+
+	private async Task EliminaHerramientaGrid(RentasDTO herramientaRenta)
+	{
+		index = listaRentas.FindIndex(s => s == herramientaRenta);
+
+		if (!expandido) { expandido = false; }
+
 		if (await OpenConfirmacion("Desea eliminar este registro?") == 1)
+		{
+			if (await OpenConfirmacion("Esta herramienta ya cuenta con contrato, desea continuar?") == 1)
+			{
+				var httpResponse = await repository.Delete("api/Rentas/DeleteRenta/" + herramientaRenta.RentasId);
+                if (httpResponse.Error)
+                {
+                    toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+                    return;
+                }
+			}
 			listaRentas.Remove(herramientaRenta);
+		}
 
 		MuestraOcultarPaginadorHerramientas();
 	}
@@ -832,14 +893,19 @@
 		}
 
 		rentaDetalleEditar.TotalRenta = rentaTotal;
-
-		if (fechaFin.DayOfWeek == System.DayOfWeek.Sunday)
-			fechaFin = fechaFin.AddDays(1);
+		
+		//if (fechaFin.DayOfWeek == System.DayOfWeek.Sunday)
+		//	fechaFin = fechaFin.AddDays(1);
 
 		if (rentaDetalleEditar.FechaInicioRenta < fechaFin)
 			rentaDetalleEditar.FechaFinRenta = fechaFin;
 		else
 			rentaDetalleEditar.FechaFinRenta = rentaDetalleEditarOriginal.FechaFinRenta;
+
+		if (rentaDetalleEditar.FechaFinRenta != null)
+			rentaDetalleEditar.TotalHorasRenta = (int)((DateTime)rentaDetalleEditar.FechaFinRenta - (DateTime)rentaDetalleEditar.FechaInicioRenta).TotalDays * 8;
+		else
+			rentaDetalleEditar.TotalHorasRenta = null;
 	}
 
 
@@ -861,13 +927,25 @@
 		}
 
 		//validamos que las herramientas tenga un total a pagar
-		if (listaRentas.Count > 0)
+		if (rentaIndividual != null && guardaIndividual)
+		{
+			if ((rentaIndividual.TotalRenta ?? 0) == 0)
+			{
+				toastService.ShowWarning("Falta generarle su Costo total", "Atención");
+				rentaIndividual = null;
+				guardaIndividual = false;
+				return false;
+			}
+			dialogValidaEmpleado = true;
+			return true;
+		}
+		else if (listaRentas.Count > 0)
 		{
 			foreach (RentasDTO renta in listaRentas)
 			{
-				if ((renta.TotalRenta ?? 0) == 0)
+				if (renta.RentasId == 0)
 				{
-					toastService.ShowWarning("Hay herramientas que falta generarle su Costo total", "Atención");
+					toastService.ShowWarning("Hay herramientas que aun no se ha generado su contrato.");
 					return false;
 				}
 			}
@@ -879,6 +957,13 @@
 			toastService.ShowWarning("Debe de agregar alguna herramienta.", "Atención");
 			return false;
 		}
+	}
+
+
+	private async Task<bool> GuardarRentaIndividual(RentasDTO renta)
+	{
+		guardaIndividual = true;
+		return await GuardarRenta();
 	}
 
 
@@ -894,31 +979,98 @@
 
 		if (empleado.EmpleadoId != 0)
 		{
-			//se manda guardar toda la lista
-			List<Object> enviar = new List<Object>();
-			enviar.Add(cliente);
-			enviar.Add(empleado);
-			enviar.Add(listaRentas);
-			var httpResponse = await repository.Post("api/Rentas/GuardaRentas", enviar);
+			if (rentaIndividual != null && guardaIndividual)
+			{
+				//se manda guardar toda la lista
+				List<Object> enviarI = new List<Object>();
+				enviarI.Add(cliente);
+				enviarI.Add(empleado);
+				enviarI.Add(rentaIndividual);
 
-			if (httpResponse.Error)
-				toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+				var httpResponseI = await repository.Post("api/Rentas/GuardaRenta", enviarI);
+
+				if (httpResponseI.Error)
+					toastService.ShowError(await httpResponseI.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+				else
+				{
+					JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+					responseString = await httpResponseI.HttpResponseMessage.Content.ReadAsStringAsync();
+					rentaIndividual = JsonSerializer.Deserialize<RentasDTO>(responseString, JsonSerializerOptions);
+
+					listaRentas[index].RentasId = rentaIndividual.RentasId;
+
+					numeroEmpleado = string.Empty;
+					guardaIndividual = false;
+					toastService.ShowSuccess("Registro completo", "Guardado");
+
+					if(imprimeContrato)
+					{
+						await CargaRutaContrato();
+						String url = "http://" + ipRutaReporteContrato + "/Reportes/GetContratoRenta?contratoRentaId=" + rentaIndividual.RentasId;
+						//await Js.InvokeAsync<object>("open", url, "_blank");
+						await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+						imprimeContrato = false;
+						rentaIndividual = null;
+					}
+					await Task.Delay(100);
+					dialogValidaEmpleado = false;
+				}
+			}
 			else
 			{
-				dialogValidaEmpleado = false;
+				//se manda guardar toda la lista
+				List<Object> enviar = new List<Object>();
+				enviar.Add(cliente);
+				enviar.Add(empleado);
+				enviar.Add(listaRentas);
+				var httpResponse = await repository.Post("api/Rentas/CompletaRenta", enviar);
 
-				//limpiamos los campos despues de guardar
-				numeroEmpleado = string.Empty;
-				cliente = new ClienteDTO();
-				listaRentas = new List<RentasDTO>();
-				clienteIdBusqueda = null;
-				fechaVencimientoCLiente = string.Empty;
-				esVencido = string.Empty;
-				toastService.ShowSuccess("Registro completo", "Guardado");
+				if (httpResponse.Error)
+					toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+				else
+				{
+					dialogValidaEmpleado = false;
 
-				await Task.Delay(500);
-				//await ImprimirUltimoTicket();
+					//limpiamos los campos despues de guardar
+					numeroEmpleado = string.Empty;
+					cliente = new ClienteDTO();
+					listaRentas = new List<RentasDTO>();
+					clienteIdBusqueda = null;
+					fechaVencimientoCLiente = string.Empty;
+					esVencido = string.Empty;
+					toastService.ShowSuccess("Registro completo", "Guardado");
+				}
 			}
+			await Task.Delay(50);
+
+			//////------------------------------------------------------------------------------------------------------------------
+			//////CODIGO ANTERIOR
+			////
+			//////se manda guardar toda la lista
+			////List<Object> enviar = new List<Object>();
+			////enviar.Add(cliente);
+			////enviar.Add(empleado);
+			////enviar.Add(listaRentas);
+			////var httpResponse = await repository.Post("api/Rentas/GuardaRentas", enviar);
+			////
+			////if (httpResponse.Error)
+			////	toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+			////else
+			////{
+			////	dialogValidaEmpleado = false;
+			////
+			////	//limpiamos los campos despues de guardar
+			////	numeroEmpleado = string.Empty;
+			////	cliente = new ClienteDTO();
+			////	listaRentas = new List<RentasDTO>();
+			////	clienteIdBusqueda = null;
+			////	fechaVencimientoCLiente = string.Empty;
+			////	esVencido = string.Empty;
+			////	toastService.ShowSuccess("Registro completo", "Guardado");
+			////
+			////	await Task.Delay(500);
+			////	//await ImprimirUltimoTicket();
+			////}
 		}
 		else
 			toastService.ShowError("Numero de empleado no valido", "Error");
@@ -978,7 +1130,7 @@
         queryStringsDict["Direccion"] = direccionClienteBusqueda ?? String.Empty;
         queryStringsDict["RFC"] = rfcClienteBusqueda ?? String.Empty;
 		queryStringsDict["Telefono"] = telefonoClienteBusqueda ?? String.Empty;
-
+		queryStringsDict["Todos"] = "true";
 		queryStringsDict["PuedeRentar"] = "0";
         var valoresPorDefecto = new List<string>() { "false", "", "0" };
 

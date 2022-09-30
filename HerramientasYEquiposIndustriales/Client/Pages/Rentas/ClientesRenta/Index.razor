@@ -100,7 +100,7 @@ else
                 <th style="width:5%;">Vigencia</th>
                 <th style="width:4%;">Frecuente</th>
                 <th style="width:5%;">Es Problema</th>
-                <th style="width:5%;">Aval</th>
+                <th style="width:5%;">Referencias</th>
                 <th style="width:5%;"></th>
             </MatTableHeader>
             <MatTableRow>
@@ -142,9 +142,15 @@ else
             <MatDialogTitle><h5>Cliente</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-7">
                         <MatButton Raised="true" Icon="search" OnClick="@OpenDialogSeleccionaClienteSinRenta" Disabled="@desactivarBuscarCliente">Buscar cliente existente</MatButton>
                     </div>
+                    <div class="col-md-5">
+						<MatRadioGroup @bind-Value="@tipoClienteFiscal" TValue="int">
+							<MatRadioButton Value="0" TValue="int">Moral</MatRadioButton>
+							<MatRadioButton Value="1" TValue="int">Físico</MatRadioButton>
+						</MatRadioGroup>
+					</div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -205,7 +211,7 @@ else
 
 <div>
     <MatDialog @bind-IsOpen="@dialogRequisitosIsopen" CanBeClosed="false" class="mdc-dialog800">
-        <MatDialogTitle><h5>Requisitos Mebresia Renta</h5></MatDialogTitle>
+        <MatDialogTitle><h5>Requisitos Membresia Renta</h5></MatDialogTitle>
         <MatDialogContent>
             <div class="row">
                 &nbsp;
@@ -213,25 +219,27 @@ else
             <div class="row">
                 <div class="col-md-6">
                     <MatListGroup>
-                        <MatListGroupSubHeader>CLIENTE</MatListGroupSubHeader>
+                        <MatListGroupSubHeader>PERSONA FISICA</MatListGroupSubHeader>
                         <MatList>
-                            <MatListItem>* Identificacion oficial con fotografia y copia</MatListItem>
-                            <MatListItem>* CURP</MatListItem>
-                            <MatListItem>* Comprobante domicilio y copia</MatListItem>
-                            <MatListItem>* Telefono / Celular</MatListItem>
-                            <MatListItem>* Correo Electronico</MatListItem>
-                            <MatListItem>* Aval</MatListItem>
+                            <MatListItem>* Credencial de elector vigente</MatListItem>
+                            <MatListItem>* Comprobante de agua</MatListItem>
+                            <MatListItem>* Predial del año en curso</MatListItem>
+                            <MatListItem>* Cédula o constancia RFC</MatListItem>
+                            <MatListItem>* 2 Referencias Personales (nombre, teléfono y parentesco)</MatListItem>
+                            <MatListItem>* Tarjeta de circulacion del vehículo donde se trasladara el equipo</MatListItem>
                         </MatList>
                     </MatListGroup>
                 </div>
                 <div class="col-md-6">
                     <MatListGroup>
-                        <MatListGroupSubHeader>AVAL</MatListGroupSubHeader>
+                        <MatListGroupSubHeader>PERSONA MORAL</MatListGroupSubHeader>
                         <MatList>
-                            <MatListItem>* Identificacion oficial con fotografia y copia</MatListItem>
-                            <MatListItem>* CURP</MatListItem>
-                            <MatListItem>* Comprobante domicilio y copia</MatListItem>
-                            <MatListItem>* Telefono / Celular</MatListItem>
+                            <MatListItem>* Acta constitutiva de la empresa</MatListItem>
+                            <MatListItem>* Acta de la asamblea donde se designa al representante legal de la empresa</MatListItem>
+                            <MatListItem>* Credencial de elector del representante legal</MatListItem>
+                            <MatListItem>* Comprobante de agua a nombre de la empresa o representante legal</MatListItem>
+                            <MatListItem>* Alta de hacienda (RFC y dirección física)</MatListItem>
+                            <MatListItem>* 3 referencias comerciales (nombre, teléfono y contacto)</MatListItem>
                         </MatList>
                     </MatListGroup>
                 </div>
@@ -293,7 +301,7 @@ else
 
 <div>
     <MatDialog @bind-IsOpen="@dialogListaAvales" CanBeClosed="false" class="mdc-dialog900">
-        <MatDialogTitle><h5>@cliente.ClienteId.ToString("00000") - @cliente.Nombre @cliente.Apellido - Avales</h5></MatDialogTitle>
+        <MatDialogTitle><h5>@cliente.ClienteId.ToString("00000") - @cliente.Nombre @cliente.Apellido - Referencias</h5></MatDialogTitle>
         <MatDialogContent>
             <div class="row">
                 <div class="col-md-12">
@@ -334,7 +342,7 @@ else
     <EditForm Model="@aval">
         <DataAnnotationsValidator />
         <MatDialog @bind-IsOpen="@dialogAvalIsOpen" CanBeClosed="false" class="mdc-dialog800">
-            <MatDialogTitle><h5>Aval</h5></MatDialogTitle>
+            <MatDialogTitle><h5>Referencia</h5></MatDialogTitle>
             <MatDialogContent>
                 <div class="row">
                     <div class="col-md-6">
@@ -379,6 +387,7 @@ else
     private string direccionClienteBusqueda = string.Empty;
     private string rfcClienteBusqueda = string.Empty;
     private int tipoCliente = 0;
+    private int tipoClienteFiscal = 0;
     private int puedeRentar = 0;
     private int activo = 0;
     private bool? valorPuedeRentar;
@@ -524,7 +533,7 @@ else
         
         if((cliente.ClienteId == 0 && cliente.PuedeRentar == true) || (cliente.ClienteId != 0 && valorPuedeRentar != cliente.PuedeRentar && cliente.PuedeRentar == true))
         {
-            if (await OpenConfirmacion("Al poder rentar, el cliente debió de presentar alguno o los siguientes documentos: \n\n Identificacion oficial, \n\n Comprobante de domicilio") == 0)
+            if (await OpenConfirmacion("Al poder rentar, el cliente debió de presentar los documentos necesarios.") == 0)
                return; 
         }
         
@@ -544,6 +553,18 @@ else
         if (cliente.EsFrecuente != true)
             cliente.EsFrecuente = false;
 
+        if (tipoClienteFiscal == 0)
+        {
+            cliente.PersonaMoral = true;
+            cliente.PersonaFisica = false;
+        }
+        else
+        {
+            cliente.PersonaMoral = false;
+            cliente.PersonaFisica = true;
+        }
+            
+
         var httpResponse = await repository.Post("api/Clientes", cliente);
 
         if (httpResponse.Error)
@@ -552,7 +573,7 @@ else
         {
             toastService.ShowSuccess("Registro completo", "Guardado");
 
-            if (await OpenConfirmacion("Desea capturar los datos del Aval??") == 1)
+            if (await OpenConfirmacion("Desea capturar los datos de la Referencia??") == 1)
             {
                 JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
                 var responseString = await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -569,6 +590,17 @@ else
 
     private async Task ActualizarCliente()
     {
+        if (tipoClienteFiscal == 0)
+        {
+            cliente.PersonaMoral = true;
+            cliente.PersonaFisica = false;
+        }
+        else
+        {
+            cliente.PersonaMoral = false;
+            cliente.PersonaFisica = true;
+        }
+
         var httpResponse = await repository.Put("api/Clientes/" + cliente.ClienteId, cliente);
 
         if (httpResponse.Error)
@@ -585,19 +617,19 @@ else
     {
         if ((aval.Nombre ?? String.Empty) == String.Empty)
         {
-            await OpenMessage("Debe capturar el nombre del Aval");
+            await OpenMessage("Debe capturar el nombre");
             return;
         }
 
         if ((aval.Direccion ?? String.Empty) == String.Empty)
         {
-            await OpenMessage("Debe capturar la dirección del Aval");
+            await OpenMessage("Debe capturar la dirección");
             return;
         }
 
         if ((aval.Telefono1 ?? String.Empty) == String.Empty && (aval.Telefono2 ?? String.Empty) == String.Empty)
         {
-            await OpenMessage("Debe capturar por lo menos 1 telefono de contacto para el Aval");
+            await OpenMessage("Debe capturar por lo menos 1 telefono de contacto");
             return;
         }
         
@@ -669,14 +701,15 @@ else
     {
         if(!(await repository.Get<bool>("api/Avales/TieneAvalesCorrectosByClienteId/" + cliente.ClienteId)).Response)
         {
-            await OpenMessage("No cuenta con un Aval para generar vigencia.");
+            await OpenMessage("No cuenta con Referencias personales para generar vigencia.");
             return;
         }
 
         //if(cliente.FechaVencimientoParaRenta == null || (cliente.FechaVencimientoParaRenta >= DateTime.Today && cliente.FechaVencimientoParaRenta < DateTime.Today.AddMonths(1)))
         if(cliente.FechaVencimientoParaRenta == null || (cliente.FechaVencimientoParaRenta <= DateTime.Today.AddMonths(1)))
         {
-            if (await OpenConfirmacion("Desea extender o agregar la vigencia del cliente " + cliente.Nombre + " " + cliente.Apellido + " por 1 año?") == 1)
+            //if (await OpenConfirmacion("Desea extender o agregar la vigencia del cliente " + cliente.Nombre + " " + cliente.Apellido + " por 1 año?") == 1)
+            if (await OpenConfirmacion("Desea extender o agregar la vigencia del cliente " + cliente.Nombre + " " + cliente.Apellido + " por 6 meses?") == 1)
             {
                 procesando = true;
                 var queryStrings = GenerarQueryStrings();
@@ -800,6 +833,8 @@ else
 
         queryStringsDict["EsFrecuente"] = tipoCliente == 1 ? "true" : "false"; //ClienteFecuente.ToString();
         queryStringsDict["Todos"] = tipoCliente == 0 ? "true" : "false";
+        //queryStringsDict["TipoCLienteFiscal"] = tipoClienteFiscal.ToString();
+        
         queryStringsDict["EsProblema"] = tipoCliente == 2 ? "true" : "false";
 
         queryStringsDict["Activo"] = activo.ToString();

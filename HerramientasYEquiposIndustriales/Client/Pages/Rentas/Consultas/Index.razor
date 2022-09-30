@@ -190,6 +190,11 @@
 				Total con Recargos: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalConRecargo.ToString())</strong>
             </div>
         </div>
+        <div class="row">
+			<div class="col-md-4" style="padding: 10px 10px;">
+				Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
+            </div>
+        </div>
     </MatDialogContent>
     <MatDialogActions>
 		<MatButton OnClick="@CerrarDetalle" class="mdc-button-modal">Cerrar</MatButton>

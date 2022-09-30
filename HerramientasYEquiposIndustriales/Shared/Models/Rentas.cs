@@ -38,6 +38,7 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public int EmpleadoCreacion { get; set; }
         public DateTime? FechaModificacion { get; set; }
         public int EmpleadoModificacion { get; set; }
+        public bool? Generada { get; set; }
 
         public virtual ProductoTiendaExistencias ProductoTiendaExistencias { get; set; }
     }
