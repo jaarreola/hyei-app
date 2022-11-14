@@ -31,6 +31,8 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         [StringLength(500)]
         public String Ubicacion { get; set; }
         public bool? NoAfectaInventario { get; set; }
+        public int? Porcentaje { get; set; }
+        public DateTime? FechaModificacionPrecio { get; set; }
 
         public virtual Marca Marca { get; set; }
     }

@@ -34,6 +34,8 @@ namespace HerramientasYEquiposIndustriales.Shared.Models
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
         public String Comentarios { get; set; }
+        public bool? Revision { get; set; }
+        public bool? Reparacion { get; set; }
 
         public virtual OrdenTrabajo OrdenTrabajo { get; set; }
     }

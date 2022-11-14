@@ -34,7 +34,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 //var Productos = await context.ProductosTienda.Include(x => x.Marca).Include(x => x.Existencias).ToListAsync();
-                var Productos = await context.ProductosTienda.Include(x => x.Marca).ToListAsync();
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x => x.FechaBaja == null).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
             catch (Exception ex)
@@ -51,7 +51,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.ProductosTiendaId == id);
+                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.ProductosTiendaId == id && x.FechaBaja == null);
 
                 if (Producto == null) return NotFound();
 
@@ -73,7 +73,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var producto = await context.ProductosTienda.FirstOrDefaultAsync(x => x.Sku == Sku);
+                var producto = await context.ProductosTienda.FirstOrDefaultAsync(x => x.Sku == Sku && x.FechaBaja == null);
 
                 if (producto == null) { return NotFound(); }
 
@@ -101,7 +101,8 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     (x.Sku.Contains(filtrosProducto.NoParte) || filtrosProducto.NoParte == null) &&
                     (x.Nombre.Contains(filtrosProducto.Nombre) || filtrosProducto.Nombre == null) &&
                     (x.Modelo.Contains(filtrosProducto.Modelo) || filtrosProducto.Modelo == null) &&
-                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId || filtrosProducto.MarcaId == null)
+                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId || filtrosProducto.MarcaId == null) &&
+                    x.FechaBaja == null
                 ).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
@@ -122,9 +123,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
-                    (x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                    ((x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
                     (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
-                    (x.Marca.Descripcion.Contains(filtrosProducto.Marca) && filtrosProducto.Marca != null)
+                    (x.Marca.Descripcion.Contains(filtrosProducto.Marca) && filtrosProducto.Marca != null)) &&
+                    x.FechaBaja == null
                 ).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }
@@ -143,7 +145,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.Sku == filtrosProducto.NoParte);
+                var Producto = await context.ProductosTienda.Include(x => x.Marca).FirstOrDefaultAsync(x => x.Sku == filtrosProducto.NoParte && x.FechaBaja == null);
                 if (Producto == null)
                     return new ProductosTiendaDTO();
                 else
@@ -341,7 +343,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
         {
             try
             {
-                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x => x.Sku.Contains(filtrosProducto.NoParte)).ToListAsync();
+                var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x => x.Sku.Contains(filtrosProducto.NoParte) && x.FechaBaja == null).ToListAsync();
                 return mapper.Map<ProductosTiendaDTO>(Productos);
             }
             catch (Exception)
@@ -359,10 +361,11 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             try
             {
                 var Productos = await context.ProductosTienda.Include(x => x.Marca).Where(x =>
-                    (x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
+                    ((x.Sku.Contains(filtrosProducto.NoParte) && filtrosProducto.NoParte != null) ||
                     (x.Nombre.Contains(filtrosProducto.Nombre) && filtrosProducto.Nombre != null) ||
                     (x.Modelo.Contains(filtrosProducto.Modelo) && filtrosProducto.Modelo != null) ||
-                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId && filtrosProducto.MarcaId != 0)
+                    (x.MarcasProductosTiendaId == filtrosProducto.MarcaId && filtrosProducto.MarcaId != 0)) &&
+                    x.FechaBaja == null
                 ).ToListAsync();
                 return mapper.Map<List<ProductosTiendaDTO>>(Productos);
             }

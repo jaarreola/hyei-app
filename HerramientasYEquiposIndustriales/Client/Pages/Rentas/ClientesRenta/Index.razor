@@ -7,6 +7,8 @@
 @inject IToastService toastService
 @inject IMatDialogService MatDialogService
 
+@inject IJSRuntime Js
+
 <div>
     <div class="row">
         <div class="col-md-10 col-sm-4">
@@ -246,6 +248,7 @@ else
             </div>
         </MatDialogContent>
         <MatDialogActions>
+            <MatButton OnClick="@ImprimeRequisitos" class="mdc-button-modal">Imprimir Requisitos</MatButton>
             <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
         </MatDialogActions>
     </MatDialog>
@@ -422,6 +425,8 @@ else
     private int totalClientes = 0;
 
     private bool procesando = false;
+
+    private string ipRutaReporteContrato;
 
     protected async override Task OnInitializedAsync()
     {
@@ -819,6 +824,29 @@ else
         dialogAvalIsOpen = true;
         await Task.Delay(50);
     }
+
+
+    private async Task ImprimeRequisitos()
+	{
+		if (!expandido) { expandido = false; }
+
+		if (await OpenConfirmacion("Desea imprimir los requisitos de renta?") == 1)
+		{
+			await CargaRutaContrato();
+			String url = "http://" + ipRutaReporteContrato + "/Reportes/GetRequisitos";
+			//await Js.InvokeAsync<object>("open", url, "_blank");
+			await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+		}
+	}
+
+    private async Task CargaRutaContrato()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContrato");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteContrato = configuracion.Valor;
+	}
+
 
 
     private string GenerarQueryStrings()

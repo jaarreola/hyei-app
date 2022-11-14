@@ -36,8 +36,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                 var Productos = await context.Productos.Include(x => x.Marca).ToListAsync();
                 return mapper.Map<List<ProductoDTO>>(Productos);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine(ex.Message);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     $"{CommonConstant.MSG_ERROR_INICIO} " +
                     $"al obtener el listado de Productos. \n{CommonConstant.MSG_ERROR_FIN}");
@@ -165,6 +166,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             {
                 var Producto = mapper.Map<Producto>(ProductoCreacionDTO);
                 Producto.FechaRegistro = DateTime.Now;
+                if ((Producto.CostoCompra ?? 0) != 0)
+                    Producto.FechaModificacionPrecio = DateTime.Now;
+
                 ProductoDTO dto = new ProductoDTO();
 
                 using (var scope = new TransactionScope(TransactionScopeOption.Required,
@@ -175,7 +179,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     dto = mapper.Map<ProductoDTO>(Producto);
 
-                    if (Producto.CostoCompra != 0 && Producto.CostoCompra != null )
+                    if ((Producto.CostoCompra ?? 0) != 0)
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
                         {
@@ -217,18 +221,17 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                     Producto.ProductoId = id;
                     Producto.FechaUltimaModificacion = DateTime.Now;
-
+                    
                     context.Entry(Producto).State = EntityState.Modified;
                     context.Entry(Producto).Property(x => x.FechaRegistro).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoCreacion).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoBaja).IsModified = false;
                     context.Entry(Producto).Property(x => x.EmpleadoActivo).IsModified = false;
-
                     context.SaveChanges();
 
                     var ultimoPrecio = context.HistorialPreciosProductos.OrderByDescending(x => x.FechaRegistro).FirstOrDefault(x => x.ProductoId == Producto.ProductoId);
                         
-                    if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra))
+                    if (Producto.CostoCompra != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoCompra) || Producto.CostoVenta != (ultimoPrecio == null ? 0 : ultimoPrecio.CostoVenta))
                     {
                         HistorialPreciosProductos nuevoPrecio = new HistorialPreciosProductos()
                         {
@@ -239,6 +242,10 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                             EmpleadoCreacion = Producto.EmpleadoModificacion
                         };
                         context.HistorialPreciosProductos.Add(nuevoPrecio);
+                        context.SaveChanges();
+                                                
+                        Producto.FechaModificacionPrecio = DateTime.Now;
+                        context.Entry(Producto).State = EntityState.Modified;
                         context.SaveChanges();
                     }
                     scope.Complete();

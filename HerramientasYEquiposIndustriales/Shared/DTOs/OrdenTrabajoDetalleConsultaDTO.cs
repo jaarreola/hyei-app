@@ -33,7 +33,9 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public DateTime? FechaFinaliacion { get; set; }
         public bool TieneCotizacion { get; set; }
         public String Comentarios { get; set; }
-        
+        public bool? Revision { get; set; }
+        public bool? Reparacion { get; set; }
+
 
         public int ClienteId { get; set; }
         [Required]

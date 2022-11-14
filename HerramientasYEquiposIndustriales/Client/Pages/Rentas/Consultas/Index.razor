@@ -68,9 +68,9 @@
 <div class="row">
     <MatTable Items="@rentas" AllowSelection="true" class="mat-elevation-z10">
         <MatTableHeader>
+            <th style="width:10%;">No Renta</th>
             <th style="width:10%;">Sku</th>
             <th style="width:20%;">Herramienta</th>
-            <th style="width:8%;">Folio</th>
             <th style="width:10%;">Inicio Renta</th>
             <th style="width:10%;">Fin Renta</th>
             <th style="width:10%;">Entrega</th>
@@ -79,11 +79,12 @@
             <th style="width:20%;">Cliente</th>
             <th style="width:8%;">Teléfono</th>
             <th style="width:8%;"></th>
+            <th style="width:5%;"></th>
         </MatTableHeader>
         <MatTableRow>
+            <td><strong>@context.NoRenta</strong></td>
             <td><strong>@context.Sku</strong></td>
             <td>@context.Herramienta</td>
-            <td>@context.FolioProductoTienda</td>
             <td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
 
             @if (context.FechaEntregado != null)
@@ -104,6 +105,7 @@
             <td>@context.Nombre  @context.Apellido</td>
             <td>@context.Telefono</td>
             <td><MatIconButton OnClick="@(_=>MostrarDetalleRenta(@context))" Icon="visibility"></MatIconButton></td>
+            <td><MatIconButton OnClick="@(_=>ImprimeHerramientaGrid(@context.NoRenta))" Icon="print"></MatIconButton></td>
         </MatTableRow>
     </MatTable>
 </div>
@@ -179,9 +181,20 @@
                 }
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-3">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.HorasSalida" HelperText="Horas Salida" Label="Horas Salida" ReadOnly="true" InputStyle="font-weight: bold" TValue="int?"></MatTextField>
+            </div>
+            <div class="col-md-3">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.HorasEntrega" HelperText="Horas Entrega" Label="Horas Entrega" ReadOnly="true" TValue="int?"></MatTextField>
+            </div>
+             <div class="col-md-4" style="padding: 10px 10px;">
+				Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
+            </div>
+        </div>
         <div class="row">            
             <div class="col-md-3">
-				<MatTextField FullWidth="true" Value="@recargo" HelperText="Recargo" Label="Recargo" ReadOnly="true" TValue="float?"></MatTextField>
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.Recargo" HelperText="Recargo" Label="Recargo" ReadOnly="true" TValue="float?" InputStyle="font-weight: bold"></MatTextField>
             </div>
             <div class="col-md-4" style="padding: 10px 10px;">
 				Costo Total: <strong>@FormatoMoneda(@rentaDetalleEntregar.TotalRenta.ToString())</strong>
@@ -191,12 +204,13 @@
             </div>
         </div>
         <div class="row">
-			<div class="col-md-4" style="padding: 10px 10px;">
-				Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
+			<div class="col-md-12">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.Comentarios" Label="Comentario / Observación Herramienta" ReadOnly="true" TextArea="true"></MatTextField>
             </div>
         </div>
     </MatDialogContent>
     <MatDialogActions>
+        <div style="color:red; font-weight:bold">@mensajeVencimiento</div>
 		<MatButton OnClick="@CerrarDetalle" class="mdc-button-modal">Cerrar</MatButton>
     </MatDialogActions>
 </MatDialog>
@@ -229,6 +243,7 @@
     
 
     private int estatusRenta = 1;
+    private string ipRutaReporteContrato;
 
 
     protected async override Task OnInitializedAsync()
@@ -290,9 +305,11 @@
             fechaInicioRenta = rentaDetalleEntregar.FechaInicioRenta.Value.AddDays(1);
             fechaFinRenta = rentaDetalleEntregar.FechaFinRenta.Value.AddDays(1);
 
-            if(rentaDetalleEntregar.FechaEntrega != null)
-                fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
-            
+            //if(rentaDetalleEntregar.FechaEntrega != null)
+            //    fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
+            if (rentaDetalleEntregar.FechaEntrega != null)
+                fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value;
+
             if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && rentaDetalleEntregar.FechaEntrega == null)
                 mensajeVencimiento = "Renta vencida desde hace " + @DateTime.Today.Subtract(rentaDetalleEntregar.FechaFinRenta.Value).Days + " días";
             else
@@ -320,6 +337,22 @@
     }
 
 
+    private async Task ImprimeHerramientaGrid(int noRenta)
+	{
+		if (!expandido) { expandido = false; }
+
+		if (await OpenConfirmacion("Desea reimprimir el contrato para esta herramienta?") == 1)
+		{
+			//await CargaRutaContrato();
+            await CargaRutaContratoNoRenta();
+			//String url = "http://" + ipRutaReporteContrato + "/Reportes/GetContratoRenta?contratoRentaId=" + rentaId;
+            String url = "http://" + ipRutaReporteContrato + "/Reportes/GetContratoRentaByNoRenta?noRenta=" + noRenta;
+			//await Js.InvokeAsync<object>("open", url, "_blank");
+			await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+		}
+	}
+
+
     private string GenerarQueryStringsBusqueda()
     {
         queryString = new Dictionary<string, string>();            
@@ -341,5 +374,38 @@
 
         return result;
     }
+
+    private async Task<int> OpenConfirmacion(string pregunta)
+    {
+        var result = await MatDialogService.AskAsync(pregunta, new string[] { "Si", "No" });
+        int r = 0;
+        switch (result)
+        {
+            case "Si":
+                r = 1;
+                break;
+            case "No":
+                r = 0;
+                break;
+        }
+        return r;
+    }
+
+    private async Task CargaRutaContrato()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContrato");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteContrato = configuracion.Valor;
+	}
+
+
+    private async Task CargaRutaContratoNoRenta()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContratoNoRenta");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteContrato = configuracion.Valor;
+	}
 
 }

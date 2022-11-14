@@ -40,12 +40,12 @@
             <div class="row">
                 <MatTable Items="@modelos" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
-                        <th style="width:300px;">Modelo</th>
+                        <th style="width:100%;">Modelo</th>
                         <th style="width:100px;">Cantidad</th>
                         <th style="width:100px;"></th>
                     </MatTableHeader>
                     <MatTableRow>
-                        <td style="width:600px;"><strong>@context.Modelo</strong></td>
+                        <td style="width:100%;"><strong>@context.Modelo</strong></td>
                         <td style="width:100px;">@context.cantidad</td>
                         <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
                     </MatTableRow>
@@ -73,7 +73,7 @@
                     <MatDatePicker @bind-Value="@fechaFinMarca" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
                 </div>
                 <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@marcaBusqueda" Label="Modelo"></MatTextField>
+                    <MatTextField FullWidth="true" @bind-Value="@marcaBusqueda" Label="Marca"></MatTextField>
                 </div>
                 <div class="col-md-3">
                     <MatButton Raised="true" Icon="search" OnClick="@BuscaMarcasOt" class="mdc-button-background">Buscar</MatButton>
@@ -88,12 +88,12 @@
             <div class="row">
                 <MatTable Items="@marcas" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
-                        <th style="width:300px;">Marca</th>
+                        <th style="width:100%;">Marca</th>
                         <th style="width:100px;">Cantidad</th>
                         <th style="width:100px;"></th>
                     </MatTableHeader>
                     <MatTableRow>
-                        <td style="width:600px;"><strong>@context.Marca</strong></td>
+                        <td style="width:100%;"><strong>@context.Marca</strong></td>
                         <td style="width:100px;">@context.cantidad</td>
                         <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
                     </MatTableRow>
@@ -120,7 +120,7 @@
                     <MatDatePicker @bind-Value="@fechaFinHerramienta" HelperText="Fecha Final de busqueda" Label="Fecha Final"></MatDatePicker>
                 </div>
                 <div class="col-md-3">
-                    <MatTextField FullWidth="true" @bind-Value="@herramientaBusqueda" Label="Modelo"></MatTextField>
+                    <MatTextField FullWidth="true" @bind-Value="@herramientaBusqueda" Label="Herramienta"></MatTextField>
                 </div>
                 <div class="col-md-3">
                     <MatButton Raised="true" Icon="search" OnClick="@BuscaHerramientasOt" class="mdc-button-background">Buscar</MatButton>
@@ -135,12 +135,12 @@
             <div class="row">
                 <MatTable Items="@herramientas" AllowSelection="true" class="mat-elevation-z10">
                     <MatTableHeader>
-                        <th style="width:300px;">Herramienta</th>
+                        <th style="width:100%;">Herramienta</th>
                         <th style="width:100px;">Cantidad</th>
                         <th style="width:100px;"></th>
                     </MatTableHeader>
                     <MatTableRow>
-                        <td style="width:600px;"><strong>@context.NombreHerramienta</strong></td>
+                        <td style="width:100%;"><strong>@context.NombreHerramienta</strong></td>
                         <td style="width:100px;">@context.cantidad</td>
                         <td style="width:100px;"><MatIconButton OnClick="@(_=>MuestraDetalle(@context))" Icon="visibility"></MatIconButton></td>
                     </MatTableRow>

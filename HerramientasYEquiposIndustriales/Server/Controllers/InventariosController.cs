@@ -747,5 +747,68 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             }
         }
 
+
+        [HttpGet("GetProveedoresByNombre/{nombre}")]
+        public async Task<ActionResult<IEnumerable<ProveedorDTO>>> GetProveedoresByNombre(string nombre)
+        {
+            try
+            {
+                if (nombre == ".-.-.")
+                    nombre = string.Empty;
+
+                var consulta = from m in context.FacturaMovimientos
+                               where (m.Descripcion.Contains(nombre))
+                               group m by new { m.Descripcion } into r
+                               select new ProveedorDTO()
+                               {
+                                   Nombre = r.Key.Descripcion,
+                               };
+
+                return await consulta.OrderBy(x => x.Nombre).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Proveedores. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
+
+        [HttpGet("GetArticulosByProveedor/{nombre}")]
+        public async Task<ActionResult<IEnumerable<ArticuloProveedorDTO>>> GetArticulosByProveedor(string nombre)
+        {
+            try
+            {
+                if (nombre == ".-.-.")
+                    nombre = string.Empty;
+
+                var consulta = from fp in context.FacturaMovimientos
+                               join m in context.Movimientos on fp.FacturaMovimientoId equals m.FacturaMovimientoId
+                               join p in context.Productos on m.ProductoId equals p.ProductoId //into fa
+                               where
+                                    (fp.Descripcion == nombre)
+                               group new { fp, p, m } by new { fp.Descripcion, p.NoParte, p.Nombre } into r
+                               orderby r.Key.NoParte ascending
+                               select new ArticuloProveedorDTO()
+                               {
+                                   Proveedor = r.Key.Descripcion,
+                                   NoParte = r.Key.NoParte,
+                                   Articulo = r.Key.Nombre,
+                                   Cantidad = r.Sum(x => (x.m.EsEntrada ? x.m.Cantidad : 0))
+                               };
+
+                return await consulta.OrderByDescending(x => x.NoParte).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener la información de los Proveedores. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
+
     }
 }

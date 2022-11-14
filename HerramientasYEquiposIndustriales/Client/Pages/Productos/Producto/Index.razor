@@ -78,8 +78,10 @@ else
 				<th style="width:15%;">Marca</th>
 				<th style="width:10%;">Modelo</th>
 				<th style="width:8%;">Ubicación</th>
+				<th style="width:8%;">Porcentaje</th>
 				<th style="width:8%;">Costo Venta</th>
 				<th style="width:8%;">Registro</th>
+				<th style="width:8%;">Modificación Precio</th>
 				<th style="width:5%;"></th>
 				<th style="width:5%;"></th>
 			</MatTableHeader>
@@ -96,8 +98,10 @@ else
 				{<td>@context.Ubicacion</td>}
 				else
 				{<td></td>}
+				<td>@context.Porcentaje</td>
 				<td>@FormatoMoneda(@context.CostoVenta.ToString())</td>
 				<td>@context.FechaRegistro?.ToString("dd/MM/yyyy")</td>
+				<td>@context.FechaModificacionPrecio?.ToString("dd/MM/yyyy")</td>
 				<td><MatIconButton OnClick="@(_=>OpenDialogEdit(@context))" Icon="edit"></MatIconButton></td>
 
 				@if (context.FechaBaja == null)
@@ -142,7 +146,7 @@ else
 						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
 					</div>
 					<div class="col-md-2">
-						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Porcentaje" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
 					</div>
 					<div class="col-md-3">
 						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
@@ -230,7 +234,7 @@ else
 						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoCompra" Label="Costo de Compra" OnFocusOut="@ajustaCostoVenta"></MatTextField>
 					</div>
 					<div class="col-md-2">
-						<MatTextField FullWidth="true" @bind-Value="@porcentajeVenta" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
+						<MatTextField FullWidth="true" @bind-Value="@Producto.Porcentaje" Label="Porcentaje de venta" OnFocusOut="@ajustaCostoVenta"></MatTextField>
 					</div>
 					<div class="col-md-3">
 						<MatTextField FullWidth="true" @bind-Value="@Producto.CostoVenta" Label="Costo de Venta"></MatTextField>
@@ -401,7 +405,7 @@ else
 	private int idProductoEliminar = 0;
 	private int totalProductos = 0;
 
-	private int porcentajeVenta = 20;
+	//private int porcentajeVenta = 20;
 
 	private string ipRutaReportes = string.Empty;
 
@@ -428,6 +432,7 @@ else
 	{
 		if (!Expandido) { Expandido = false; }
 		noAfectaInventario = false;
+		Producto.Porcentaje = Producto.Porcentaje ?? 20;
 		dialogIsOpen = true;
 	}
 
@@ -484,7 +489,8 @@ else
 			FechaActivo = productoEdicion.FechaActivo,
 			CantidadMinimaInventario = productoEdicion.CantidadMinimaInventario,
 			Ubicacion = productoEdicion.Ubicacion,
-			NoAfectaInventario = productoEdicion.NoAfectaInventario
+			NoAfectaInventario = productoEdicion.NoAfectaInventario,
+			Porcentaje = productoEdicion.Porcentaje
 		};
 		//Marca = new MarcaDTO() { MarcaId = productoEdicion.Marca.MarcaId, Descripcion = productoEdicion.Marca.Descripcion };
 		noAfectaInventario = Producto.NoAfectaInventario == null ? false : Producto.NoAfectaInventario == false ? false : true;
@@ -668,7 +674,7 @@ else
 		if ((Producto.CostoVenta != null ? Producto.CostoVenta : 0) != 0)
 			if (!CostoVentaCorrecto(Producto.CostoCompra, Producto.CostoVenta))
 			{
-				await OpenMessage("El Costo de Venta debe ser mayor o igual al " + porcentajeVenta.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
+				await OpenMessage("El Costo de Venta debe ser mayor o igual al " + Producto.Porcentaje.ToString() + "% (" + precioMayorPorcentaje + ") del Costo de Compra.");
 				return;
 			}
 
@@ -689,7 +695,8 @@ else
 		{
 			Clear();
 			dialogIsOpen = false;
-			await CargaProductos();
+			await Buscar();
+			//await CargaProductos();
 			await Task.Delay(50);
 			toastService.ShowSuccess("Registro completo", "Guardado");
 		}
@@ -706,7 +713,8 @@ else
 			Clear();
 			dialogIsOpen = false;
 			dialogEditIsOpen = false;
-			await CargaProductos();
+			await Buscar();
+			//await CargaProductos();
 			await Task.Delay(50);
 			toastService.ShowSuccess("Registro completo", "Guardado");
 		}
@@ -791,10 +799,10 @@ else
 
 	private void Clear()
 	{
-		NoParteBusqueda = string.Empty;
-		NombreBusqueda = string.Empty;
-		ModeloBusqueda = string.Empty;
-		MarcaBusqueda = new MarcaDTO();
+		//NoParteBusqueda = string.Empty;
+		//NombreBusqueda = string.Empty;
+		//ModeloBusqueda = string.Empty;
+		//MarcaBusqueda = new MarcaDTO();
 		//Marca = new MarcaDTO();
 		NuevaMarca = new MarcaDTO();
 
@@ -860,7 +868,7 @@ else
 		costoVenta = costoVenta ?? 0;
 		bool result = true;
 
-		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		float? porcentaje = ((float?)(1 - ((float?)Producto.Porcentaje / 100)));
 		precioMayorPorcentaje = (costoCompra / porcentaje)?.ToString("C2");
 		if (costoVenta < (float?)Math.Round((decimal)(costoCompra / porcentaje), 2))
 			result = false;
@@ -872,7 +880,8 @@ else
 	private async Task ajustaCostoVenta()
 	{
 		if (Producto != null)
-			Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
+			if((Producto.Porcentaje ?? 0) > 0)
+				Producto.CostoVenta = GeneraCostoVenta(Producto.CostoCompra);
 
 		await Task.Delay(50);
 	}
@@ -882,12 +891,12 @@ else
 		CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
 		costoCompra = costoCompra ?? 0;
-		if (porcentajeVenta >= 100)
-			porcentajeVenta = 99;
-		if (porcentajeVenta < 0)
-			porcentajeVenta = 0;
+		if (Producto.Porcentaje >= 100)
+			Producto.Porcentaje = 99;
+		if (Producto.Porcentaje < 0)
+			Producto.Porcentaje = 0;
 
-		float? porcentaje = ((float?)(1 - ((float?)porcentajeVenta / 100)));
+		float? porcentaje = ((float?)(1 - ((float?)Producto.Porcentaje / 100)));
 		//porcentaje = (float?)(Math.Truncate((decimal)porcentaje * 100) / 100);
 		//return ((porcentaje * costoCompra) + costoCompra);
 		if (costoCompra > 0)

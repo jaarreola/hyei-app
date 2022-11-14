@@ -116,7 +116,7 @@
 		<MatExpansionPanelSummary>
 			<MatExpansionPanelHeader><h6>Orden de Trabajo <strong>@ordenTrabajoConsulta.NumeroOrdenTrabajo</strong></h6></MatExpansionPanelHeader>
 			<MatExpansionPanelSubHeader>
-				@(ordenTrabajoConsulta.Descripcion != null ? ordenTrabajoConsulta.Descripcion : "Sin Cotizar")
+				@(ordenTrabajoConsulta.Descripcion != null ? ordenTrabajoConsulta.Descripcion : "Sin Cotizar") <strong>@((ordenTrabajoConsulta.Revision ?? false) == true ? " - A REVISIÓN" : "") @((ordenTrabajoConsulta.Reparacion ?? false) == true ? " - A REPARACIÓN" : "")</strong>
 			</MatExpansionPanelSubHeader>
 		</MatExpansionPanelSummary>
 		<MatExpansionPanelDetails>

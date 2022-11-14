@@ -113,7 +113,17 @@
 			<td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
 			<td>@context.FechaFinRenta?.ToString("dd/MM/yyyy")</td>
 			<td>@FormatoMoneda(@context.TotalRenta.ToString())</td>
-			<td><MatIconButton OnClick="@(_=>ImprimeHerramientaGrid(@context))" Icon="print"></MatIconButton></td>
+
+			@if (context.RentasId == 0)
+			{ 
+				<td><MatIconButton OnClick="@(_=>ImprimeHerramientaGrid(@context))" Icon="save"></MatIconButton></td>
+			}
+			else
+			{ 
+				<td><MatIconButton OnClick="@(_=>ImprimeHerramientaGrid(@context))" Icon="check_circle"></MatIconButton></td>
+			}
+
+			
 			<td><MatIconButton OnClick="@(_=>EliminaHerramientaGrid(@context))" Icon="delete"></MatIconButton></td>
 		</MatTableRow>
 	</MatTable>
@@ -337,8 +347,16 @@
             </div>
         </div>
 		<div class="row">
-			<div class="col-md-4" style="padding: 10px 10px;">
-				Total Horas: <strong>@rentaDetalleEditar.TotalHorasRenta.ToString() Hrs</strong>
+			<div class="col-md-3">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEditar.HorasSalida" HelperText="Horas Salida" Label="Horas Salida" InputStyle="font-weight: bold" TValue="int?"></MatTextField>
+            </div>
+			<div class="col-md-6" style="padding: 10px 10px;">
+				Total horas de renta: <strong>@rentaDetalleEditar.TotalHorasRenta.ToString() Hrs</strong>
+            </div>
+        </div>
+		<div class="row">
+			<div class="col-md-12">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEditar.Comentarios" Label="Comentario / Observación Herramienta" TextArea="true"></MatTextField>
             </div>
         </div>
     </MatDialogContent>
@@ -439,6 +457,7 @@
 	private bool imprimeContrato = false;
 	private int posicionReg;
 	private int index;
+	private int noRenta;
 
 
 	protected async override Task OnInitializedAsync()
@@ -542,25 +561,14 @@
     }
 
 
-
-	//private async Task OpenDialogEditHerramienta(RentasDTO ordenTrabajoDetalle)
-	//{
-	//	if (!expandido) { expandido = false; }
-	//	
-	//	if (desactivaGuardar == true)
-	//		return;
-	//
-	//	await OpenMessage("FALTA GENERA PROCESO PARA EDICION DE UNA HERRAMIENTA");
-	//	return;
-	//}
-
 	private async Task ImprimeHerramientaGrid(RentasDTO herramientaRenta)
 	{
 		if (!expandido) { expandido = false; }
 
 		index = listaRentas.FindIndex(s => s == herramientaRenta);
 
-		if (await OpenConfirmacion("Desea imprimir el contrato para esta herramienta?") == 1)
+		//if (await OpenConfirmacion("Desea imprimir el contrato para esta herramienta?") == 1)
+		if (await OpenConfirmacion("Desea marcar como completa esta herramienta?") == 1)
 		{
 			rentaIndividual = herramientaRenta;
 			if (rentaIndividual.RentasId != 0)
@@ -582,9 +590,40 @@
 	}
 
 
+	private async Task ImprimirContrato()
+	{
+		if (!expandido) { expandido = false; }
+
+		if (noRenta <= 0)
+		{
+			toastService.ShowWarning("No se genero el numero de renta", "Atención");
+			return;
+		}			
+				
+		//await CargaRutaContrato();
+		await CargaRutaContratoNoRenta();
+		String url = "http://" + ipRutaReporteContrato + "/Reportes/GetContratoRentaByNoRenta?noRenta=" + noRenta;
+		//await Js.InvokeAsync<object>("open", url, "_blank");
+		await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+		imprimeContrato = false;
+		rentaIndividual = null;
+
+		MuestraOcultarPaginadorHerramientas();
+	}
+
+
 	private async Task CargaRutaContrato()
 	{
 		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContrato");
+		var configuracion = responseHttp.Response;
+
+		ipRutaReporteContrato = configuracion.Valor;
+	}
+
+
+	private async Task CargaRutaContratoNoRenta()
+	{
+		var responseHttp = await repository.Get<ConfiguracionesDTO>("api/Configuraciones/GetIpRutaReporteContratoNoRenta");
 		var configuracion = responseHttp.Response;
 
 		ipRutaReporteContrato = configuracion.Valor;
@@ -931,12 +970,13 @@
 		{
 			if ((rentaIndividual.TotalRenta ?? 0) == 0)
 			{
-				toastService.ShowWarning("Falta generarle su Costo total", "Atención");
+				toastService.ShowWarning("Falta generarle el Costo total", "Atención");
 				rentaIndividual = null;
 				guardaIndividual = false;
 				return false;
 			}
-			dialogValidaEmpleado = true;
+			//dialogValidaEmpleado = true;
+			await GuardarHerramientaDeRenta(); //aqui 
 			return true;
 		}
 		else if (listaRentas.Count > 0)
@@ -945,12 +985,20 @@
 			{
 				if (renta.RentasId == 0)
 				{
-					toastService.ShowWarning("Hay herramientas que aun no se ha generado su contrato.");
+					//toastService.ShowWarning("Hay herramientas que aun no se ha generado su contrato.");
+					toastService.ShowWarning("Hay herramientas que aun no se han guardado.");
 					return false;
 				}
 			}
-			dialogValidaEmpleado = true;
-			return true;
+
+			if (await OpenConfirmacion("Desea terminar y generar el contrato para esta renta?") == 1)
+			{
+				dialogValidaEmpleado = true;
+				return true;
+			}
+			else
+				return false;
+			
 		}
 		else
 		{
@@ -1029,16 +1077,24 @@
 					toastService.ShowError(await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
 				else
 				{
-					dialogValidaEmpleado = false;
+					JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+					responseString = await httpResponse.HttpResponseMessage.Content.ReadAsStringAsync();
+					noRenta = JsonSerializer.Deserialize<int>(responseString, JsonSerializerOptions);
 
-					//limpiamos los campos despues de guardar
-					numeroEmpleado = string.Empty;
-					cliente = new ClienteDTO();
-					listaRentas = new List<RentasDTO>();
-					clienteIdBusqueda = null;
-					fechaVencimientoCLiente = string.Empty;
-					esVencido = string.Empty;
-					toastService.ShowSuccess("Registro completo", "Guardado");
+					await ImprimirContrato();
+
+					if(noRenta > 0)
+					{
+						dialogValidaEmpleado = false;
+						//limpiamos los campos despues de guardar
+						numeroEmpleado = string.Empty;
+						cliente = new ClienteDTO();
+						listaRentas = new List<RentasDTO>();
+						clienteIdBusqueda = null;
+						fechaVencimientoCLiente = string.Empty;
+						esVencido = string.Empty;
+						toastService.ShowSuccess("Registro completo", "Guardado");
+					}					
 				}
 			}
 			await Task.Delay(50);
@@ -1077,6 +1133,52 @@
 
 		guardandoRenta = false;
 	}
+
+
+	private async Task GuardarHerramientaDeRenta()
+	{
+		if (rentaIndividual != null && guardaIndividual)
+		{
+			//se manda guardar toda la lista
+			List<Object> enviarI = new List<Object>();
+			enviarI.Add(cliente);
+			enviarI.Add(new EmpleadoDTO());
+			//enviarI.Add(empleado);
+			enviarI.Add(rentaIndividual);
+
+			var httpResponseI = await repository.Post("api/Rentas/GuardaRenta", enviarI);
+
+			if (httpResponseI.Error)
+				toastService.ShowError(await httpResponseI.HttpResponseMessage.Content.ReadAsStringAsync(), "Error");
+			else
+			{
+				JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+				var responseString = await httpResponseI.HttpResponseMessage.Content.ReadAsStringAsync();
+				rentaIndividual = JsonSerializer.Deserialize<RentasDTO>(responseString, JsonSerializerOptions);
+
+				listaRentas[index].RentasId = rentaIndividual.RentasId;
+
+				numeroEmpleado = string.Empty;
+				guardaIndividual = false;
+				toastService.ShowSuccess("Registro completo", "Guardado");
+				imprimeContrato = false;
+				rentaIndividual = null;
+
+				if(imprimeContrato)
+				{
+					await CargaRutaContrato();
+					String url = "http://" + ipRutaReporteContrato + "/Reportes/GetContratoRenta?contratoRentaId=" + rentaIndividual.RentasId;
+					//await Js.InvokeAsync<object>("open", url, "_blank");
+					await Js.InvokeVoidAsync("blazorOpen", new object[2] { url, "_blank" });
+					imprimeContrato = false;
+					rentaIndividual = null;
+				}
+				await Task.Delay(100);
+				dialogValidaEmpleado = false;
+			}
+		}
+	}
+
 
 
 	private void CancelaDialogValidaEmpleado()

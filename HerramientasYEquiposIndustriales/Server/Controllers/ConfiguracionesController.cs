@@ -105,5 +105,25 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     $"al obtener valores de Configuraciones. \n{CommonConstant.MSG_ERROR_FIN}");
             }
         }
+
+
+        [HttpGet("GetIpRutaReporteContratoNoRenta")]
+        public async Task<ActionResult<ConfiguracionesDTO>> GetIpRutaReporteContratoNoRenta()
+        {
+            try
+            {
+                var configuracion = await context.Configuraciones.FirstOrDefaultAsync(x => x.Tipo == "ipReporteContratoByNoRenta");
+                if (configuracion == null) { return NotFound(); }
+
+                return mapper.Map<ConfiguracionesDTO>(configuracion);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine(ex.Message.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    $"{CommonConstant.MSG_ERROR_INICIO} " +
+                    $"al obtener valores de Configuraciones. \n{CommonConstant.MSG_ERROR_FIN}");
+            }
+        }
     }
 }

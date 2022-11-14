@@ -27,5 +27,10 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public string Direccion { get; set; }
         public string Telefono { get; set; }
 
+        public int? HorasSalida { get; set; }
+        public int? HorasEntrega { get; set; }
+        public string Comentarios { get; set; }
+        public int NoRenta { get; set; }
+
     }
 }

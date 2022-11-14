@@ -539,8 +539,9 @@ else
 	private async Task BajaArticulo(object item)
 	{
 		productoSeleccionado = item as ProductosTiendaDTO;
-		if (await OpenConfirmacion("Desea dar de baja el producto seleccionado?") == 1)
-			dialogValidaEmpleado = true;
+		if (await OpenConfirmacion("Desea dar de baja el producto seleccionado? (Este proceso eliminara el producto de las lista para su uso)") == 1)
+			if (await OpenConfirmacion("En verdad esta seguro?") == 1)
+				dialogValidaEmpleado = true;
 	}
 
 	private async Task AltaArticulo(object item)

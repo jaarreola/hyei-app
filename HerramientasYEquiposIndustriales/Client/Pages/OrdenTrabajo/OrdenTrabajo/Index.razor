@@ -145,7 +145,16 @@
 	<EditForm Model="@_ordenTrabajoDetalle">
 		<DataAnnotationsValidator />
 		<MatDialog @bind-IsOpen="@_dialogAgregaHerramientaIsOpen" CanBeClosed="false" class="mdc-dialog900">
-			<MatDialogTitle><h5>Herramienta</h5></MatDialogTitle>
+			<MatDialogTitle><h5>Herramienta</h5>
+				<div class="row">
+                    <div class="col-md-3">
+                        <MatCheckbox TValue="bool?" @bind-Value="@_ordenTrabajoDetalle.Revision">A Revisión</MatCheckbox>
+                    </div>
+                    <div class="col-md-3">
+                        <MatCheckbox TValue="bool?" @bind-Value="@_ordenTrabajoDetalle.Reparacion">A Reparación</MatCheckbox>
+                    </div>
+                </div>
+			</MatDialogTitle>
 			<MatDialogContent>
 				<div class="row">
 					<div class="col-md-5">
@@ -288,17 +297,17 @@
 	private String telefono;
 
 
-	private bool desactivaGuardar = false;
-	
+	private bool desactivaGuardar = false;	
 	private string ipRutaReportes = string.Empty;
-
 	private bool guardandoOt = false;
-
 
 	protected async override Task OnInitializedAsync()
 	{
 		System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
+
+		_ordenTrabajoDetalle.Revision = false;
+		_ordenTrabajoDetalle.Reparacion = false;
 
 		await CargaComboMarcas();
 		await CargaRutaReportes();
@@ -558,6 +567,12 @@
 		if (_ordenTrabajoDetalle.GarantiaLocal && (_ordenTrabajoDetalle.GarantiaLocalDetalle ?? String.Empty) == String.Empty)
 		{
 			await OpenMessage("Debe capturar el detalle de la garantía de Local.");
+			return;
+		}
+
+		if ( (_ordenTrabajoDetalle.Revision ?? false) == false && (_ordenTrabajoDetalle.Reparacion ?? false) == false )
+		{
+			await OpenMessage("Debe seleccionar por lo menos una opción de entrada (Revisión, Reparación).");
 			return;
 		}
 

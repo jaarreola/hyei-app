@@ -402,7 +402,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                join e in context.EstatusOTs on ef2.EstatusOTId equals e.EstatusOTId into e1
                                from e2 in e1.DefaultIfEmpty()
                                where ef2.Terminado == null &&
-                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null)) &&
+                                   ((otd.FechaRegistro.Value.Date >= filtro.FechaInicio && otd.FechaRegistro.Value.Date < filtro.FechaFin) || (filtro.FechaInicio == null && filtro.FechaFin == null) || filtro.NumeroOrdenTrabajo != null) &&
                                    (otd.NumeroOrdenTrabajo.Contains(filtro.NumeroOrdenTrabajo) || filtro.NumeroOrdenTrabajo == null) &&
                                    (otd.NombreHerramienta.Contains(filtro.NombreHerramienta) || filtro.NombreHerramienta == null) &&
                                    (otd.Marca == filtro.Marca || filtro.Marca == null) &&
@@ -447,7 +447,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                    EstatusOTId = ef2.EstatusOTId,
                                    Terminado = ef2.Terminado,
                                    Descripcion = e2.Descripcion,
-                                   Posicion = e2.Posicion
+                                   Posicion = e2.Posicion,
+                                   Revision = otd.Revision,
+                                   Reparacion = otd.Reparacion
                                };
 
                 var consultaResultado = from con in consulta
@@ -499,7 +501,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                             Terminado = con.Terminado,
                                             Descripcion = con.Descripcion,
                                             Posicion = con.Posicion,
-                                            costoReparacion = (decimal)m2.costoReparacion
+                                            costoReparacion = (decimal)m2.costoReparacion,
+                                            Revision = con.Revision,
+                                            Reparacion = con.Reparacion
                                         };
 
                 var result = await consultaResultado.ToListAsync();

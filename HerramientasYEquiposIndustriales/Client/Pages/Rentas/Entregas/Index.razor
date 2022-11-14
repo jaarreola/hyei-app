@@ -102,9 +102,9 @@
 <div class="row">
     <MatTable Items="@rentas" AllowSelection="true" class="mat-elevation-z10">
         <MatTableHeader>
+            <th style="width:10%;">No Renta</th>
             <th style="width:10%;">Sku</th>
             <th style="width:20%;">Herramienta</th>
-            <th style="width:8%;">Folio</th>
             <th style="width:10%;">Inicio Renta</th>
             <th style="width:10%;">Fin Renta</th>
             <th style="width:10%;">Entrega</th>
@@ -115,9 +115,9 @@
             <th style="width:8%;"></th>
         </MatTableHeader>
         <MatTableRow>
+            <td><strong>@context.NoRenta</strong></td>
             <td><strong>@context.Sku</strong></td>
             <td>@context.Herramienta</td>
-            <td>@context.FolioProductoTienda</td>
             <td>@context.FechaInicioRenta?.ToString("dd/MM/yyyy")</td>
 
             @if (context.FechaEntregado != null)
@@ -225,6 +225,44 @@
                 }
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-3">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.HorasSalida" HelperText="Horas Salida" Label="Horas Salida" ReadOnly="true" InputStyle="font-weight: bold" TValue="int?"></MatTextField>
+            </div>
+            <div class="col-md-3">
+				<MatTextField FullWidth="true" Value="@horasEntrega" HelperText="Horas Entrega" Label="Horas Entrega" ValueChanged="@(value=>OnChangeValueHorasEntrega(value))" TValue="int?"></MatTextField>
+            </div>
+            @if (rentaDetalleEntregar.FechaEntrega != null)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
+                </div>
+            }
+            else if(((rentaDetalleEntregar.HorasEntrega ?? 0) - (rentaDetalleEntregar.HorasSalida ?? 0)) <= totalHorasRentado)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="green"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="red"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }
+           @* else if (fechaFinRenta < DateTime.Today)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="red"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }
+            else if (fechaFinRenta >= DateTime.Today)
+            {
+                <div class="col-md-4" style="padding: 10px 10px;">
+				    Total Horas: <font color="green"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
+                </div>
+            }*@
+        </div>
         <div class="row">            
             <div class="col-md-3">
 				<MatTextField FullWidth="true" Value="@recargo" HelperText="Recargo" Label="Recargo" ReadOnly="false" ValueChanged="@(value=>OnChangeValueRecargo(value))" TValue="float?"></MatTextField>
@@ -237,24 +275,9 @@
             </div>
         </div>
         <div class="row">
-            @if (rentaDetalleEntregar.FechaEntrega != null)
-            {
-                <div class="col-md-4" style="padding: 10px 10px;">
-				    Total Horas: <strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong>
-                </div>
-            }
-            else if (fechaFinRenta < DateTime.Today)
-            {
-                <div class="col-md-4" style="padding: 10px 10px;">
-				    Total Horas: <font color="red"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
-                </div>
-            }
-            else if (fechaFinRenta >= DateTime.Today)
-            {
-                <div class="col-md-4" style="padding: 10px 10px;">
-				    Total Horas: <font color="green"><strong>@rentaDetalleEntregar.TotalHorasRenta.ToString() Hrs</strong></font>
-                </div>
-            }
+			<div class="col-md-12">
+				<MatTextField FullWidth="true" @bind-Value="@rentaDetalleEntregar.Comentarios" Label="Comentario / Observación Herramienta" ReadOnly="true" TextArea="true"></MatTextField>
+            </div>
         </div>
     </MatDialogContent>
     <MatDialogActions>
@@ -338,6 +361,8 @@
     private string mensajeVencimiento = string.Empty;
 
     private string fechaActcual = DateTime.Today.Date.ToString("dd/MMMM/yyyy");
+    private int totalHorasRentado;
+    private int? horasEntrega;
 
     protected async override Task OnInitializedAsync()
 	{
@@ -408,6 +433,9 @@
         System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 		CultureInfo.CurrentCulture = new CultureInfo("en-US", false);
 
+        horasEntrega = null;
+        totalHorasRentado = 0;
+
         if(registro.RentaId != 0)
         {
             //obtenemos el detalle del registro seleccionado
@@ -424,15 +452,19 @@
 
             fechaInicioRenta = rentaDetalleEntregar.FechaInicioRenta.Value.AddDays(1);
             fechaFinRenta = rentaDetalleEntregar.FechaFinRenta.Value.AddDays(1);
-            
-            if(rentaDetalleEntregar.FechaEntrega != null)
-                fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
+
+            //if(rentaDetalleEntregar.FechaEntrega != null)
+            //    fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value.AddDays(1);
+            if (rentaDetalleEntregar.FechaEntrega != null)
+                fechaEntrega = rentaDetalleEntregar.FechaEntrega.Value;
 
 
             if (rentaDetalleEntregar.FechaEntrega == null)
+            {
                 rentaDetalleEntregar.TotalHorasRenta = (int)(DateTime.Today - (DateTime)rentaDetalleEntregar.FechaInicioRenta).TotalDays * 8;
+                totalHorasRentado = (int)((DateTime)rentaDetalleEntregar.FechaFinRenta - (DateTime)rentaDetalleEntregar.FechaInicioRenta).TotalDays * 8;
+            }
 
-            
             if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && rentaDetalleEntregar.FechaEntrega == null)
                 mensajeVencimiento = "Renta vencida desde hace " + @DateTime.Today.Subtract(rentaDetalleEntregar.FechaFinRenta.Value).Days + " días";
             else
@@ -446,6 +478,7 @@
     private async Task CancelaEntrega()
 	{
         rentaDetalleEntregar = new RentasDTO();
+        fechaEntrega = null;
         dialogEditaHerramienta = false;
 		await Task.Delay(50);
 	}
@@ -462,13 +495,40 @@
     }
 
 
+    private void OnChangeValueHorasEntrega(int? value)
+    {
+        if ((rentaDetalleEntregar.HorasSalida ?? 0) > 0 && (value ?? 0) > (rentaDetalleEntregar.HorasSalida ?? 0))
+        {
+            horasEntrega = rentaDetalleEntregar.HorasEntrega = value;
+            rentaDetalleEntregar.TotalHorasRenta = rentaDetalleEntregar.HorasEntrega - rentaDetalleEntregar.HorasSalida;
+        }
+        else
+            horasEntrega = null;
+    }
+
+
     private async Task RealizaEntrega()
 	{
+        if((((rentaDetalleEntregar.HorasEntrega ?? 0) - (rentaDetalleEntregar.HorasSalida ?? 0)) > totalHorasRentado) && (recargo ?? 0) <= 0)
+        {
+            await OpenMessage("La herramienta excede las horas de renta (" + totalHorasRentado.ToString() + " hrs.), debe capturar un recargo.");
+            return;
+        }
         if (rentaDetalleEntregar.FechaFinRenta < DateTime.Today && (recargo ?? 0) <= 0)
         {
             await OpenMessage("Fecha de entrega vencida, debe capturar un recargo.");
             return;
         }
+        if ((rentaDetalleEntregar.HorasSalida ?? 0) > 0 && (rentaDetalleEntregar.HorasEntrega ?? 0) <= 0)
+        {
+            await OpenMessage("Debe capturar el total de horas de entrega.");
+            return;
+        }
+        if ((rentaDetalleEntregar.HorasEntrega ?? 0) <= (rentaDetalleEntregar.HorasSalida ?? 0) && rentaDetalleEntregar.HorasEntrega != null)
+        {
+            await OpenMessage("El total de horas de entrega no puede ser igual o menor que las horas de salida.");
+            return;
+        }        
         dialogValidaEmpleado = true;
 		await Task.Delay(50);
 	}

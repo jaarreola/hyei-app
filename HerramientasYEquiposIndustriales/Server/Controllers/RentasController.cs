@@ -139,13 +139,14 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
 
         [HttpPost("CompletaRenta")]
-        public ActionResult<bool> CompletaRenta(List<object> datos)
+        public ActionResult<int> CompletaRenta(List<object> datos)
         {
             try
             {
                 Cliente cliente = new Cliente();
                 Empleado empleado = new Empleado();
                 List<Rentas> rentas = new List<Rentas>();
+                int sigNumeroRenta = GetSiguienteNumeroRenta();
 
                 if (datos.Count == 3)
                 {
@@ -166,6 +167,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                         var rentaActualiza = context.Rentas.Where(x => x.RentasId == renta.RentasId).FirstOrDefault();
                         rentaActualiza.ClienteId = cliente.ClienteId;
                         rentaActualiza.EmpleadoCreacion = empleado.EmpleadoId;
+                        rentaActualiza.NoRenta = sigNumeroRenta;
                         rentaActualiza.Generada = true;
 
                         context.Entry(rentaActualiza).State = EntityState.Modified;
@@ -185,7 +187,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                     }
                     scope.Complete();
                 }
-                return true;
+                return sigNumeroRenta;
             }
             catch (Exception e)
             {
@@ -210,11 +212,12 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                              join c in context.Clientes on r.ClienteId equals c.ClienteId
                              where
                                 //(te.Rentado) &&
-                                ((filtro.EstatusRenta > 0 && ((filtro.EstatusRenta == 1 && r.FechaFinRenta > DateTime.Today && r.FechaEntrega == null) || (filtro.EstatusRenta == 2 && r.FechaFinRenta <= DateTime.Today && r.FechaEntrega == null) || (filtro.EstatusRenta == 3 && r.FechaEntrega != null))) || filtro.EstatusRenta == 0) &&
+                                ((filtro.EstatusRenta > 0 && ((filtro.EstatusRenta == 1 && (r.FechaFinRenta >= DateTime.Today || r.FechaFinRenta < DateTime.Today) && r.FechaEntrega == null) || (filtro.EstatusRenta == 2 && r.FechaFinRenta < DateTime.Today && r.FechaEntrega == null) || (filtro.EstatusRenta == 3 && r.FechaEntrega != null))) || filtro.EstatusRenta == 0) &&
 
-                                ((r.RentasId == filtro.RentasId || filtro.RentasId == 0) && (r.FechaInicioRenta.Value.Date == filtro.FechaInicioRenta || filtro.FechaInicioRenta == null) && (r.FechaFinRenta.Value.Date <= filtro.FechaFinRenta || filtro.FechaFinRenta == null)) &&
+                                //((r.RentasId == filtro.RentasId || filtro.RentasId == 0) && (r.FechaInicioRenta.Value.Date == filtro.FechaInicioRenta || filtro.FechaInicioRenta == null) && (r.FechaFinRenta.Value.Date <= filtro.FechaFinRenta || filtro.FechaFinRenta == null)) &&
+                                ((r.NoRenta == filtro.RentasId || filtro.RentasId == 0) && (r.FechaInicioRenta.Value.Date == filtro.FechaInicioRenta || filtro.FechaInicioRenta == null) && (r.FechaFinRenta.Value.Date <= filtro.FechaFinRenta || filtro.FechaFinRenta == null)) &&
                                 ((c.ClienteId == filtro.ClienteId || filtro.ClienteId == 0) && (c.Nombre.Contains(filtro.NombreCliente) || filtro.NombreCliente == null) && (c.Apellido.Contains(filtro.ApellidoCliente) || filtro.ApellidoCliente == null) && (c.RFC.Contains(filtro.RFC) || filtro.RFC == null)) &&
-                                ((pt.Sku == filtro.Sku || filtro.Sku == null) && (pt.ProductosTiendaId == filtro.ProductoTiendaId || filtro.ProductoTiendaId == 0))
+                                ((pt.Sku.Contains(filtro.Sku) || filtro.Sku == null) && (pt.ProductosTiendaId == filtro.ProductoTiendaId || filtro.ProductoTiendaId == 0))
                              select new RentasDetalleDTO()
                              {
                                  ProductosTiendaId = pt.ProductosTiendaId,
@@ -233,7 +236,11 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
                                  Nombre = c.Nombre,
                                  Apellido = c.Apellido,
                                  Direccion = c.Direccion,
-                                 Telefono = c.Telefono
+                                 Telefono = c.Telefono,
+                                 HorasSalida = r.HorasSalida,
+                                 HorasEntrega = r.HorasEntrega,
+                                 Comentarios = r.Comentarios,
+                                 NoRenta = r.NoRenta
                              };
 
                 return await rentas.ToListAsync();
@@ -411,5 +418,9 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
             return context.Rentas.Any(x => x.RentasId == id);
         }
 
+        private int GetSiguienteNumeroRenta()
+        {
+            return context.Rentas.Max(x => x.NoRenta) + 1;
+        }
     }
 }

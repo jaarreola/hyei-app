@@ -35,6 +35,8 @@ namespace HerramientasYEquiposIndustriales.Shared.DTOs
         public bool TieneCotizacion { get; set; }
         [Required]
         public String Comentarios { get; set; }
+        public bool? Revision { get; set; }
+        public bool? Reparacion { get; set; }
 
         public virtual OrdenTrabajo Ordentrabajo { get; set; }
     }

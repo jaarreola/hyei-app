@@ -1,0 +1,124 @@
+﻿@page "/Consultas/ArticulosProvedor"
+@using System.Globalization
+@using System.Text.Json
+
+@inject IRepository repository
+@inject IToastService toastService
+
+<MatAccordion>
+    <MatExpansionPanel @bind-Expanded="@expandido">
+        <MatExpansionPanelSummary>
+            <MatExpansionPanelHeader><h5>Consulta Artículos Por Proveedor</h5></MatExpansionPanelHeader>
+            <MatExpansionPanelSubHeader>@totalProveedores</MatExpansionPanelSubHeader>
+        </MatExpansionPanelSummary>
+        <MatExpansionPanelDetails>
+            <div class="row">
+                <div class="col-md-9">
+                    <MatTextField FullWidth="true" @bind-Value="@proveedorBusqueda" Label="Nombre Proveedor"></MatTextField>
+                </div>
+                <div class="col-md-3">
+                    <MatButton Raised="true" Icon="search" OnClick="@Buscar" class="mdc-button-background">Buscar</MatButton>
+                </div>
+            </div>
+        </MatExpansionPanelDetails>
+    </MatExpansionPanel>
+</MatAccordion>
+
+@if(procesando == true)
+{
+	<MatProgressBar Indeterminate="true"></MatProgressBar>
+}
+<MatTable Items="@proveedores" AllowSelection="true" class="mat-elevation-z10">
+    <MatTableHeader>
+        <th style="width:100%;">Proveedor</th>
+        <th style="width:10%;"></th>
+    </MatTableHeader>
+    <MatTableRow>
+        <td style="width:100%;"><strong>@context.Nombre</strong></td>
+        <td style="width:10%;"><MatIconButton OnClick="@(_=>MuestraArticulos(@context.Nombre))" Icon="visibility"></MatIconButton></td>
+    </MatTableRow>
+</MatTable>
+
+
+<div>
+    <MatDialog @bind-IsOpen="@dialogIsOpen" CanBeClosed="false" class="mdc-dialog800">
+        <MatDialogTitle><h5>Artículos comprados</h5></MatDialogTitle>
+        <MatDialogContent>
+            <div class="col-md-3" style="padding:15px 0px 0px 0px">
+                <strong>@totalArticulos</strong>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <MatTable Items="@articulos" AllowSelection="true" class="mat-elevation-z10 mdc-table1" ShowPaging="false" PageSize="@totalArticulos">
+                        <MatTableHeader>
+                            <th style="width:10%;">No Parte</th>
+                            <th style="width:80%;">Articulo</th>
+                            <th style="width:10%;">Cantidad</th>
+                        </MatTableHeader>
+                        <MatTableRow>
+                            <td>@context.NoParte</td>
+                            <td>@context.Articulo</td>
+                            <td>@context.Cantidad</td>
+                        </MatTableRow>
+                    </MatTable>
+                </div>
+            </div>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@CancelaDialog" class="mdc-button-modal">Cerrar</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</div>
+
+
+@code {
+    private List<ProveedorDTO> proveedores = new List<ProveedorDTO>();
+    private List<ArticuloProveedorDTO> articulos = new List<ArticuloProveedorDTO>();
+
+    private int totalProveedores;
+    private int totalArticulos;
+
+    String proveedorBusqueda = string.Empty;
+    private bool procesando = false;
+    private bool dialogIsOpen = false;
+    private bool expandido = true;
+
+    private async Task Buscar()
+    {
+        procesando = true;
+        await Task.Delay(100);        
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if(proveedorBusqueda == string.Empty)
+            proveedorBusqueda = ".-.-.";
+        var responseHttp = await repository.Get<List<ProveedorDTO>>("api/Inventarios/GetProveedoresByNombre/" + proveedorBusqueda);
+        
+         if(proveedorBusqueda == ".-.-.")
+            proveedorBusqueda = string.Empty;
+
+        proveedores = responseHttp.Response;
+        totalProveedores = proveedores.Count();
+        procesando = false;
+    }
+
+    private async Task MuestraArticulos(string nombreProveedor)
+    {
+        procesando = true;
+        CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
+        if(nombreProveedor == string.Empty)
+            nombreProveedor = ".-.-.";
+        var responseHttp = await repository.Get<List<ArticuloProveedorDTO>>("api/Inventarios/GetArticulosByProveedor/" + nombreProveedor);
+        articulos = responseHttp.Response;
+        totalArticulos = articulos.Count();
+        dialogIsOpen = true;
+
+        procesando = false;
+    }
+
+    private async Task CancelaDialog()
+    {
+        dialogIsOpen = false;
+        await Task.Delay(50);
+    }
+}

@@ -138,7 +138,7 @@ namespace HerramientasYEquiposIndustriales.Server.Controllers
 
                 var consultaFinal = from pt in context.ProductosTienda.Include(x => x.Marca)
                                     where (pt.ProductosTiendaId == filtro.ProductoTiendaId || filtro.ProductoTiendaId == 0) && (pt.Sku.Contains(filtro.Sku) || (filtro.Sku ?? string.Empty) == string.Empty) &&
-                                        (pt.Nombre.Contains(filtro.NombreProducto) || (filtro.NombreProducto ?? string.Empty) == string.Empty)
+                                        (pt.Nombre.Contains(filtro.NombreProducto) || (filtro.NombreProducto ?? string.Empty) == string.Empty) && pt.FechaBaja == null
                                     join cu in consultaUsados on pt.ProductosTiendaId equals cu.Id into cUs
                                     from gUs in cUs.DefaultIfEmpty()
                                     join cn in consultaNuevos on pt.ProductosTiendaId equals cn.Id into cNu
